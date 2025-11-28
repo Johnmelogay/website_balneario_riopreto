@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balneário Rio Preto - O Seu Destino de Ecoturismo em Candeias do Jamari</title>
+    <!-- Meta Descrição Otimizada para SEO -->
+    <meta name="description" content="Day Use e Chalés no Balneário Rio Preto. Reserve online, confira a Galeria Histórica, Cardápio e Notícias em Candeias do Jamari. Atendimento via WhatsApp.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 (Ícones) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Configuração de Cores e Estilos Profissionais -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-green': '#2E7D32', // Verde Sóbrio e Natural (Ação Principal)
+                        'accent-orange': '#FF6D00', // Laranja Vibrante (Destaque)
+                        'bg-light': '#F5F7FA', // Fundo Suave
+                        'river-blue': '#0288D1', // Azul do Rio
+                        'text-dark': '#1C2833', // Texto Escuro Principal
+                    },
+                    fontFamily: {
+                        // Usando um fallback para a fonte Inter
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Estilos baseados no design de referência e otimização */
+        .hero-overlay { background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); }
+        .hero-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
+        
+        /* Estilos do Modal (Gallery e Booking) */
+        .modal { opacity: 0; visibility: hidden; transition: all 0.3s ease-in-out; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.95); transition: all 0.3s ease-in-out; }
+        .modal.active .modal-content { transform: scale(1); }
+        
+        /* Garantir que o mapa seja bem delimitado */
+        .map-iframe { border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* Estilo para dar um toque mais orgânico ao botão flutuante */
+        .whatsapp-float { animation: pulse 2s infinite;
+        width: 64px;        /* largura do botão */
+        height: 64px;       /* altura do botão */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;         /* remove padding remanescente */
+        font-size: 22px;    /* tamanho do ícone */
+     }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 125, 50, 0); }
+        }
+
+        /* ESTILO DINÂMICO DO HEADER */
+        #main-header {
+            transition: all 0.3s ease-in-out;
+            height: 80px; /* Altura inicial maior */
+            box-shadow: none; /* Sem sombra no topo */
+        }
+        
+        /* ESTADO PÓS-SCROLL */
+        #main-header.scrolled-header {
+            height: 60px; /* Altura menor */
+            background-color: white !important; /* Totalmente opaco */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+        }
+        
+        /* Ajuste do logo para acompanhar a transição */
+        #main-header .logo-img {
+            transition: all 0.3s ease-in-out;
+            height: 56px; /* Altura inicial */
+        }
+        #main-header.scrolled-header .logo-img {
+            height: 40px; /* Altura menor após o scroll */
+        }
+
+        /* CARROSSEL PRINCIPAL (layout + controles) */
+        .carousel-viewport {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+
+        #slides-container {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            flex-shrink: 0;
+        }
+
+
+        .carousel-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            padding: 1rem 1.25rem; /* more padding like requested */
+            background-color: #FF6D00; /* clean orange */
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            animation: duration timing-function delay iteration-count direction fill-mode;
+            
+        }
+
+        .carousel-arrow:hover {
+            background-color: #e65a00; /* slightly darker orange */
+            transform: none;
+            box-shadow: none;
+        }
+
+        .carousel-arrow i {
+            font-size: 1rem;
+            color: #ffffff;
+        }
+
+        .carousel-arrow:focus-visible {
+            outline: 2px solid #2E7D32;
+            outline-offset: 2px;
+        }
+
+        .carousel-arrow-outer {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+        }
+
+        .carousel-arrow-outer--prev {
+            left: -2.5rem;
+        }
+
+        .carousel-arrow-outer--next {
+            right: -2.5rem;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .carousel-dot {
+            width: 0.65rem;
+            height: 0.65rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            background-color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .carousel-dot[aria-current="true"] {
+            background-color: #2E7D32;
+            border-color: #2E7D32;
+            transform: scale(1.15);
+        }
+
+        @media (max-width: 767px) {
+            .carousel-arrow {
+                display: none;
+            }
+        }
+    </style>
+    <!-- Preload da imagem do hero para melhorar performance -->
+    <link rel="preload" href="images/hero-image.png" as="image">
+</head>
+<body class="bg-bg-light text-text-dark font-sans">
+
+    <!-- BARRA DE AVISO / STATUS -->
+    <div class="bg-primary-green text-white text-xs sm:text-sm py-2 text-center font-medium">
+        <i class="fas fa-clock mr-2"></i> Aberto Sábados, Domingos e Feriados | Entrada R$ 20,00 por pessoa.
+    </div>
+
+    <!-- 1. HEADER E NAV BAR (COM DINAMISMO) -->
+    <header id="main-header" class="sticky top-0 bg-white/95 backdrop-blur-md z-50">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 sm:px-6 lg:px-9">
+            <div class="flex justify-between items-center h-full">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-2">
+                    <img src="images/logo.png" alt="Logo" class="logo-img w-auto object-contain">
+                </a>
+                
+                <!-- Menu Desktop -->
+                <nav class="hidden md:flex space-x-6 text-sm font-semibold uppercase tracking-wider text-gray-700">
+                    <a href="reservas.html" class="hover:text-primary-green transition">Chalés (Hospedagem)</a>
+                    <a href="#loja" class="hover:text-primary-green transition">Mini Loja</a>
+                    <a href="#menu" class="hover:text-primary-green transition">Cardápio</a>
+                    <a href="#news-section" class="hover:text-primary-green transition">Blog Rio Preto</a>
+                    <a href="#location" class="hover:text-primary-green transition">Como Chegar</a>
+                </nav>
+
+                <!-- Botão Destaque Desktop -->
+                <button onclick="openBookingModal('Chalé')" class="hidden md:flex items-center gap-2 bg-accent-orange hover:bg-orange-700 text-white px-6 py-2.5 rounded-full font-bold shadow-lg transition transform hover:scale-105 text-sm">
+                    <i class="fas fa-bed"></i> Reservar Chalé
+                </button>
+
+                <!-- Mobile Menu Btn -->
+                <button id="menu-btn" class="md:hidden text-gray-700 p-2 text-2xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MENU MOBILE -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center space-y-8 bg-black/90 text-white text-xl font-bold">
+        <button id="close-menu" class="absolute top-6 right-6 text-3xl text-white"><i class="fas fa-times"></i></button>
+        <a href="#dayuse" class="mobile-link hover:text-accent-orange transition">Day Use</a>
+        <a href="reservas.html" class="mobile-link hover:text-accent-orange transition">Chalés</a>
+        <a href="#loja" class="mobile-link hover:text-accent-orange transition">Mini Loja</a>
+        <a href="#menu" class="mobile-link hover:text-accent-orange transition">Cardápio</a>
+        <a href="#news-section" class="mobile-link hover:text-accent-orange transition">Blog</a>
+        <a href="#location" class="mobile-link hover:text-accent-orange transition">Localização</a>
+        <button onclick="openBookingModal('Chalé')" class="mt-4 rounded-full bg-primary-green px-8 py-3 shadow-xl transition hover:bg-green-700">
+            Reservar Chalé
+        </button>
+    </div>
+
+    <!-- 2. HERO SECTION COM FOCO EM RESERVA -->
+    <section class="relative flex h-[85vh] items-center justify-center bg-cover bg-center text-center" 
+             style="background-image: url('images/hero-image.png');">
+        <video
+            class="hero-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            poster="images/hero-image.png"
+        >
+            <source src="videos/hero-video.mp4" type="video/mp4">
+            Seu navegador não suporta vídeo em HTML5.
+        </video>
+        <div class="hero-overlay absolute inset-0"></div>
+        
+        <div class="relative z-10 mx-auto max-w-4xl px-4">
+            <span class="mb-4 inline-block rounded-full border border-white/30 bg-primary-green px-3 py-1 text-sm font-semibold text-white">
+                ⭐ A Maior Praia de Rio em Balneário do Estado de Rondônia
+            </span>
+            <h2 class="text-4xl leading-tight text-white drop-shadow-xl md:text-6xl font-extrabold mb-6">
+                Seu Mergulho Perfeito na Natureza Amazônica
+            </h2>
+            <p class="mb-10 mx-auto max-w-2xl text-lg text-gray-200 drop-shadow-md md:text-xl">
+                Chalés à beira do rio, gastronomia regional e lazer completo. A fuga da cidade que você merece.
+            </p>
+            <div class="flex flex-col justify-center gap-4 sm:flex-row">
+                <a href="reservas.html" class="w-full transform rounded-full bg-accent-orange px-8 py-4 text-lg font-bold text-white shadow-2xl transition hover:scale-105 hover:bg-orange-700 sm:w-auto">
+                    <i class="fas fa-calendar-alt mr-2"></i> Reservar Chalé Agora
+                </a>
+                <a href="#dayuse" class="w-full transform rounded-full bg-white/90 px-8 py-4 text-lg font-bold text-text-dark shadow-2xl transition hover:scale-105 hover:bg-gray-100 sm:w-auto">
+                    Ver Preços Day Use
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2.1 CARROSSEL DE PROMOÇÕES E EVENTOS (DESTAQUE) -->
+    <section id="carousel-section" class="bg-white py-10 md:py-16 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative">
+            
+            <h3 class="text-3xl font-bold text-center mb-8 text-text-dark">Promoções e Eventos em Destaque</h3>
+
+            <div id="main-carousel" class="relative w-full rounded-2xl shadow-xl">
+                <div class="carousel-viewport bg-gray-900/5">
+                    <div id="slides-container" class="h-72 md:h-96">
+                        <!-- Slides serão carregados dinamicamente via Supabase -->
+                    </div>
+                </div>
+                <button
+                    id="carousel-prev"
+                    type="button"
+                    class="carousel-arrow carousel-arrow-outer carousel-arrow-outer--prev"
+                    aria-label="Slide anterior"
+                    aria-controls="slides-container"
+                >
+                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                </button>
+
+                <button
+                    id="carousel-next"
+                    type="button"
+                    class="carousel-arrow carousel-arrow-outer carousel-arrow-outer--next"
+                    aria-label="Próximo slide"
+                    aria-controls="slides-container"
+                >
+                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                </button>
+
+                <div
+                    id="carousel-dots"
+                    class="carousel-dots mt-6"
+                    aria-label="Navegação de slides"
+                    role="tablist"
+                >
+                    <!-- Dots serão injetados via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 2.5 LOCALIZAÇÃO E COMO CHEGAR (DESTAQUE) -->
+    <section id="location" class="py-20 bg-white shadow-inner">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-extrabold text-center mb-4 text-text-dark">📍 Como Chegar ao Balneário Rio Preto</h2>
+            <p class="text-xl text-center text-gray-600 mb-10">Localizado a apenas 40km de Porto Velho, com acesso fácil pela BR-364.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <!-- Mapa Interativo -->
+                <div class="h-96 w-full relative">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15545.922480608034!2d-63.70826622436214!3d-8.799986326164284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x92323c2a101d29c3%3A0x8670c56209422e1b!2sCandeias%20do%20Jamari%2C%20RO!5e0!3m2!1spt-BR!2sbr!4v1701111111111!5m2!1spt-BR!2sbr" 
+                        width="100%" 
+                        height="100%" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade"
+                        class="map-iframe"
+                    ></iframe>
+                </div>
+                
+                <!-- Detalhes da Rota -->
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4 p-4 bg-bg-light rounded-xl shadow">
+                        <i class="fas fa-route text-3xl text-primary-green mt-1"></i>
+                        <div>
+                            <h3 class="text-xl font-bold">Rota Principal</h3>
+                            <p class="text-gray-600">Siga pela BR-364 no sentido Candeias do Jamari. O Balneário fica na margem do Rio Preto, com placas indicativas claras na rodovia.</p>
+                        </div>
+                    </div>
+                     <div class="flex items-start gap-4 p-4 bg-bg-light rounded-xl shadow">
+                        <i class="fas fa-car text-3xl text-primary-green mt-1"></i>
+                        <div>
+                            <h3 class="text-xl font-bold">Estacionamento</h3>
+                            <p class="text-gray-600">Dispomos de estacionamento privativo e seguro para carros, motos e vans. Gratuito para hóspedes e Day Use.</p>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <a href="https://maps.app.goo.gl/YourActualRouteLink" target="_blank" class="inline-flex items-center bg-accent-orange text-white font-bold py-3 px-8 rounded-full hover:bg-orange-700 transition shadow-lg">
+                            Abrir Rota no Google Maps <i class="fas fa-external-link-alt ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. PREÇOS E SERVIÇOS (Foco em Day Use e Chalés) -->
+    <section class="py-20 -mt-20 relative z-20 px-4">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-8">
+            
+            <!-- Card Day Use -->
+            <div id="dayuse" class="glass-effect card-hover relative overflow-hidden rounded-2xl border-t-8 border-river-blue p-8 shadow-2xl transition duration-300">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h3 class="text-3xl font-bold text-gray-900">Day Use</h3>
+                        <p class="text-sm text-gray-500">Acesso total das 08h às 18h</p>
+                    </div>
+                    <span class="rounded-full bg-river-blue/20 p-3 text-river-blue"><i class="fas fa-umbrella-beach text-2xl"></i></span>
+                </div>
+                <div class="mb-6">
+                    <span class="text-4xl font-extrabold text-gray-900">R$ 20</span>
+                    <span class="font-medium text-gray-500">/pessoa</span>
+                </div>
+                <ul class="mb-8 space-y-3 text-gray-600">
+                    <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Acesso à Praia, Rio e Piscinas</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Área de Churrasqueiras e Lazer</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Serviço completo de Bar e Restaurante</li>
+                </ul>
+                <button onclick="openBookingModal('Day Use')" class="block w-full transform rounded-xl border-2 border-river-blue py-3 text-center font-bold text-river-blue transition hover:scale-[1.01] hover:bg-river-blue hover:text-white">
+                    Ver Destaques do Day Use
+                </button>
+            </div>
+
+            <!-- Card Chalés -->
+            <div id="chales" class="glass-effect card-hover relative overflow-hidden rounded-2xl border-t-8 border-primary-green p-8 shadow-2xl transition duration-300">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h3 class="text-3xl font-bold text-gray-900">Chalés Privativos</h3>
+                        <p class="text-sm text-gray-500">Hospedagem completa com conforto</p>
+                    </div>
+                    <span class="rounded-full bg-primary-green/20 p-3 text-primary-green"><i class="fas fa-house-user text-2xl"></i></span>
+                </div>
+                <div class="mb-6">
+                    <span class="text-4xl font-extrabold text-gray-900">R$ 300</span>
+                    <span class="font-medium text-gray-500">/casal</span>
+                    <p class="mt-1 text-sm text-gray-500">Consulte adicional por pessoa extra.</p>
+                </div>
+                <ul class="mb-8 space-y-3 text-gray-600">
+                    <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Ar-condicionado, Frigobar e Banheiro Privativo</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Café da manhã incluso na diária</li>
+                    <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Vista privilegiada para o rio ou piscina</li>
+                </ul>
+                <a href="reservas.html" class="block w-full transform rounded-xl bg-primary-green py-3 text-center font-bold text-white shadow-lg transition hover:scale-[1.01] hover:bg-green-800">
+                    Verificar Disponibilidade
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. GALERIA HISTÓRICA E IMERSIVA (Coleção de Fotos/Vídeos) -->
+    <section id="gallery" class="bg-white py-20">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="mb-4 text-center text-3xl font-bold text-text-dark">Nossa História em Imagens</h2>
+            <p class="mb-10 text-center text-xl text-gray-600">Momentos inesquecíveis, paisagens históricas e a evolução do Balneário Rio Preto.</p>
+
+            <!-- Grid de Fotos da Coleção -->
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                
+                <!-- Item 1 (Exemplo) -->
+                <div onclick="openGalleryModal('IMG_4833_Original.jpg', 'Vista Aérea da Área de Lazer e o Rio Preto')" class="group relative h-48 cursor-pointer overflow-hidden rounded-xl shadow-md transition duration-300 hover:shadow-xl">
+                    <img src="IMG_4833_Original.jpg" alt="Vista Aérea" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+                        <button class="rounded-full border-2 border-white p-2 text-lg text-white"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+
+                <!-- Item 2 (Exemplo de Vídeo Placeholder) -->
+                <div onclick="openGalleryModal('https://www.w3schools.com/tags/movie.mp4', 'Vídeo Histórico do Balneário Rio Preto (1998)')" class="group relative h-48 cursor-pointer overflow-hidden rounded-xl shadow-md transition duration-300 hover:shadow-xl">
+                    <img src="https://placehold.co/600x400/0288D1/FFFFFF?text=V%C3%ADdeo+Hist%C3%B3rico" alt="Vídeo Antigo" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-100 transition group-hover:bg-black/40">
+                         <button class="text-3xl text-white"><i class="fas fa-play"></i></button>
+                    </div>
+                </div>
+                
+                <!-- Itens 3 e 4 (Mais placeholders) -->
+                <div onclick="openGalleryModal('https://placehold.co/800x600/FF6D00/FFFFFF?text=Churrasqueiras', 'Churrasqueiras e Área de Convivência')" class="group relative h-48 cursor-pointer overflow-hidden rounded-xl shadow-md transition duration-300 hover:shadow-xl">
+                    <img src="https://placehold.co/800x600/FF6D00/FFFFFF?text=Churrasqueiras" alt="Churrasqueiras" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+                        <button class="rounded-full border-2 border-white p-2 text-lg text-white"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+                
+                <!-- Item 4 (Exemplo) -->
+                <div onclick="openGalleryModal('https://placehold.co/800x600/2E7D32/FFFFFF?text=Chal%C3%A9s+no+Rio', 'Interior dos Chalés com Ar-Condicionado')" class="group relative h-48 cursor-pointer overflow-hidden rounded-xl shadow-md transition duration-300 hover:shadow-xl">
+                    <img src="https://placehold.co/800x600/2E7D32/FFFFFF?text=Chal%C3%A9s+no+Rio" alt="Chalés" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+                        <button class="rounded-full border-2 border-white p-2 text-lg text-white"><i class="fas fa-expand"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-10 text-center">
+                <a href="#" class="inline-flex items-center rounded-full bg-gray-200 px-8 py-3 font-bold text-text-dark shadow-md transition hover:bg-gray-300">
+                    Ver Galeria Completa <i class="fas fa-camera ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. MINI LOJA (Pré-Lançamento da Coleção) -->
+    <section id="loja" class="bg-bg-light py-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <span class="uppercase tracking-wider font-bold text-accent-orange">Lançamento Exclusivo</span>
+            <h2 class="mt-2 mb-6 text-4xl font-extrabold text-gray-900">Coleção Balneário Rio Preto</h2>
+            <p class="mx-auto mb-12 max-w-3xl text-lg text-gray-600">
+                Leve a Amazônia com você! Nossas primeiras camisetas inspiradas na fauna e flora do Rio Preto. Edição limitada.
+            </p>
+
+            <div id="store-items-container" class="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <div class="col-span-full py-10 text-center text-gray-500">
+                    Carregando produtos da Mini Loja...
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- 6. BLOG DINÂMICO (RIO PRETO NEWS) -->
+    <section id="news-section" class="bg-white py-20">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="mb-4 text-center text-3xl font-bold text-text-dark">Blog do Balneário Rio Preto</h2>
+            <p class="mb-12 text-center text-xl text-gray-600">Dicas de viagem, eventos, gastronomia e histórias de Rondônia.</p>
+            
+            <!-- Posts serão carregados dinamicamente pelo JavaScript (Firestore) -->
+            <div id="blog-posts-container" class="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <!-- Placeholder de Carregamento -->
+                <div class="col-span-full py-10 text-center">
+                    <i class="fas fa-spinner fa-spin mb-3 text-4xl text-primary-green"></i>
+                    <p class="text-gray-500">Carregando as últimas notícias do Balneário...</p>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <a href="#" class="inline-flex items-center rounded-full bg-accent-orange px-8 py-3 font-bold text-white shadow-lg transition hover:bg-orange-700">
+                    Ver Todos os Posts <i class="fas fa-book-open ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. FAQ (Perguntas Frequentes) -->
+    <section id="faq" class="bg-bg-light py-20">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-10 text-text-dark">Perguntas Frequentes (FAQ)</h2>
+            
+            <div class="space-y-4">
+                
+                <!-- FAQ Item 1 -->
+                <div class="bg-white rounded-xl shadow p-5 border-l-4 border-river-blue">
+                    <h3 class="font-bold text-lg mb-1 text-gray-900">Qual é o valor da taxa de acesso ao Balneário (Day Use)?</h3>
+                    <p class="text-gray-600">O valor da taxa de entrada é de R$ 20,00 por pessoa, garantindo acesso completo às áreas de lazer e banho.</p>
+                </div>
+                
+                <!-- FAQ Item 2 -->
+                <div class="bg-white rounded-xl shadow p-5 border-l-4 border-primary-green">
+                    <h3 class="font-bold text-lg mb-1 text-gray-900">É permitido trazer animais de estimação (Pets)?</h3>
+                    <p class="text-gray-600">Sim, animais de estimação são bem-vindos na área comum do Balneário. Pedimos, por gentileza, que **não** os levem para o interior dos chalés, por questões de higiene e conforto.</p>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="bg-white rounded-xl shadow p-5 border-l-4 border-river-blue">
+                    <h3 class="font-bold text-lg mb-1 text-gray-900">Posso entrar com minhas próprias bebidas alcoólicas?</h3>
+                    <p class="text-gray-600">Não é permitido o ingresso de bebidas alcoólicas. Dispomos de um bar e lanchonete no local com diversas opções. A cobrança de taxa de rolha é aplicada a itens não adquiridos no Balneário.</p>
+                </div>
+                
+                <!-- FAQ Item 4 -->
+                <div class="bg-white rounded-xl shadow p-5 border-l-4 border-primary-green">
+                    <h3 class="font-bold text-lg mb-1 text-gray-900">Quais são os valores das diárias dos chalés?</h3>
+                    <p class="text-gray-600">O valor da diária é de R$ 300,00 para o casal, com um custo adicional de R$ 40,00 por pessoa extra. Consulte a <a href="reservas.html" class="text-accent-orange font-semibold hover:underline">página de reservas</a> para verificar a disponibilidade.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. FOOTER REFINADO -->
+    <footer id="contact" class="border-t-8 border-primary-green bg-gray-900 py-12 text-white">
+        <div class="mx-auto grid max-w-7xl gap-8 px-4 text-center sm:grid-cols-4 sm:text-left">
+            
+            <!-- Coluna 1: Logo e Descrição -->
+            <div class="sm:col-span-1">
+                <img src="images/logo.png" alt="Logo Rio Preto" class="mb-4 h-16 w-auto object-contain mx-auto sm:mx-0">
+                <p class="text-sm text-gray-400">Ecoturismo de excelência em Candeias do Jamari. Sua conexão com a natureza.</p>
+            </div>
+            
+            <!-- Coluna 2: Navegação Rápida -->
+            <div>
+                <h4 class="mb-4 border-b border-gray-700 pb-2 text-lg font-bold">Mapa do Site</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="reservas.html" class="text-gray-400 transition hover:text-white">Reservar Chalé</a></li>
+                    <li><a href="#loja" class="text-gray-400 transition hover:text-white">Mini Loja</a></li>
+                    <li><a href="#menu" class="text-gray-400 transition hover:text-white">Cardápio</a></li>
+                    <li><a href="#news-section" class="text-gray-400 transition hover:text-white">Blog</a></li>
+                </ul>
+            </div>
+            
+            <!-- Coluna 3: Ajuda e Contato -->
+            <div>
+                <h4 class="mb-4 border-b border-gray-700 pb-2 text-lg font-bold">Fale Conosco</h4>
+                <p class="mb-2 text-sm text-gray-400"><i class="fab fa-whatsapp mr-2 text-primary-green"></i> (69) 99999-9999</p>
+                <p class="mb-2 text-sm text-gray-400"><i class="far fa-envelope mr-2 text-primary-green"></i> contato@balneario.com</p>
+                <p class="text-sm text-gray-400"><i class="fas fa-map-marker-alt mr-2 text-primary-green"></i> Candeias do Jamari, RO</p>
+            </div>
+
+            <!-- Coluna 4: Localização/Como Chegar -->
+             <div>
+                <h4 class="mb-4 border-b border-gray-700 pb-2 text-lg font-bold">Destaques</h4>
+                <p class="mb-2 text-sm font-semibold text-gray-400">📍 40km de Porto Velho</p>
+                <p class="mb-2 text-sm font-semibold text-gray-400">🐕 Pet Friendly (Área Comum)</p>
+                <p class="mb-2 text-sm font-semibold text-gray-400">💳 Aceitamos Cartão e PIX</p>
+                <a href="#location" class="mt-4 inline-block text-sm font-bold text-primary-green transition hover:underline">Ver Rota Completa</a>
+            </div>
+        </div>
+        <div class="mt-12 border-t border-gray-800 pt-8 text-center text-sm text-gray-600">
+            &copy; 2025 Balneário Rio Preto. Desenvolvido com <span class="text-red-500">❤️</span> e Tecnologia Gemini.
+        </div>
+    </footer>
+
+    <!-- MODAL DE RESERVA INTELIGENTE (WHATSAPP) -->
+    <div id="bookingModal" class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div class="modal-content relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <button onclick="closeBookingModal()" class="absolute right-4 top-4 text-gray-400 hover:text-red-500">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <div class="mb-6 text-center">
+                <div class="mb-3 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Solicitar Cotação</h3>
+                <p class="text-sm text-gray-500">Vamos gerar uma mensagem pronta para o seu WhatsApp.</p>
+            </div>
+
+            <form id="whatsappForm" onsubmit="sendToWhatsapp(event)" class="space-y-4">
+                <!-- Campos do Formulário -->
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Seu Nome</label>
+                    <input type="text" id="name" required class="w-full rounded-lg border px-4 py-2 outline-none focus:ring-2 focus:ring-green-500" placeholder="Ex: João Silva">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-700">Interesse</label>
+                        <select id="type" class="w-full rounded-lg border bg-white px-4 py-2 outline-none">
+                            <option value="Chalé">Chalé</option>
+                            <option value="Day Use">Day Use</option>
+                            <option value="Evento">Evento</option>
+                            <option value="Mini Loja">Mini Loja (Camiseta)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-700">Pessoas</label>
+                        <input type="number" id="guests" value="2" min="1" class="w-full rounded-lg border px-4 py-2 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Data Pretendida</label>
+                    <input type="date" id="date" required class="w-full rounded-lg border px-4 py-2 text-gray-600 outline-none">
+                </div>
+                
+                <button type="submit" class="shadow-lgw-full flex items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-bold text-white transition hover:bg-green-700">
+                    Enviar Solicitação <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE GALERIA (LIGHTBOX) -->
+    <div id="galleryModal" class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4">
+        <div class="relative w-full max-w-5xl">
+            <button onclick="closeGalleryModal()" class="absolute -top-10 right-0 z-50 text-3xl text-white transition hover:text-gray-300">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <div id="galleryModalContent" class="rounded-lg bg-gray-800 p-2 shadow-xl">
+                <!-- Conteúdo (Imagem/Vídeo) é injetado aqui -->
+            </div>
+            <p id="galleryModalCaption" class="mt-3 text-center text-sm text-white"></p>
+        </div>
+    </div>
+
+
+    <!-- BOTÃO FLUTUANTE WHATSAPP -->
+    <button onclick="openBookingModal('Chalé')" class="whatsapp-float fixed bottom-6 right-6 z-40 rounded-full bg-green-500 p-4 text-white shadow-2xl transition hover:scale-110 hover:bg-green-600">
+        <i class="fab fa-whatsapp text-3xl"></i>
+    </button>
+
+
+    <!-- LÓGICA DE INTERAÇÃO (Modal, Menu, Scroll Header, Carrossel) -->
+    <script>
+        // --- 1. LÓGICA DO HEADER DINÂMICO ---
+        const mainHeader = document.getElementById('main-header');
+        
+        function handleScrollHeader() {
+            if (window.scrollY > 50) {
+                mainHeader.classList.add('scrolled-header');
+            } else {
+                mainHeader.classList.remove('scrolled-header');
+            }
+        }
+        
+        // Ativa a verificação de scroll
+        window.addEventListener('scroll', handleScrollHeader);
+        // Garante o estado correto ao carregar a página
+        document.addEventListener('DOMContentLoaded', handleScrollHeader);
+
+
+        // --- 2. LÓGICA DO MENU MOBILE ---
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenu = document.getElementById('close-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        
+        function toggleMenu() {
+            mobileMenu.classList.toggle('hidden');
+            mobileMenu.classList.toggle('flex');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        closeMenu.addEventListener('click', toggleMenu);
+        mobileLinks.forEach(link => link.addEventListener('click', toggleMenu));
+
+
+        // --- 3. LÓGICA DE MODAL E WHATSAPP ---
+        // Lógica do Modal de Reserva (Transferida para o escopo global)
+        window.openBookingModal = function(interestType) {
+            const modal = document.getElementById('bookingModal');
+            const typeSelect = document.getElementById('type');
+            
+            modal.classList.add('active');
+            if(interestType) {
+                // Seleciona a opção correta no modal
+                typeSelect.value = interestType;
+            }
+        }
+
+        window.closeBookingModal = function() {
+            document.getElementById('bookingModal').classList.remove('active');
+        }
+
+        document.getElementById('bookingModal').addEventListener('click', (e) => {
+            if(e.target === document.getElementById('bookingModal')) window.closeBookingModal();
+        });
+
+        // WhatsApp Sender Logic (A Mágica da Conversão)
+        window.sendToWhatsapp = function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const type = document.getElementById('type').value;
+            const guests = document.getElementById('guests').value;
+            const date = document.getElementById('date').value;
+            
+            // Formatar data para PT-BR
+            const dateObj = new Date(date);
+            const dateFormatted = dateObj.toLocaleDateString('pt-BR');
+
+            // Número do dono (Substitua pelo seu número real!)
+            const phoneNumber = "(69)99213-9559"; 
+
+            const text = `*Olá! Sou ${name} e gostaria de informações sobre o Balneário Rio Preto.*%0A%0A` +
+                         `🏠 *Interesse:* ${type}%0A` +
+                         `👥 *Pessoas:* ${guests}%0A` +
+                         `📅 *Data Pretendida:* ${dateFormatted}%0A%0A` +
+                         `Poderia confirmar disponibilidade e valores, por favor?`;
+
+            const url = `https://wa.me/${phoneNumber}?text=${text}`;
+            
+            window.open(url, '_blank');
+            window.closeBookingModal();
+        }
+        
+        // --- 4. LÓGICA DA GALERIA (LIGHTBOX) ---
+        window.openGalleryModal = function(src, caption) {
+            const modal = document.getElementById('galleryModal');
+            const content = document.getElementById('galleryModalContent');
+            const captionEl = document.getElementById('galleryModalCaption');
+
+            content.innerHTML = src.endsWith('.mp4') ? 
+                `<video controls src="${src}" class="w-full max-h-[80vh] object-contain rounded-lg"></video>` :
+                `<img src="${src}" alt="${caption}" class="w-full max-h-[80vh] object-contain rounded-lg">`;
+            
+            captionEl.innerText = caption;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        window.closeGalleryModal = function() {
+            const modal = document.getElementById('galleryModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            const video = document.getElementById('galleryModalContent').querySelector('video');
+            if (video) video.pause();
+        }
+        
+        // --- 5. OTIMIZAÇÃO DO VÍDEO DO HERO (RESPEITA ECONOMIA DE DADOS) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const heroVideo = document.querySelector('.hero-video');
+            if (!heroVideo) return;
+
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const isLowData =
+                connection &&
+                (connection.saveData ||
+                 (connection.effectiveType && /(^2g$|^slow-2g$)/.test(connection.effectiveType)));
+
+            // Se o usuário estiver em economia de dados ou rede muito lenta,
+            // remove o vídeo e deixa apenas a imagem de fundo do hero.
+            if (isLowData) {
+                heroVideo.remove();
+            }
+        });
+
+        // --- 6. CARROSSEL PRINCIPAL (LOOP INFINITO, AUTOPLAY, ACESSÍVEL) ---
+        window.initMainCarousel = function() {
+            const carousel = document.getElementById('main-carousel');
+            const track = document.getElementById('slides-container');
+            const viewport = carousel ? carousel.querySelector('.carousel-viewport') : null;
+            const prevBtn = document.getElementById('carousel-prev');
+            const nextBtn = document.getElementById('carousel-next');
+            const dotsContainer = document.getElementById('carousel-dots');
+
+            if (!carousel || !track || !viewport) return;
+
+            let slides = Array.from(track.querySelectorAll('.carousel-slide'));
+            const realSlideCount = slides.length;
+            if (realSlideCount === 0) return;
+
+            // Clones para loop infinito
+            const firstClone = slides[0].cloneNode(true);
+            const lastClone = slides[realSlideCount - 1].cloneNode(true);
+            firstClone.dataset.clone = 'true';
+            lastClone.dataset.clone = 'true';
+            track.appendChild(firstClone);
+            track.insertBefore(lastClone, slides[0]);
+            slides = Array.from(track.querySelectorAll('.carousel-slide'));
+
+            const totalSlides = slides.length;
+            let currentIndex = 1; // primeiro slide real
+            let slideWidth = 0;
+            let isAnimating = false;
+
+            // Criação de dots dinâmicos
+            function createDots() {
+                if (!dotsContainer) return;
+                dotsContainer.innerHTML = '';
+                for (let i = 0; i < realSlideCount; i++) {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'carousel-dot';
+                    dot.setAttribute('role', 'tab');
+                    dot.setAttribute('aria-label', `Ir para o slide ${i + 1}`);
+                    dot.addEventListener('click', () => goToRealSlide(i));
+                    dotsContainer.appendChild(dot);
+                }
+            }
+
+            function getRealIndex() {
+                if (currentIndex === 0) return realSlideCount - 1;
+                if (currentIndex === totalSlides - 1) return 0;
+                return currentIndex - 1;
+            }
+
+            function updateDots() {
+                if (!dotsContainer) return;
+                const dots = Array.from(dotsContainer.querySelectorAll('.carousel-dot'));
+                const realIndex = getRealIndex();
+                dots.forEach((dot, i) => {
+                    const isActive = i === realIndex;
+                    dot.setAttribute('aria-current', isActive ? 'true' : 'false');
+                });
+            }
+
+            // Ajuste dinâmico de larguras
+            function setSizes() {
+                slideWidth = viewport.getBoundingClientRect().width;
+                slides.forEach(slide => {
+                    slide.style.width = `${slideWidth}px`;
+                });
+                track.style.width = `${slideWidth * totalSlides}px`;
+                moveToIndex(currentIndex, false);
+            }
+
+            function moveToIndex(index, animate = true) {
+                if (!animate) {
+                    track.style.transition = 'none';
+                } else {
+                    track.style.transition = 'transform 0.5s ease-in-out';
+                }
+                const offset = -index * slideWidth;
+                track.style.transform = `translateX(${offset}px)`;
+            }
+
+            function goToRealSlide(realIndex) {
+                if (isAnimating) return;
+                currentIndex = realIndex + 1; // compensar o clone inicial
+                moveToIndex(currentIndex, true);
+            }
+
+            function goToNext() {
+                if (isAnimating) return;
+                currentIndex += 1;
+                moveToIndex(currentIndex, true);
+            }
+
+            function goToPrev() {
+                if (isAnimating) return;
+                currentIndex -= 1;
+                moveToIndex(currentIndex, true);
+            }
+
+            track.addEventListener('transitionstart', () => {
+                isAnimating = true;
+            });
+
+            track.addEventListener('transitionend', () => {
+                isAnimating = false;
+
+                // Corrigir salto quando estiver em um clone
+                const currentSlide = slides[currentIndex];
+                if (currentSlide && currentSlide.dataset.clone === 'true') {
+                    track.style.transition = 'none';
+                    if (currentIndex === 0) {
+                        currentIndex = realSlideCount;
+                    } else if (currentIndex === totalSlides - 1) {
+                        currentIndex = 1;
+                    }
+                    moveToIndex(currentIndex, false);
+                }
+                updateDots();
+            });
+
+            // Autoplay com pausa em hover/focus
+            let autoplayId = null;
+            const AUTOPLAY_DELAY = 5000;
+
+            function startAutoplay() {
+                stopAutoplay();
+                autoplayId = setInterval(() => {
+                    goToNext();
+                }, AUTOPLAY_DELAY);
+            }
+
+            function stopAutoplay() {
+                if (autoplayId !== null) {
+                    clearInterval(autoplayId);
+                    autoplayId = null;
+                }
+            }
+
+            ['mouseenter', 'focusin'].forEach(evt => {
+                carousel.addEventListener(evt, stopAutoplay);
+            });
+            ['mouseleave', 'focusout'].forEach(evt => {
+                carousel.addEventListener(evt, startAutoplay);
+            });
+
+            // Botões de navegação
+            if (prevBtn) prevBtn.addEventListener('click', goToPrev);
+            if (nextBtn) nextBtn.addEventListener('click', goToNext);
+
+            // Navegação por teclado
+            carousel.setAttribute('tabindex', '0');
+            carousel.setAttribute('role', 'group');
+            carousel.setAttribute('aria-label', 'Carrossel de promoções e eventos');
+
+            carousel.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    goToPrev();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    goToNext();
+                }
+            });
+
+            // Swipe / touch
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+            const threshold = 50; // px para considerar swipe
+
+            function onPointerDown(e) {
+                isDragging = true;
+                startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                currentX = startX;
+                track.style.transition = 'none';
+                stopAutoplay();
+            }
+
+            function onPointerMove(e) {
+                if (!isDragging) return;
+                currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const delta = currentX - startX;
+                const offset = -currentIndex * slideWidth + delta;
+                track.style.transform = `translateX(${offset}px)`;
+            }
+
+            function onPointerUp() {
+                if (!isDragging) return;
+                isDragging = false;
+                const delta = currentX - startX;
+                track.style.transition = 'transform 0.5s ease-in-out';
+
+                if (Math.abs(delta) > threshold) {
+                    if (delta < 0) {
+                        goToNext();
+                    } else {
+                        goToPrev();
+                    }
+                } else {
+                    moveToIndex(currentIndex, true);
+                }
+
+                startX = 0;
+                currentX = 0;
+                startAutoplay();
+            }
+
+            viewport.addEventListener('mousedown', onPointerDown);
+            viewport.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('mouseup', onPointerUp);
+
+            viewport.addEventListener('touchstart', onPointerDown, { passive: true });
+            viewport.addEventListener('touchmove', onPointerMove, { passive: true });
+            viewport.addEventListener('touchend', onPointerUp);
+
+            // Inicialização
+            createDots();
+            setSizes();
+            updateDots();
+            startAutoplay();
+
+            window.addEventListener('resize', setSizes);
+        };
+
+    </script>
+    <script type="module">
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+      const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      async function loadCarouselSlides() {
+        const track = document.getElementById('slides-container');
+        if (!track) return;
+
+        const { data, error } = await supabase
+          .from('carousel_slides')
+          .select('*')
+          .eq('is_active', true)
+          .order('order_index', { ascending: true });
+
+        if (error) {
+          console.error('Erro ao carregar slides do carrossel:', error);
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          // Se não houver dados, não mexe no conteúdo (ou deixa vazio)
+          return;
+        }
+
+        track.innerHTML = '';
+
+        data.forEach(slide => {
+          const slideEl = document.createElement('div');
+          slideEl.className = 'carousel-slide bg-cover bg-center';
+          slideEl.style.backgroundImage = `url('${slide.background_image_url}')`;
+
+          const tagClass = slide.tag_color ? slide.tag_color : 'text-accent-orange';
+          const hasTag = slide.tag_label && slide.tag_label.trim() !== '';
+          const hasDescription = slide.description && slide.description.trim() !== '';
+          const hasCta = slide.cta_label && slide.cta_url;
+
+          slideEl.innerHTML = `
+            <div class="w-full h-full bg-black/40 flex flex-col justify-center items-center p-8 text-center text-white">
+              ${hasTag ? `<span class="text-sm font-semibold uppercase tracking-widest ${tagClass}">${slide.tag_label}</span>` : ''}
+              <h4 class="text-3xl md:text-5xl font-extrabold my-2">${slide.title}</h4>
+              ${hasDescription ? `<p class="hidden sm:block text-lg">${slide.description}</p>` : ''}
+              ${hasCta ? `<a href="${slide.cta_url}" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">${slide.cta_label}</a>` : ''}
+            </div>
+          `;
+
+          track.appendChild(slideEl);
+        });
+      }
+
+      async function loadStoreItems() {
+        const container = document.getElementById('store-items-container');
+        if (!container) return;
+
+        const { data, error } = await supabase
+          .from('store_items')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('Erro ao carregar produtos da loja:', error);
+          container.innerHTML = `
+            <div class="col-span-full py-10 text-center text-red-500">
+              Não foi possível carregar os produtos da Mini Loja.
+            </div>
+          `;
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full py-10 text-center text-gray-500">
+              Em breve você poderá adquirir produtos exclusivos do Balneário Rio Preto.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+
+        data.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'rounded-xl bg-white p-6 shadow-xl transition hover:shadow-2xl';
+
+          const price = typeof item.price === 'number'
+            ? item.price.toFixed(2).replace('.', ',')
+            : item.price;
+
+          const imageUrl = item.image_url || 'https://placehold.co/400x400/CCCCCC/000000?text=Produto';
+
+          const messageTemplate =
+            item.whatsapp_message_template ||
+            `Olá, tenho interesse no produto "${item.title}" da Mini Loja do Balneário Rio Preto. Ainda está disponível?`;
+
+          const encodedMsg = encodeURIComponent(messageTemplate);
+          const whatsappNumber = '5569992139559'; // ajuste com o número oficial do balneário
+          const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodedMsg}`;
+
+          card.innerHTML = `
+            <img src="${imageUrl}" alt="${item.title}" class="mb-4 h-64 w-full rounded-lg object-cover">
+            <h4 class="mb-1 text-xl font-bold">${item.title}</h4>
+            ${price ? `<p class="mb-3 text-2xl font-extrabold text-accent-orange">R$ ${price}</p>` : ''}
+            <button onclick="window.open('${whatsappLink}', '_blank')" class="w-full rounded-full bg-primary-green py-2.5 font-semibold text-white transition hover:bg-green-700">
+              Encomendar (WhatsApp)
+            </button>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      async function loadBlogPosts() {
+        const container = document.getElementById('blog-posts-container');
+        if (!container) return;
+
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('is_published', true)
+          .order('published_at', { ascending: false })
+          .limit(6);
+
+        if (error) {
+          console.error('Erro ao carregar posts do blog:', error);
+          container.innerHTML = `
+            <div class="col-span-full py-10 text-center text-red-500">
+              Não foi possível carregar as notícias do Blog.
+            </div>
+          `;
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full py-10 text-center text-gray-500">
+              Em breve você verá aqui as novidades do Balneário Rio Preto.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+
+        data.forEach(post => {
+          const card = document.createElement('article');
+          card.className = 'rounded-xl bg-white shadow-md overflow-hidden flex flex-col';
+
+          const imageUrl = post.cover_image_url || 'https://placehold.co/800x400/2E7D32/FFFFFF?text=Blog+Rio+Preto';
+
+          const published = post.published_at
+            ? new Date(post.published_at).toLocaleDateString('pt-BR')
+            : '';
+
+          card.innerHTML = `
+            <img src="${imageUrl}" alt="${post.title}" class="h-48 w-full object-cover">
+            <div class="p-4 flex flex-col flex-1">
+              <h3 class="font-bold text-lg mb-2">${post.title}</h3>
+              ${post.excerpt ? `<p class="text-gray-600 text-sm mb-4">${post.excerpt}</p>` : ''}
+              <span class="mt-auto text-xs text-gray-400">
+                ${post.author_name || 'Equipe Balneário Rio Preto'} ${published ? ' • ' + published : ''}
+              </span>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        // 1. Carrega slides, depois inicializa o carrossel
+        await loadCarouselSlides();
+        if (window.initMainCarousel) {
+          window.initMainCarousel();
+        }
+
+        // 2. Carrega Mini Loja e Blog em paralelo
+        await Promise.all([
+          loadStoreItems(),
+          loadBlogPosts()
+        ]);
+      });
+    </script>
+    </body>
+    </html>
