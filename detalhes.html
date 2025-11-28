@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detalhes | Balneário Rio Preto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/26cc0cbf69.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary-green: #15803d;
+      --accent-orange: #ea580c;
+      --text-dark: #111827;
+    }
+    .bg-primary-green { background-color: var(--primary-green); }
+    .text-primary-green { color: var(--primary-green); }
+    .text-accent-orange { color: var(--accent-orange); }
+    .text-text-dark { color: var(--text-dark); }
+  </style>
+</head>
+<body class="bg-gray-50 text-text-dark">
+
+  <header class="border-b bg-white">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+      <a href="index.html" class="flex items-center gap-2">
+        <span class="font-black tracking-tight">Balneário Rio Preto</span>
+      </a>
+      <a href="index.html" class="text-sm text-primary-green hover:underline">
+        ← Voltar para o site
+      </a>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-10">
+    <!-- Loader / mensagens -->
+    <div id="detail-loading" class="text-center text-gray-500">
+      Carregando detalhes...
+    </div>
+
+    <!-- Aqui entra o conteúdo dinâmico -->
+    <article id="detail-content" class="hidden"></article>
+  </main>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loadingEl = document.getElementById('detail-loading');
+    const contentEl = document.getElementById('detail-content');
+
+    function getSlug() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('slug');
+    }
+
+    function formatDateParts(isoString) {
+      if (!isoString) {
+        return { weekday: '', fullDate: '', time: '' };
+      }
+      const date = new Date(isoString);
+
+      const weekday = date.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+      });
+      const fullDate = date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      });
+      const time = date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      return { weekday, fullDate, time };
+    }
+
+    function formatShortDate(isoString) {
+      if (!isoString) return '';
+      return new Date(isoString).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    }
+
+    async function loadRelatedPosts(currentSlug) {
+      const relatedContainer = document.getElementById('related-posts-container');
+      if (!relatedContainer) return;
+
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('is_published', true)
+        .neq('slug', currentSlug)
+        .order('published_at', { ascending: false })
+        .limit(4);
+
+      if (error) {
+        console.error('Erro ao carregar posts relacionados:', error);
+        relatedContainer.innerHTML = `
+          <p class="text-sm text-gray-500">Não foi possível carregar outras notícias.</p>
+        `;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        relatedContainer.innerHTML = `
+          <p class="text-sm text-gray-500">Em breve você verá mais notícias por aqui.</p>
+        `;
+        return;
+      }
+
+      relatedContainer.innerHTML = '';
+
+      data.forEach((post) => {
+        const url = `detalhes.html?slug=${encodeURIComponent(post.slug)}`;
+        const imageUrl =
+          post.cover_image_url ||
+          'https://placehold.co/160x100/2E7D32/FFFFFF?text=Blog';
+
+        const dateShort = formatShortDate(post.published_at);
+
+        const item = document.createElement('a');
+        item.href = url;
+        item.className =
+          'flex gap-3 border-b border-gray-100 pb-3 mb-3 last:mb-0 last:border-b-0 hover:bg-gray-50 rounded-lg p-1 transition';
+
+        item.innerHTML = `
+          <img src="${imageUrl}" alt="${post.title}"
+               class="h-20 w-24 flex-shrink-0 rounded-md object-cover">
+          <div class="flex flex-col">
+            <p class="text-sm font-semibold text-text-dark leading-snug">${post.title}</p>
+            <span class="mt-1 text-xs text-gray-500">${dateShort}</span>
+          </div>
+        `;
+
+        relatedContainer.appendChild(item);
+      });
+    }
+
+    async function loadBlogPost() {
+      const slug = getSlug();
+
+      if (!slug) {
+        loadingEl.textContent = 'Nenhuma notícia selecionada.';
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .single();
+
+      if (error || !data) {
+        console.error(error);
+        loadingEl.textContent = 'Notícia não encontrada.';
+        return;
+      }
+
+      const { weekday, fullDate, time } = formatDateParts(data.published_at);
+
+      const shareUrl = encodeURIComponent(window.location.href);
+      const shareText = encodeURIComponent(data.title);
+      const coverImage =
+        data.cover_image_url ||
+        'https://placehold.co/1200x400/2E7D32/FFFFFF?text=Blog+Rio+Preto';
+
+      contentEl.innerHTML = `
+        <section class="bg-white rounded-xl shadow-md overflow-hidden">
+          <header class="border-b border-gray-100 px-4 pt-4 pb-3 md:px-8 md:pt-6">
+            <p class="text-xs font-semibold tracking-wide text-primary-green uppercase">Blog Rio Preto</p>
+            <h1 class="mt-1 text-2xl md:text-3xl font-extrabold text-gray-900">${data.title}</h1>
+            <p class="mt-2 text-xs md:text-sm text-gray-500">
+              ${weekday ? weekday.charAt(0).toUpperCase() + weekday.slice(1) + ', ' : ''}${fullDate}${
+        time ? ' - ' + time : ''
+      }${data.author_name ? ' | ' + data.author_name : ''}
+            </p>
+            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs md:text-sm">
+              <span class="mr-2 font-semibold text-gray-500">Compartilhar:</span>
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}"
+                 target="_blank" rel="noopener"
+                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}"
+                 target="_blank" rel="noopener"
+                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600">
+                <i class="fab fa-whatsapp"></i>
+              </a>
+              <a href="https://www.instagram.com/balnearioriopreto/"
+                 target="_blank" rel="noopener"
+                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-400 text-white hover:opacity-90">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="mailto:?subject=${shareText}&body=${shareText}%20-%20${shareUrl}"
+                 target="_blank" rel="noopener"
+                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-500 text-white hover:bg-gray-600">
+                <i class="fas fa-envelope"></i>
+              </a>
+              <button id="share-copy"
+                 class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300">
+                <i class="fas fa-link"></i>
+              </button>
+            </div>
+          </header>
+
+          <figure class="mt-4 px-4 md:px-8">
+            <img src="${coverImage}" alt="${data.title}"
+                 class="mb-4 max-h-[420px] w-full rounded-xl object-cover">
+          </figure>
+
+          <div class="px-4 pb-8 pt-2 md:px-8 md:pb-10">
+            <div class="space-y-4 leading-relaxed text-gray-800">
+              ${data.content || ''}
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-8 rounded-xl bg-white p-4 shadow-sm md:p-6">
+          <h2 class="mb-4 border-b border-gray-200 pb-2 text-lg font-extrabold tracking-wide text-accent-orange">
+            VEJA TAMBÉM
+          </h2>
+          <div id="related-posts-container">
+            <p class="text-sm text-gray-500">Carregando outras notícias...</p>
+          </div>
+        </section>
+      `;
+
+      loadingEl.classList.add('hidden');
+      contentEl.classList.remove('hidden');
+
+      const copyButton = document.getElementById('share-copy');
+      if (copyButton) {
+        copyButton.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(window.location.href);
+            copyButton.classList.add('bg-green-100');
+            copyButton.classList.add('text-green-700');
+            setTimeout(() => {
+              copyButton.classList.remove('bg-green-100');
+              copyButton.classList.remove('text-green-700');
+            }, 1500);
+          } catch (err) {
+            console.error('Erro ao copiar link:', err);
+            alert('Não foi possível copiar o link. Copie manualmente pela barra de endereço.');
+          }
+        });
+      }
+
+      await loadRelatedPosts(data.slug);
+    }
+
+    loadBlogPost();
+  </script>
+  </body>
+  </html>
