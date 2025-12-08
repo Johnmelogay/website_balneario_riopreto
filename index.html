@@ -7,7 +7,7 @@
     <!-- Meta Descrição Otimizada para SEO -->
     <meta name="description" content="Day Use e Chalés no Balneário Rio Preto. Reserve online, confira a Galeria Histórica, Cardápio e Notícias em Candeias do Jamari. Atendimento via WhatsApp.">
     <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
+    <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -195,7 +195,7 @@
         }
     </style>
     <!-- Preload da imagem do hero para melhorar performance -->
-    <link rel="preload" href="images/hero-image.png" as="image">
+    <link rel="preload" href="images/hero-image.jpg" as="image">
 </head>
 <body class="bg-bg-light text-text-dark font-sans">
 
@@ -251,7 +251,7 @@
 
     <!-- 2. HERO SECTION COM FOCO EM RESERVA -->
     <section class="relative flex h-[85vh] items-center justify-center bg-cover bg-center text-center" 
-             style="background-image: url('images/hero-image.png');">
+             style="background-image: url('images/hero-image.jpg');">
         <video
             class="hero-video"
             autoplay
@@ -1034,199 +1034,199 @@
 
     </script>
     <script type="module">
-      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-      const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
-
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      async function loadCarouselSlides() {
-        const track = document.getElementById('slides-container');
-        if (!track) return;
-
-        const { data, error } = await supabase
-          .from('carousel_slides')
-          .select('*')
-          .eq('is_active', true)
-          .order('order_index', { ascending: true });
-
-        if (error) {
-          console.error('Erro ao carregar slides do carrossel:', error);
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          // Se não houver dados, não mexe no conteúdo (ou deixa vazio)
-          return;
-        }
-
-        track.innerHTML = '';
-
-        data.forEach(slide => {
-          const slideEl = document.createElement('div');
-          slideEl.className = 'carousel-slide bg-cover bg-center';
-          slideEl.style.backgroundImage = `url('${slide.background_image_url}')`;
-
-          const tagClass = slide.tag_color ? slide.tag_color : 'text-accent-orange';
-          const hasTag = slide.tag_label && slide.tag_label.trim() !== '';
-          const hasDescription = slide.description && slide.description.trim() !== '';
-
-          const detailUrl = slide.id ? `detalhes.html?type=carousel&id=${slide.id}` : null;
-
-          let ctaHtml = '';
-          if (slide.cta_label) {
-            const href = slide.cta_url || detailUrl || '#';
-            const safeTitle = slide.title ? slide.title.replace(/'/g, "\\'") : '';
-            ctaHtml = `<a href="${href}" onclick="trackEvent('carousel_cta_click', { source: 'carousel', slide_title: '${safeTitle}' })" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">${slide.cta_label}</a>`;
-          } else if (detailUrl) {
-            ctaHtml = `<a href="${detailUrl}" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">Ver detalhes</a>`;
-          }
-
-          slideEl.innerHTML = `
-            <div class="w-full h-full bg-black/40 flex flex-col justify-center items-center p-8 text-center text-white">
-              ${hasTag ? `<span class="text-sm font-semibold uppercase tracking-widest ${tagClass}">${slide.tag_label}</span>` : ''}
-              <h4 class="text-3xl md:text-5xl font-extrabold my-2">${slide.title}</h4>
-              ${hasDescription ? `<p class="hidden sm:block text-lg">${slide.description}</p>` : ''}
-              ${ctaHtml}
-            </div>
-          `;
-
-          track.appendChild(slideEl);
-        });
-      }
-
-      async function loadStoreItems() {
-        const container = document.getElementById('store-items-container');
-        if (!container) return;
-
-        const { data, error } = await supabase
-          .from('store_items')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: true });
-
-        if (error) {
-          console.error('Erro ao carregar produtos da loja:', error);
-          container.innerHTML = `
-            <div class="col-span-full py-10 text-center text-red-500">
-              Não foi possível carregar os produtos da Mini Loja.
-            </div>
-          `;
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          container.innerHTML = `
-            <div class="col-span-full py-10 text-center text-gray-500">
-              Em breve você poderá adquirir produtos exclusivos do Balneário Rio Preto.
-            </div>
-          `;
-          return;
-        }
-
-        container.innerHTML = '';
-
-        data.forEach(item => {
-          const card = document.createElement('div');
-          card.className = 'rounded-xl bg-white p-6 shadow-xl transition hover:shadow-2xl';
-
-          const price = typeof item.price === 'number'
-            ? item.price.toFixed(2).replace('.', ',')
-            : item.price;
-
-          const imageUrl = item.image_url || 'https://placehold.co/400x400/CCCCCC/000000?text=Produto';
-
-          const messageTemplate =
-            item.whatsapp_message_template ||
-            `Olá, tenho interesse no produto "${item.title}" da Mini Loja do Balneário Rio Preto. Ainda está disponível?`;
-
-          const encodedMsg = encodeURIComponent(messageTemplate);
-          const whatsappNumber = '5569992139559'; // ajuste com o número oficial do balneário
-          const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodedMsg}`;
-          const detailUrl = item.slug ? `detalhes.html?type=store&slug=${encodeURIComponent(item.slug)}` : null;
-
-          card.innerHTML = `
-            <img src="${imageUrl}" alt="${item.title}" class="mb-4 h-64 w-full rounded-lg object-cover">
-            <h4 class="mb-1 text-xl font-bold">${item.title}</h4>
-            ${price ? `<p class="mb-3 text-2xl font-extrabold text-accent-orange">R$ ${price}</p>` : ''}
-            <div class="mt-3 flex flex-col gap-2">
-              <button onclick="trackEvent('store_whatsapp_click', { source: 'mini_store', item_title: '${item.title ? item.title.replace(/'/g, "\\'") : ''}' }); window.open('${whatsappLink}', '_blank')" class="w-full rounded-full bg-primary-green py-2.5 font-semibold text-white transition hover:bg-green-700">
-                Encomendar (WhatsApp)
-              </button>
-              ${detailUrl ? `
-              <a href="${detailUrl}" class="w-full rounded-full border border-primary-green py-2.5 text-center text-primary-green font-semibold transition hover:bg-primary-green hover:text-white">
-                Ver detalhes
-              </a>
-              ` : ''}
-            </div>
-          `;
-
-          container.appendChild(card);
-        });
-      }
-
-      async function loadBlogPosts() {
-        const container = document.getElementById('blog-posts-container');
-        if (!container) return;
-
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('is_published', true)
-          .order('published_at', { ascending: false })
-          .limit(6);
-
-        if (error) {
-          console.error('Erro ao carregar posts do blog:', error);
-          container.innerHTML = `
-            <div class="col-span-full py-10 text-center text-red-500">
-              Não foi possível carregar as notícias do Blog.
-            </div>
-          `;
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          container.innerHTML = `
-            <div class="col-span-full py-10 text-center text-gray-500">
-              Em breve você verá aqui as novidades do Balneário Rio Preto.
-            </div>
-          `;
-          return;
-        }
-
-        container.innerHTML = '';
-
-        data.forEach(post => {
-          const card = document.createElement('article');
-          card.className = 'rounded-xl bg-white shadow-md overflow-hidden flex flex-col';
-
-          const imageUrl = post.cover_image_url || 'https://placehold.co/800x400/2E7D32/FFFFFF?text=Blog+Rio+Preto';
-
-          const published = post.published_at
-            ? new Date(post.published_at).toLocaleDateString('pt-BR')
-            : '';
-          const detailUrl = post.slug ? `detalhes.html?slug=${encodeURIComponent(post.slug)}` : '#';
-
-          card.innerHTML = `
-            <a href="${detailUrl}" onclick="trackEvent('blog_post_click', { slug: '${post.slug ? post.slug.replace(/\'/g, "\\'") : ''}' })" class="flex flex-col h-full hover:bg-gray-50 transition">
-              <img src="${imageUrl}" alt="${post.title}" class="h-48 w-full object-cover">
-              <div class="p-4 flex flex-col flex-1">
-                <h3 class="font-bold text-lg mb-2">${post.title}</h3>
-                ${post.excerpt ? `<p class="text-gray-600 text-sm mb-4">${post.excerpt}</p>` : ''}
-                <span class="mt-auto text-xs text-gray-400">
-                  ${post.author_name || 'Equipe Balneário Rio Preto'} ${published ? ' • ' + published : ''}
-                </span>
-              </div>
-            </a>
-          `;
-
-          container.appendChild(card);
-        });
-      }
+      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.1';
 
       document.addEventListener('DOMContentLoaded', async () => {
+        const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadCarouselSlides() {
+          const track = document.getElementById('slides-container');
+          if (!track) return;
+
+          const { data, error } = await supabase
+            .from('carousel_slides')
+            .select('*')
+            .eq('is_active', true)
+            .order('order_index', { ascending: true });
+
+          if (error) {
+            console.error('Erro ao carregar slides do carrossel:', error);
+            return;
+          }
+
+          if (!data || data.length === 0) {
+            // Se não houver dados, não mexe no conteúdo (ou deixa vazio)
+            return;
+          }
+
+          track.innerHTML = '';
+
+          data.forEach(slide => {
+            const slideEl = document.createElement('div');
+            slideEl.className = 'carousel-slide bg-cover bg-center';
+            slideEl.style.backgroundImage = `url('${slide.background_image_url}')`;
+
+            const tagClass = slide.tag_color ? slide.tag_color : 'text-accent-orange';
+            const hasTag = slide.tag_label && slide.tag_label.trim() !== '';
+            const hasDescription = slide.description && slide.description.trim() !== '';
+
+            const detailUrl = slide.id ? `detalhes.html?type=carousel&id=${slide.id}` : null;
+
+            let ctaHtml = '';
+            if (slide.cta_label) {
+              const href = slide.cta_url || detailUrl || '#';
+              const safeTitle = slide.title ? slide.title.replace(/'/g, "\\'") : '';
+              ctaHtml = `<a href="${href}" onclick="trackEvent('carousel_cta_click', { source: 'carousel', slide_title: '${safeTitle}' })" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">${slide.cta_label}</a>`;
+            } else if (detailUrl) {
+              ctaHtml = `<a href="${detailUrl}" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">Ver detalhes</a>`;
+            }
+
+            slideEl.innerHTML = `
+              <div class="w-full h-full bg-black/40 flex flex-col justify-center items-center p-8 text-center text-white">
+                ${hasTag ? `<span class="text-sm font-semibold uppercase tracking-widest ${tagClass}">${slide.tag_label}</span>` : ''}
+                <h4 class="text-3xl md:text-5xl font-extrabold my-2">${slide.title}</h4>
+                ${hasDescription ? `<p class="hidden sm:block text-lg">${slide.description}</p>` : ''}
+                ${ctaHtml}
+              </div>
+            `;
+
+            track.appendChild(slideEl);
+          });
+        }
+
+        async function loadStoreItems() {
+          const container = document.getElementById('store-items-container');
+          if (!container) return;
+
+          const { data, error } = await supabase
+            .from('store_items')
+            .select('*')
+            .eq('is_active', true)
+            .order('created_at', { ascending: true });
+
+          if (error) {
+            console.error('Erro ao carregar produtos da loja:', error);
+            container.innerHTML = `
+              <div class="col-span-full py-10 text-center text-red-500">
+                Não foi possível carregar os produtos da Mini Loja.
+              </div>
+            `;
+            return;
+          }
+
+          if (!data || data.length === 0) {
+            container.innerHTML = `
+              <div class="col-span-full py-10 text-center text-gray-500">
+                Em breve você poderá adquirir produtos exclusivos do Balneário Rio Preto.
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = '';
+
+          data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'rounded-xl bg-white p-6 shadow-xl transition hover:shadow-2xl';
+
+            const price = typeof item.price === 'number'
+              ? item.price.toFixed(2).replace('.', ',')
+              : item.price;
+
+            const imageUrl = item.image_url || 'https://placehold.co/400x400/CCCCCC/000000?text=Produto';
+
+            const messageTemplate =
+              item.whatsapp_message_template ||
+              `Olá, tenho interesse no produto "${item.title}" da Mini Loja do Balneário Rio Preto. Ainda está disponível?`;
+
+            const encodedMsg = encodeURIComponent(messageTemplate);
+            const whatsappNumber = '5569992139559'; // ajuste com o número oficial do balneário
+            const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodedMsg}`;
+            const detailUrl = item.slug ? `detalhes.html?type=store&slug=${encodeURIComponent(item.slug)}` : null;
+
+            card.innerHTML = `
+              <img src="${imageUrl}" alt="${item.title}" class="mb-4 h-64 w-full rounded-lg object-cover">
+              <h4 class="mb-1 text-xl font-bold">${item.title}</h4>
+              ${price ? `<p class="mb-3 text-2xl font-extrabold text-accent-orange">R$ ${price}</p>` : ''}
+              <div class="mt-3 flex flex-col gap-2">
+                <button onclick="trackEvent('store_whatsapp_click', { source: 'mini_store', item_title: '${item.title ? item.title.replace(/'/g, "\\'") : ''}' }); window.open('${whatsappLink}', '_blank')" class="w-full rounded-full bg-primary-green py-2.5 font-semibold text-white transition hover:bg-green-700">
+                  Encomendar (WhatsApp)
+                </button>
+                ${detailUrl ? `
+                <a href="${detailUrl}" class="w-full rounded-full border border-primary-green py-2.5 text-center text-primary-green font-semibold transition hover:bg-primary-green hover:text-white">
+                  Ver detalhes
+                </a>
+                ` : ''}
+              </div>
+            `;
+
+            container.appendChild(card);
+          });
+        }
+
+        async function loadBlogPosts() {
+          const container = document.getElementById('blog-posts-container');
+          if (!container) return;
+
+          const { data, error } = await supabase
+            .from('blog_posts')
+            .select('*')
+            .eq('is_published', true)
+            .order('published_at', { ascending: false })
+            .limit(6);
+
+          if (error) {
+            console.error('Erro ao carregar posts do blog:', error);
+            container.innerHTML = `
+              <div class="col-span-full py-10 text-center text-red-500">
+                Não foi possível carregar as notícias do Blog.
+              </div>
+            `;
+            return;
+          }
+
+          if (!data || data.length === 0) {
+            container.innerHTML = `
+              <div class="col-span-full py-10 text-center text-gray-500">
+                Em breve você verá aqui as novidades do Balneário Rio Preto.
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = '';
+
+          data.forEach(post => {
+            const card = document.createElement('article');
+            card.className = 'rounded-xl bg-white shadow-md overflow-hidden flex flex-col';
+
+            const imageUrl = post.cover_image_url || 'https://placehold.co/800x400/2E7D32/FFFFFF?text=Blog+Rio+Preto';
+
+            const published = post.published_at
+              ? new Date(post.published_at).toLocaleDateString('pt-BR')
+              : '';
+            const detailUrl = post.slug ? `detalhes.html?slug=${encodeURIComponent(post.slug)}` : '#';
+
+            card.innerHTML = `
+              <a href="${detailUrl}" onclick="trackEvent('blog_post_click', { slug: '${post.slug ? post.slug.replace(/\'/g, "\\'") : ''}' })" class="flex flex-col h-full hover:bg-gray-50 transition">
+                <img src="${imageUrl}" alt="${post.title}" class="h-48 w-full object-cover">
+                <div class="p-4 flex flex-col flex-1">
+                  <h3 class="font-bold text-lg mb-2">${post.title}</h3>
+                  ${post.excerpt ? `<p class="text-gray-600 text-sm mb-4">${post.excerpt}</p>` : ''}
+                  <span class="mt-auto text-xs text-gray-400">
+                    ${post.author_name || 'Equipe Balneário Rio Preto'} ${published ? ' • ' + published : ''}
+                  </span>
+                </div>
+              </a>
+            `;
+
+            container.appendChild(card);
+          });
+        }
+
         // 1. Carrega slides, depois inicializa o carrossel
         await loadCarouselSlides();
         if (window.initMainCarousel) {
