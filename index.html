@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balneário Rio Preto - O Seu Destino de Ecoturismo em Candeias do Jamari</title>
+    <title>Balneário Rio Preto - O Seu Destino de Ecoturismo a 40km de Porto Velho</title>
     <!-- Meta Descrição Otimizada para SEO -->
     <meta name="description" content="Day Use e Chalés no Balneário Rio Preto. Reserve online, confira a Galeria Histórica, Cardápio e Notícias em Candeias do Jamari. Atendimento via WhatsApp.">
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-X77VW91S4X');
+    </script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -215,7 +223,7 @@
                 </nav>
 
                 <!-- Botão Destaque Desktop -->
-                <button onclick="openBookingModal('Chalé')" class="hidden md:flex items-center gap-2 bg-accent-orange hover:bg-orange-700 text-white px-6 py-2.5 rounded-full font-bold shadow-lg transition transform hover:scale-105 text-sm">
+                <button onclick="trackEvent('open_booking_modal', { source: 'header', interest_type: 'Chalé' }); openBookingModal('Chalé')" class="hidden md:flex items-center gap-2 bg-accent-orange hover:bg-orange-700 text-white px-6 py-2.5 rounded-full font-bold shadow-lg transition transform hover:scale-105 text-sm">
                     <i class="fas fa-bed"></i> Reservar Chalé
                 </button>
 
@@ -265,10 +273,10 @@
                 Seu Mergulho Perfeito na Natureza Amazônica
             </h2>
             <p class="mb-10 mx-auto max-w-2xl text-lg text-gray-200 drop-shadow-md md:text-xl">
-                Chalés à beira do rio, gastronomia regional e lazer completo. A fuga da cidade que você merece.
+                Chalés a beira da piscina, gastronomia regional e lazer completo. A fuga da cidade que você merece.
             </p>
             <div class="flex flex-col justify-center gap-4 sm:flex-row">
-                <a href="reservas.html" class="w-full transform rounded-full bg-accent-orange px-8 py-4 text-lg font-bold text-white shadow-2xl transition hover:scale-105 hover:bg-orange-700 sm:w-auto">
+                <a href="reservas.html" onclick="trackEvent('click_reservar_chale', { location: 'hero' })" class="w-full transform rounded-full bg-accent-orange px-8 py-4 text-lg font-bold text-white shadow-2xl transition hover:scale-105 hover:bg-orange-700 sm:w-auto">
                     <i class="fas fa-calendar-alt mr-2"></i> Reservar Chalé Agora
                 </a>
                 <a href="#dayuse" class="w-full transform rounded-full bg-white/90 px-8 py-4 text-lg font-bold text-text-dark shadow-2xl transition hover:scale-105 hover:bg-gray-100 sm:w-auto">
@@ -391,7 +399,7 @@
                     <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Área de Churrasqueiras e Lazer</li>
                     <li class="flex items-center"><i class="fas fa-check-circle mr-3 text-primary-green"></i> Serviço completo de Bar e Restaurante</li>
                 </ul>
-                <button onclick="openBookingModal('Day Use')" class="block w-full transform rounded-xl border-2 border-river-blue py-3 text-center font-bold text-river-blue transition hover:scale-[1.01] hover:bg-river-blue hover:text-white">
+                <button onclick="trackEvent('open_booking_modal', { source: 'dayuse_card', interest_type: 'Day Use' }); openBookingModal('Day Use')" class="block w-full transform rounded-xl border-2 border-river-blue py-3 text-center font-bold text-river-blue transition hover:scale-[1.01] hover:bg-river-blue hover:text-white">
                     Ver Destaques do Day Use
                 </button>
             </div>
@@ -656,13 +664,20 @@
 
 
     <!-- BOTÃO FLUTUANTE WHATSAPP -->
-    <button onclick="openBookingModal('Chalé')" class="whatsapp-float fixed bottom-6 right-6 z-40 rounded-full bg-green-500 p-4 text-white shadow-2xl transition hover:scale-110 hover:bg-green-600">
+    <button onclick="trackEvent('click_whatsapp_floating', { source: 'floating_button' }); openBookingModal('Chalé')" class="whatsapp-float fixed bottom-6 right-6 z-40 rounded-full bg-green-500 p-4 text-white shadow-2xl transition hover:scale-110 hover:bg-green-600">
         <i class="fab fa-whatsapp text-3xl"></i>
     </button>
 
 
     <!-- LÓGICA DE INTERAÇÃO (Modal, Menu, Scroll Header, Carrossel) -->
     <script>
+        // Helper global para eventos do Google Analytics
+        function trackEvent(eventName, params = {}) {
+            if (window.gtag) {
+                window.gtag('event', eventName, params);
+            }
+        }
+
         // --- 1. LÓGICA DO HEADER DINÂMICO ---
         const mainHeader = document.getElementById('main-header');
         
@@ -741,6 +756,12 @@
                          `Poderia confirmar disponibilidade e valores, por favor?`;
 
             const url = `https://wa.me/${phoneNumber}?text=${text}`;
+
+            trackEvent('send_whatsapp_quote', {
+                interest_type: type,
+                guests: guests,
+                date: dateFormatted
+            });
             
             window.open(url, '_blank');
             window.closeBookingModal();
@@ -1056,7 +1077,8 @@
           let ctaHtml = '';
           if (slide.cta_label) {
             const href = slide.cta_url || detailUrl || '#';
-            ctaHtml = `<a href="${href}" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">${slide.cta_label}</a>`;
+            const safeTitle = slide.title ? slide.title.replace(/'/g, "\\'") : '';
+            ctaHtml = `<a href="${href}" onclick="trackEvent('carousel_cta_click', { source: 'carousel', slide_title: '${safeTitle}' })" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">${slide.cta_label}</a>`;
           } else if (detailUrl) {
             ctaHtml = `<a href="${detailUrl}" class="mt-4 rounded-full bg-accent-orange px-6 py-2 font-bold hover:bg-orange-700 transition">Ver detalhes</a>`;
           }
@@ -1129,7 +1151,7 @@
             <h4 class="mb-1 text-xl font-bold">${item.title}</h4>
             ${price ? `<p class="mb-3 text-2xl font-extrabold text-accent-orange">R$ ${price}</p>` : ''}
             <div class="mt-3 flex flex-col gap-2">
-              <button onclick="window.open('${whatsappLink}', '_blank')" class="w-full rounded-full bg-primary-green py-2.5 font-semibold text-white transition hover:bg-green-700">
+              <button onclick="trackEvent('store_whatsapp_click', { source: 'mini_store', item_title: '${item.title ? item.title.replace(/'/g, "\\'") : ''}' }); window.open('${whatsappLink}', '_blank')" class="w-full rounded-full bg-primary-green py-2.5 font-semibold text-white transition hover:bg-green-700">
                 Encomendar (WhatsApp)
               </button>
               ${detailUrl ? `
@@ -1185,10 +1207,10 @@
           const published = post.published_at
             ? new Date(post.published_at).toLocaleDateString('pt-BR')
             : '';
-          const detailUrl = post.slug ? `detalhes.html?type=blog&slug=${encodeURIComponent(post.slug)}` : '#';
+          const detailUrl = post.slug ? `detalhes.html?slug=${encodeURIComponent(post.slug)}` : '#';
 
           card.innerHTML = `
-            <a href="${detailUrl}" class="flex flex-col h-full hover:bg-gray-50 transition">
+            <a href="${detailUrl}" onclick="trackEvent('blog_post_click', { slug: '${post.slug ? post.slug.replace(/\'/g, "\\'") : ''}' })" class="flex flex-col h-full hover:bg-gray-50 transition">
               <img src="${imageUrl}" alt="${post.title}" class="h-48 w-full object-cover">
               <div class="p-4 flex flex-col flex-1">
                 <h3 class="font-bold text-lg mb-2">${post.title}</h3>

@@ -1,1 +1,651 @@
-reservas
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservas • Balneário Rio Preto</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome Icons -->
+  <script src="https://kit.fontawesome.com/26cc0cbf69.js" crossorigin="anonymous"></script>
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-X77VW91S4X');
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .hero-video {
+      position: relative;
+      width: 100%;
+      height: 46vh;
+      overflow: hidden;
+    }
+
+    .hero-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.7);
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      padding: 0 1.5rem;
+    }
+
+    .floating-cta {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #FF6D00, #FF9800);
+      color: white;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 40;
+    }
+
+    @media (min-width: 768px) {
+      .floating-cta {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 text-gray-900">
+  <!-- HEADER SIMPLES (mantendo identidade do site) -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-100">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <a href="index.html" class="flex items-center gap-3">
+        <img src="images/logo.png" alt="Balneário Rio Preto" class="h-10 w-10 rounded-full object-cover shadow-md" />
+        <div class="leading-tight">
+          <p class="font-extrabold text-lg text-emerald-700">Balneário Rio Preto</p>
+          <p class="text-xs text-gray-500">Chalés, Day Use e Natureza na Amazônia</p>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
+        <a href="index.html#chales" class="hover:text-emerald-700">Chalés</a>
+        <a href="index.html#dayuse" class="hover:text-emerald-700">Day Use</a>
+        <a href="index.html#blog" class="hover:text-emerald-700">Blog</a>
+        <a href="index.html#como-chegar" class="hover:text-emerald-700">Como Chegar</a>
+      </nav>
+      <a href="#simulacao" class="hidden md:inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white shadow-md transition hover:bg-orange-600 hover:-translate-y-0.5">
+        <span>Ver disponibilidade</span>
+        <i class="fa-solid fa-arrow-right-long text-xs"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO COM VÍDEO -->
+  <section class="hero-video">
+    <video autoplay muted loop playsinline>
+      <source src="videos/hero-video.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-overlay bg-gradient-to-t from-black/70 via-black/40 to-black/10">
+      <p class="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">Reservas oficiais</p>
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold drop-shadow-xl">
+        Escolha o Chalé perfeito para sua estadia
+      </h1>
+      <p class="mt-3 max-w-2xl text-sm md:text-base text-gray-100">
+        Aqui você encontra todas as informações, fotos, vídeos e respostas para reservar com tranquilidade.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-6xl mx-auto px-4 md:px-6 lg:px-4 py-8 md:py-10 space-y-10">
+    <!-- SIMULAÇÃO / FORMULÁRIO (AIRBNB-LIKE) -->
+    <section id="simulacao" class="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)] items-start">
+      <!-- LADO ESQUERDO: INTRO -->
+      <div class="space-y-4">
+        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800">
+          Planeje sua reserva
+        </h2>
+        <p class="text-sm md:text-base text-gray-600">
+          Selecione datas e hóspedes para ter uma estimativa de valor dos chalés.
+          A confirmação final é feita pela nossa equipe via WhatsApp.
+        </p>
+        <ul class="mt-2 text-sm text-gray-600 space-y-1">
+          <li class="flex items-center gap-2">
+            <i class="fa-solid fa-shield-heart text-emerald-600"></i>
+            <span>Pagamento seguro diretamente com o Balneário (PIX, cartão ou dinheiro).</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-emerald-600"></i>
+            <span>Cancelamento flexível em até 7 dias antes da data da reserva.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- LADO DIREITO: CARD DE RESERVA -->
+      <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 md:p-6 space-y-4">
+        <div class="flex items-baseline justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">Simulação</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">Chalés a partir de <span class="text-orange-500">R$ 280/noite</span></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <label for="checkin" class="block text-xs font-semibold uppercase text-gray-500">Check-in</label>
+            <input type="date" id="checkin" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600" />
+          </div>
+          <div>
+            <label for="checkout" class="block text-xs font-semibold uppercase text-gray-500">Check-out</label>
+            <input type="date" id="checkout" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600" />
+          </div>
+
+          <div>
+            <label for="guests" class="block text-xs font-semibold uppercase text-gray-500">Hóspedes</label>
+            <select id="guests" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+              <option value="2">2 pessoas</option>
+              <option value="3">3 pessoas</option>
+              <option value="4">4 pessoas</option>
+              <option value="5">5 pessoas</option>
+              <option value="6">6 pessoas</option>
+            </select>
+          </div>
+          <div>
+            <label for="chaletType" class="block text-xs font-semibold uppercase text-gray-500">Tipo de Chalé</label>
+            <select id="chaletType" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600">
+              <option value="standard">Chalé Standard (casal)</option>
+              <option value="familia">Chalé Família (até 5 pessoas)</option>
+              <option value="beiraRio">Chalé Beira-Rio (vista privilegiada)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- RESUMO -->
+        <div class="rounded-xl bg-gray-50 px-4 py-3 text-sm flex flex-col gap-1">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Noites</span>
+            <span id="nightsLabel" class="font-semibold text-gray-800">–</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Estimativa de diária</span>
+            <span id="nightlyPriceLabel" class="font-semibold text-gray-800">–</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Total estimado</span>
+            <span id="totalPriceLabel" class="font-bold text-orange-600">–</span>
+          </div>
+          <p class="mt-2 text-[11px] text-gray-500">
+            *Valores sujeitos a confirmação. Tarifas podem variar conforme datas, feriados e promoções.
+          </p>
+        </div>
+
+        <button id="whatsappReserveButton" class="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-emerald-700">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          Reservar pelo WhatsApp
+        </button>
+
+        <p class="text-[11px] text-center text-gray-500">
+          Nossa equipe responde o mais rápido possível com a confirmação da reserva.
+        </p>
+      </div>
+    </section>
+
+    <!-- DETALHES DOS CHALÉS (SEÇÃO TIPO AIRBNB/BEACHPARK) -->
+    <section class="space-y-6" aria-labelledby="chales-detalhes">
+      <div class="flex items-baseline justify-between gap-4">
+        <div>
+          <h2 id="chales-detalhes" class="text-2xl md:text-3xl font-extrabold text-gray-800">
+            Chalés disponíveis
+          </h2>
+          <p class="mt-1 text-sm md:text-base text-gray-600 max-w-2xl">
+            Todos os chalés contam com banheiro privativo, roupa de cama, estacionamento e acesso completo à área do balneário.
+          </p>
+        </div>
+      </div>
+
+      <!-- LISTA DE CHALÉS -->
+      <div class="space-y-6">
+        <!-- CHALÉ STANDARD -->
+        <article class="grid gap-5 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)]">
+          <!-- Galeria -->
+          <div class="space-y-3">
+            <div class="relative overflow-hidden rounded-xl">
+              <div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <img src="images/chale_standard_1.jpg" alt="Chalé Standard - Vista interna" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+                <img src="images/chale_standard_2.jpg" alt="Chalé Standard - Cama de casal" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+                <img src="images/chale_standard_3.jpg" alt="Chalé Standard - Varanda com rede" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500">
+              Fotos ilustrativas. Consulte nossa equipe para receber mais imagens atualizadas pelo WhatsApp.
+            </p>
+          </div>
+
+          <!-- Conteúdo -->
+          <div class="space-y-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Casal / amigos</p>
+              <h3 class="text-xl font-bold text-gray-900">Chalé Standard</h3>
+              <p class="mt-1 text-sm text-gray-600">
+                Ideal para casais ou até 3 pessoas que buscam conforto e praticidade. Fica próximo à área do restaurante e ao acesso para o rio.
+              </p>
+            </div>
+
+            <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-user-group text-emerald-600"></i>
+                Até 3 hóspedes
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-bed text-emerald-600"></i>
+                1 cama casal + 1 auxiliar
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-snowflake text-emerald-600"></i>
+                Ar-condicionado
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-bath text-emerald-600"></i>
+                Banheiro privativo
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-mug-hot text-emerald-600"></i>
+                Frigobar
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-tree text-emerald-600"></i>
+                Varanda com rede
+              </li>
+            </ul>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <p class="text-sm text-gray-600">
+                Diárias a partir de <span class="font-bold text-orange-600">R$ 280</span> em baixa temporada.
+              </p>
+              <button class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-emerald-400 decoration-2 underline-offset-2"
+                      onclick="scrollToForm('standard')">
+                Simular datas neste chalé
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- CHALÉ FAMÍLIA -->
+        <article class="grid gap-5 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)]">
+          <div class="space-y-3">
+            <div class="relative overflow-hidden rounded-xl">
+              <div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <img src="images/chale_familia_1.jpg" alt="Chalé Família - Beliches e cama" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+                <img src="images/chale_familia_2.jpg" alt="Chalé Família - Área interna" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+                <img src="images/chale_familia_3.jpg" alt="Chalé Família - Varanda" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500">
+              Perfeito para famílias com crianças ou grupos de amigos.
+            </p>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Famílias / grupos</p>
+              <h3 class="text-xl font-bold text-gray-900">Chalé Família</h3>
+              <p class="mt-1 text-sm text-gray-600">
+                Espaço amplo, com camas extras e boa circulação. Localizado em região tranquila do balneário, próximo às áreas verdes.
+              </p>
+            </div>
+
+            <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-user-group text-emerald-600"></i>
+                Até 5 hóspedes
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-bed text-emerald-600"></i>
+                1 cama casal + camas auxiliares
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-kitchen-set text-emerald-600"></i>
+                Espaço para refeições
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-car text-emerald-600"></i>
+                Estacionamento próximo
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-snowflake text-emerald-600"></i>
+                Ar-condicionado
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-tree text-emerald-600"></i>
+                Varanda com rede
+              </li>
+            </ul>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <p class="text-sm text-gray-600">
+                Diárias a partir de <span class="font-bold text-orange-600">R$ 380</span>.
+              </p>
+              <button class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-emerald-400 decoration-2 underline-offset-2"
+                      onclick="scrollToForm('familia')">
+                Simular datas neste chalé
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- CHALÉ BEIRA-RIO -->
+        <article class="grid gap-5 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)]">
+          <div class="space-y-3">
+            <div class="relative overflow-hidden rounded-xl">
+              <div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                <img src="images/chale_beirario_1.jpg" alt="Chalé Beira-Rio - Varanda" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+                <img src="images/chale_beirario_2.jpg" alt="Chalé Beira-Rio - Vista do rio" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+                <img src="images/chale_beirario_3.jpg" alt="Chalé Beira-Rio - Interior" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500">
+              Acorde com o som do rio Jamari e o nascer do sol na sua varanda.
+            </p>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Vista privilegiada</p>
+              <h3 class="text-xl font-bold text-gray-900">Chalé Beira-Rio</h3>
+              <p class="mt-1 text-sm text-gray-600">
+                Nosso chalé mais desejado. Varanda ampla com rede, vista aberta para o rio e pôr do sol, perfeito para casais e momentos especiais.
+              </p>
+            </div>
+
+            <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-user-group text-emerald-600"></i>
+                Até 4 hóspedes
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-water text-emerald-600"></i>
+                Em frente ao rio
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-sun text-emerald-600"></i>
+                Pôr do sol na varanda
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-wifi text-emerald-600"></i>
+                Wi-fi nas áreas comuns
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-snowflake text-emerald-600"></i>
+                Ar-condicionado
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-mug-hot text-emerald-600"></i>
+                Frigobar
+              </li>
+            </ul>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <p class="text-sm text-gray-600">
+                Diárias a partir de <span class="font-bold text-orange-600">R$ 420</span>.
+              </p>
+              <button class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-emerald-400 decoration-2 underline-offset-2"
+                      onclick="scrollToForm('beiraRio')">
+                Simular datas neste chalé
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- FAQ / DÚVIDAS FREQUENTES -->
+    <section class="grid gap-8 md:grid-cols-2">
+      <div>
+        <h2 class="text-xl md:text-2xl font-extrabold text-gray-800 mb-3">Dúvidas frequentes</h2>
+        <div class="space-y-3 text-sm text-gray-700">
+          <details class="rounded-xl border border-gray-200 bg-white p-3">
+            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
+              Qual o horário de check-in e check-out?
+              <span class="text-xs text-gray-400 ml-2">clique para ver</span>
+            </summary>
+            <p class="mt-2 text-sm text-gray-600">
+              O check-in é a partir das 14h e o check-out até às 11h. Necessita de outro horário? Fale com nossa equipe que avaliamos a possibilidade.
+            </p>
+          </details>
+
+          <details class="rounded-xl border border-gray-200 bg-white p-3">
+            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
+              O café da manhã está incluso?
+            </summary>
+            <p class="mt-2 text-sm text-gray-600">
+              Em algumas diárias promocionais o café da manhã pode ser opcional. Informe-se com nossa equipe na simulação da reserva.
+            </p>
+          </details>
+
+          <details class="rounded-xl border border-gray-200 bg-white p-3">
+            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
+              Animais de estimação são permitidos?
+            </summary>
+            <p class="mt-2 text-sm text-gray-600">
+              Pets de pequeno porte podem ser aceitos em algumas unidades mediante combinação prévia. Sempre nos avise no momento da reserva.
+            </p>
+          </details>
+
+          <details class="rounded-xl border border-gray-200 bg-white p-3">
+            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
+              Como funciona o cancelamento?
+            </summary>
+            <p class="mt-2 text-sm text-gray-600">
+              Cancelamentos até 7 dias antes da data da hospedagem têm reembolso integral ou crédito para uso posterior. Em datas especiais e feriados, podem haver regras diferentes.
+            </p>
+          </details>
+        </div>
+      </div>
+
+      <!-- REGRAS E MAPA -->
+      <div class="space-y-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-4 md:p-5">
+          <h2 class="text-xl font-extrabold text-gray-800 mb-2">Regras da casa</h2>
+          <ul class="space-y-1 text-sm text-gray-700">
+            <li class="flex gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+              <span>Proibido som automotivo e caixas de som em volume alto próximo aos chalés.</span>
+            </li>
+            <li class="flex gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+              <span>É proibido o acesso ao rio em locais não sinalizados pela equipe.</span>
+            </li>
+            <li class="flex gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+              <span>Visitantes extras devem ser informados antecipadamente para controle de acesso.</span>
+            </li>
+            <li class="flex gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
+              <span>Respeite os horários de silêncio após as 22h.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+          <h2 class="px-4 pt-4 text-lg font-extrabold text-gray-800">Localização</h2>
+          <p class="px-4 pb-2 text-xs text-gray-600">
+            BR-364, km 36 • Candeias do Jamari - RO • A cerca de 40km de Porto Velho.
+          </p>
+          <div class="h-56 w-full">
+            <iframe
+              title="Mapa Balneário Rio Preto"
+              src="https://www.google.com/maps?q=Balne%C3%A1rio%20Rio%20Preto%20Candeias%20do%20Jamari&output=embed"
+              class="h-full w-full border-0"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- CTA FLUTUANTE (MOBILE) -->
+  <button class="floating-cta" onclick="document.getElementById('simulacao').scrollIntoView({ behavior: 'smooth' });">
+    Ver datas e reservar
+  </button>
+
+  <!-- BOTÃO WHATSAPP FIXO -->
+  <button
+    onclick="openWhatsappDirect()"
+    class="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-700 md:bottom-6">
+    <i class="fa-brands fa-whatsapp text-2xl"></i>
+  </button>
+
+  <!-- FOOTER SIMPLES -->
+  <footer class="mt-10 border-t border-gray-200 bg-white">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-xs md:text-sm text-gray-500 flex flex-col md:flex-row items-center justify-between gap-2">
+      <span>© Balneário Rio Preto — Seu mergulho perfeito na natureza amazônica.</span>
+      <span>Reservas e informações: WhatsApp oficial do Balneário.</span>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script>
+    const nightlyPrices = {
+      standard: 280,
+      familia: 380,
+      beiraRio: 420,
+    };
+
+    function formatCurrency(value) {
+      return value.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+      });
+    }
+
+    function calculateNights(checkin, checkout) {
+      const inDate = new Date(checkin);
+      const outDate = new Date(checkout);
+      if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) return 0;
+      const diffMs = outDate.getTime() - inDate.getTime();
+      const nights = diffMs / (1000 * 60 * 60 * 24);
+      return nights > 0 ? nights : 0;
+    }
+
+    function updateSimulation() {
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+      const chaletType = document.getElementById('chaletType').value;
+
+      const nights = calculateNights(checkin, checkout);
+      const nightlyPrice = nightlyPrices[chaletType] || 0;
+      const total = nights * nightlyPrice;
+
+      const nightsLabel = document.getElementById('nightsLabel');
+      const nightlyPriceLabel = document.getElementById('nightlyPriceLabel');
+      const totalPriceLabel = document.getElementById('totalPriceLabel');
+
+      if (!nights) {
+        nightsLabel.textContent = 'Selecione as datas';
+        nightlyPriceLabel.textContent = nightlyPrice ? formatCurrency(nightlyPrice) + '/noite' : '–';
+        totalPriceLabel.textContent = '–';
+      } else {
+        nightsLabel.textContent = nights + (nights === 1 ? ' noite' : ' noites');
+        nightlyPriceLabel.textContent = formatCurrency(nightlyPrice) + '/noite';
+        totalPriceLabel.textContent = formatCurrency(total);
+      }
+    }
+
+    function scrollToForm(type) {
+      const select = document.getElementById('chaletType');
+      if (type && select) {
+        select.value = type;
+      }
+      document.getElementById('simulacao').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openWhatsappDirect() {
+      // Atualize esse número para o WhatsApp oficial do Balneário
+      const phoneNumber = '5569999999999';
+      const text = encodeURIComponent('Olá! Gostaria de informações sobre reservas nos chalés do Balneário Rio Preto.');
+      const url = `https://wa.me/${phoneNumber}?text=${text}`;
+      window.open(url, '_blank');
+    }
+
+    function openWhatsappReservation() {
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+      const guests = document.getElementById('guests').value;
+      const chaletType = document.getElementById('chaletType').value;
+
+      const nights = calculateNights(checkin, checkout);
+      const nightlyPrice = nightlyPrices[chaletType] || 0;
+      const total = nights * nightlyPrice;
+
+      if (!checkin || !checkout || !nights) {
+        alert('Por favor, selecione datas válidas de check-in e check-out antes de enviar sua reserva.');
+        return;
+      }
+
+      const typeLabelMap = {
+        standard: 'Chalé Standard',
+        familia: 'Chalé Família',
+        beiraRio: 'Chalé Beira-Rio',
+      };
+
+      const typeLabel = typeLabelMap[chaletType] || 'Chalé';
+
+      const msg = `
+Olá! Gostaria de fazer uma reserva no Balneário Rio Preto.
+
+• Tipo de chalé: ${typeLabel}
+• Check-in: ${checkin}
+• Check-out: ${checkout}
+• Nº de noites: ${nights}
+• Hóspedes: ${guests}
+• Estimativa pelo site: ${total ? formatCurrency(total) : 'a combinar'}
+
+Poderiam me enviar as opções disponíveis e formas de pagamento?`;
+
+      const phoneNumber = '5569999999999'; // troque pelo número oficial
+      const encoded = encodeURIComponent(msg.trim());
+      const url = `https://wa.me/${phoneNumber}?text=${encoded}`;
+      window.open(url, '_blank');
+
+      if (window.gtag) {
+        window.gtag('event', 'whatsapp_reserva_enviada', {
+          chalet_type: chaletType,
+          guests: guests,
+          nights: nights,
+          estimated_total: total,
+        });
+      }
+    }
+
+    document.getElementById('checkin').addEventListener('change', updateSimulation);
+    document.getElementById('checkout').addEventListener('change', updateSimulation);
+    document.getElementById('chaletType').addEventListener('change', updateSimulation);
+
+    document.getElementById('whatsappReserveButton').addEventListener('click', openWhatsappReservation);
+  </script>
+</body>
+</html>
