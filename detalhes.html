@@ -68,10 +68,10 @@
                 class="w-full rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-400 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition">
           Abrir Instagram
         </button>
-        <a href="images/story-template-blog.png" download
-           class="w-full rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-text-dark hover:bg-gray-200 text-center transition">
-          Baixar arte para Stories
-        </a>
+        <button id="insta-generate-story"
+                class="w-full rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-text-dark hover:bg-gray-200 transition">
+          Gerar imagem para Stories
+        </button>
       </div>
     </div>
   </div>
@@ -364,11 +364,91 @@
           });
         }
 
+        // Add listener for "Gerar imagem para Stories"
+        const storyBtn = document.getElementById("insta-generate-story");
+        if (storyBtn) {
+          storyBtn.addEventListener("click", () => {
+            generateStoryImage(data.title, data.cover_image_url);
+          });
+        }
+
         await loadRelatedPosts(data.slug);
       }
 
       loadBlogPost();
     });
+    // Story image generator function
+    async function generateStoryImage(title, imageUrl) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const WIDTH = 1080;
+      const HEIGHT = 1920;
+
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = imageUrl;
+
+      await new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = () => resolve();
+      });
+
+      const imgHeight = HEIGHT * 0.55;
+      ctx.drawImage(img, 0, 0, WIDTH, imgHeight);
+
+      ctx.fillStyle = "#15803d";
+      ctx.fillRect(0, HEIGHT - 260, WIDTH, 260);
+
+      const logo = new Image();
+      logo.src = "images/logo-small.png";
+      await new Promise(resolve => { logo.onload = resolve; logo.onerror = resolve; });
+      ctx.drawImage(logo, 40, HEIGHT - 220, 170, 170);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.font = "bold 64px Arial";
+
+      const maxWidth = WIDTH - 200;
+      const lineHeight = 80;
+
+      function wrapText(text) {
+        const words = text.split(" ");
+        let line = "";
+        let lines = [];
+        words.forEach(word => {
+          const testLine = line + word + " ";
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth) {
+            lines.push(line);
+            line = word + " ";
+          } else {
+            line = testLine;
+          }
+        });
+        lines.push(line);
+        return lines;
+      }
+
+      const lines = wrapText(title);
+      let y = HEIGHT - 120 - (lines.length * lineHeight) / 2;
+
+      lines.forEach((line) => {
+        ctx.fillText(line.trim(), WIDTH / 2, y);
+        y += lineHeight;
+      });
+
+      const link = document.createElement("a");
+      link.download = "story-balneario.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
   </script>
   </body>
   </html>
