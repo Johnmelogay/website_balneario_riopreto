@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Reservas • Balneário Rio Preto</title>
 
   <!-- Tailwind CSS -->
@@ -12,640 +12,730 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Font Awesome Icons -->
-  <script src="https://kit.fontawesome.com/26cc0cbf69.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous">
 
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
+  <!-- Configuração de Cores e Estilos (Identidade Visual do Balneário) -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-X77VW91S4X');
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'primary-green': '#2E7D32', // Verde da Marca
+                    'primary-green-light': '#E8F5E9',
+                    'accent-orange': '#FF6D00', // Laranja da Marca
+                    'bg-light': '#F8FAFC',
+                    'river-blue': '#0288D1',
+                    'text-dark': '#1C2833',
+                },
+                fontFamily: {
+                    sans: ['Inter', 'system-ui', 'sans-serif'],
+                },
+                boxShadow: {
+                    'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                }
+            }
+        }
+    }
   </script>
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-
-    .hero-video {
+    /* Suavizar rolagem */
+    html { scroll-behavior: smooth; }
+    
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    
+    /* Hero Section */
+    .hero-reservas {
       position: relative;
-      width: 100%;
-      height: 46vh;
-      overflow: hidden;
-    }
-
-    .hero-video video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.7);
-    }
-
-    .hero-overlay {
-      position: absolute;
-      inset: 0;
+      min-height: 380px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       color: #fff;
-      padding: 0 1.5rem;
+      overflow: hidden;
+      
+    }
+    
+    .hero-video {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: -1;
     }
 
+    /* ESTILO DINÂMICO DO HEADER */
+    #main-header {
+        transition: all 0.3s ease-in-out;
+        height: 80px;
+        box-shadow: none;
+    }
+    #main-header.scrolled-header {
+        height: 60px;
+        background-color: white !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    #main-header .logo-img {
+        transition: all 0.3s ease-in-out;
+        height: 56px;
+    }
+    #main-header.scrolled-header .logo-img {
+        height: 40px;
+    }
+
+    /* Otimização para Mobile: Botão Flutuante */
     .floating-cta {
       position: fixed;
-      bottom: 18px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(90deg, #FF6D00, #FF9800);
-      color: white;
-      padding: 12px 22px;
-      border-radius: 999px;
-      font-size: 0.95rem;
+      background: #FF6D00;
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 50px;
+      font-size: 1rem;
       font-weight: 700;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 25px rgba(255, 109, 0, 0.4);
       z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.2s active;
+      width: 90%;
+      max-width: 320px;
+      justify-content: center;
+     
     }
+    .floating-cta:active { transform: translateX(-50%) scale(0.95); }
 
     @media (min-width: 768px) {
-      .floating-cta {
-        display: none;
-      }
+      .floating-cta { display: none; }
+      .hero-reservas { min-height: 450px; border-radius: 0; }
+    }
+
+    /* Customização dos Inputs */
+    input[type="date"], input[type="time"] {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: transparent;
+    }
+    
+    /* Remove ícone padrão de calendário feio do navegador para usar o nosso */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    /* Stepper Control */
+    .stepper-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: center;
+      color: #1C2833;
+      cursor: pointer; user-select: none;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .stepper-btn:active { transform: scale(0.95); background-color: #f3f4f6; }
+    
+    /* Custom Radio Box para Chalés */
+    .chale-radio:checked + div {
+        border-color: #2E7D32;
+        background-color: #f0fdf4;
+        box-shadow: 0 0 0 2px #2E7D32;
+    }
+    .chale-radio:disabled + div {
+        opacity: 0.5;
+        background-color: #f9fafb;
+        cursor: not-allowed;
+        border-style: dashed;
     }
   </style>
 </head>
 
-<body class="bg-gray-100 text-gray-900">
-  <!-- HEADER SIMPLES (mantendo identidade do site) -->
-  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-100">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <a href="index.html" class="flex items-center gap-3">
-        <img src="images/logo.png" alt="Balneário Rio Preto" class="h-10 w-10 rounded-full object-cover shadow-md" />
-        <div class="leading-tight">
-          <p class="font-extrabold text-lg text-emerald-700">Balneário Rio Preto</p>
-          <p class="text-xs text-gray-500">Chalés, Day Use e Natureza na Amazônia</p>
-        </div>
-      </a>
-      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
-        <a href="index.html#chales" class="hover:text-emerald-700">Chalés</a>
-        <a href="index.html#dayuse" class="hover:text-emerald-700">Day Use</a>
-        <a href="index.html#blog" class="hover:text-emerald-700">Blog</a>
-        <a href="index.html#como-chegar" class="hover:text-emerald-700">Como Chegar</a>
-      </nav>
-      <a href="#simulacao" class="hidden md:inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2 text-sm font-bold text-white shadow-md transition hover:bg-orange-600 hover:-translate-y-0.5">
-        <span>Ver disponibilidade</span>
-        <i class="fa-solid fa-arrow-right-long text-xs"></i>
-      </a>
-    </div>
-  </header>
+<body class="bg-bg-light text-text-dark font-sans pb-24 md:pb-0">
 
-  <!-- HERO COM VÍDEO -->
-  <section class="hero-video">
-    <video autoplay muted loop playsinline>
+  <div id="navbar-container"></div>
+  <script src="navbar.js" defer></script>
+
+  <!-- CTA Flutuante Mobile -->
+  <a href="#simulador" class="floating-cta">
+    <i class="fa-solid fa-calculator"></i>
+    Simular Agora
+  </a>
+
+  <!-- HERO SECTION -->
+  <section class="hero-reservas px-4 mb-8 md:mb-0">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80 z-0"></div>
+    <video class="hero-video" autoplay muted loop playsinline poster="https://placehold.co/800x400/2E7D32/ffffff?text=Video+Loading...">
       <source src="videos/hero-video.mp4" type="video/mp4" />
     </video>
-    <div class="hero-overlay bg-gradient-to-t from-black/70 via-black/40 to-black/10">
-      <p class="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">Reservas oficiais</p>
-      <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold drop-shadow-xl">
-        Escolha o Chalé perfeito para sua estadia
+    
+    <div class="relative z-10 max-w-4xl mx-auto py-12 flex flex-col items-center">
+      <span class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold text-white uppercase tracking-wider backdrop-blur-md">
+        <i class="fa-solid fa-shield-halved text-green-400"></i> Reserva Direta e Segura
+      </span>
+      <h1 class="text-3xl md:text-5xl font-black drop-shadow-xl leading-tight md:leading-tight mb-4 text-white">
+        Seu refúgio na <span class="text-transparent bg-clip-text bg-gradient-to-r from-accent-orange to-yellow-400">Natureza</span>
       </h1>
-      <p class="mt-3 max-w-2xl text-sm md:text-base text-gray-100">
-        Aqui você encontra todas as informações, fotos, vídeos e respostas para reservar com tranquilidade.
+      <p class="text-gray-200 text-sm md:text-lg max-w-xl drop-shadow-md font-medium">
+        Confira a disponibilidade em tempo real e receba o orçamento detalhado no seu WhatsApp.
       </p>
     </div>
   </section>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="max-w-6xl mx-auto px-4 md:px-6 lg:px-4 py-8 md:py-10 space-y-10">
-    <!-- SIMULAÇÃO / FORMULÁRIO (AIRBNB-LIKE) -->
-    <section id="simulacao" class="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)] items-start">
-      <!-- LADO ESQUERDO: INTRO -->
-      <div class="space-y-4">
-        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800">
-          Planeje sua reserva
-        </h2>
-        <p class="text-sm md:text-base text-gray-600">
-          Selecione datas e hóspedes para ter uma estimativa de valor dos chalés.
-          A confirmação final é feita pela nossa equipe via WhatsApp.
-        </p>
-        <ul class="mt-2 text-sm text-gray-600 space-y-1">
-          <li class="flex items-center gap-2">
-            <i class="fa-solid fa-shield-heart text-emerald-600"></i>
-            <span>Pagamento seguro diretamente com o Balneário (PIX, cartão ou dinheiro).</span>
-          </li>
-          <li class="flex items-center gap-2">
-            <i class="fa-solid fa-circle-info text-emerald-600"></i>
-            <span>Cancelamento flexível em até 7 dias antes da data da reserva.</span>
-          </li>
-        </ul>
-      </div>
+  <main class="max-w-7xl mx-auto px-4 py-4 md:py-16 gap-10">
 
-      <!-- LADO DIREITO: CARD DE RESERVA -->
-      <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-5 md:p-6 space-y-4">
-        <div class="flex items-baseline justify-between">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">Simulação</p>
-            <p class="text-lg font-bold text-gray-900 mt-1">Chalés a partir de <span class="text-orange-500">R$ 280/noite</span></p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <label for="checkin" class="block text-xs font-semibold uppercase text-gray-500">Check-in</label>
-            <input type="date" id="checkin" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600" />
-          </div>
-          <div>
-            <label for="checkout" class="block text-xs font-semibold uppercase text-gray-500">Check-out</label>
-            <input type="date" id="checkout" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600" />
+    <div class="grid lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- COLUNA ESQUERDA: SIMULADOR -->
+      <div class="lg:col-span-5 lg:sticky lg:top-24 order-1 lg:order-2">
+        <div id="simulador" class="rounded-3xl bg-white shadow-soft border border-gray-100 overflow-hidden relative">
+          
+          <!-- Cabeçalho do Simulador -->
+          <div class="bg-primary-green p-6 text-white relative overflow-hidden">
+            <!-- Decorative Circles -->
+            <div class="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+            <div class="absolute -left-4 bottom-0 w-20 h-20 bg-accent-orange opacity-20 rounded-full blur-xl"></div>
+            
+            <p class="text-[10px] font-bold uppercase tracking-widest text-green-200 mb-2 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Sistema Online
+            </p>
+            <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">
+              Simular Reserva
+            </h2>
+            <p class="text-green-100 text-xs mt-1 opacity-90">Preencha os dados abaixo para calcular.</p>
           </div>
 
-          <div>
-            <label for="guests" class="block text-xs font-semibold uppercase text-gray-500">Hóspedes</label>
-            <select id="guests" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-              <option value="2">2 pessoas</option>
-              <option value="3">3 pessoas</option>
-              <option value="4">4 pessoas</option>
-              <option value="5">5 pessoas</option>
-              <option value="6">6 pessoas</option>
-            </select>
-          </div>
-          <div>
-            <label for="chaletType" class="block text-xs font-semibold uppercase text-gray-500">Tipo de Chalé</label>
-            <select id="chaletType" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-600 focus:ring-emerald-600">
-              <option value="standard">Chalé Standard (casal)</option>
-              <option value="familia">Chalé Família (até 5 pessoas)</option>
-              <option value="beiraRio">Chalé Beira-Rio (vista privilegiada)</option>
-            </select>
-          </div>
-        </div>
+          <div class="p-5 md:p-6 space-y-6">
+            
+            <!-- DATAS (Grid lado a lado com ícones internos) -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5 group relative">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Entrada</label>
+                <div class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-regular fa-calendar text-gray-400 group-focus-within:text-primary-green"></i>
+                    </div>
+                    <input type="date" id="checkin" class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+              </div>
 
-        <!-- RESUMO -->
-        <div class="rounded-xl bg-gray-50 px-4 py-3 text-sm flex flex-col gap-1">
-          <div class="flex justify-between">
-            <span class="text-gray-600">Noites</span>
-            <span id="nightsLabel" class="font-semibold text-gray-800">–</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Estimativa de diária</span>
-            <span id="nightlyPriceLabel" class="font-semibold text-gray-800">–</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Total estimado</span>
-            <span id="totalPriceLabel" class="font-bold text-orange-600">–</span>
-          </div>
-          <p class="mt-2 text-[11px] text-gray-500">
-            *Valores sujeitos a confirmação. Tarifas podem variar conforme datas, feriados e promoções.
-          </p>
-        </div>
-
-        <button id="whatsappReserveButton" class="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-emerald-700">
-          <i class="fa-brands fa-whatsapp text-lg"></i>
-          Reservar pelo WhatsApp
-        </button>
-
-        <p class="text-[11px] text-center text-gray-500">
-          Nossa equipe responde o mais rápido possível com a confirmação da reserva.
-        </p>
-      </div>
-    </section>
-
-    <!-- DETALHES DOS CHALÉS (SEÇÃO TIPO AIRBNB/BEACHPARK) -->
-    <section class="space-y-6" aria-labelledby="chales-detalhes">
-      <div class="flex items-baseline justify-between gap-4">
-        <div>
-          <h2 id="chales-detalhes" class="text-2xl md:text-3xl font-extrabold text-gray-800">
-            Chalés disponíveis
-          </h2>
-          <p class="mt-1 text-sm md:text-base text-gray-600 max-w-2xl">
-            Todos os chalés contam com banheiro privativo, roupa de cama, estacionamento e acesso completo à área do balneário.
-          </p>
-        </div>
-      </div>
-
-      <!-- LISTA DE CHALÉS -->
-      <div class="space-y-6">
-        <!-- CHALÉ STANDARD -->
-        <article class="grid gap-5 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)]">
-          <!-- Galeria -->
-          <div class="space-y-3">
-            <div class="relative overflow-hidden rounded-xl">
-              <div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
-                <img src="images/chale_standard_1.jpg" alt="Chalé Standard - Vista interna" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-                <img src="images/chale_standard_2.jpg" alt="Chalé Standard - Cama de casal" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-                <img src="images/chale_standard_3.jpg" alt="Chalé Standard - Varanda com rede" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+              <div class="space-y-1.5 group relative">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Saída</label>
+                <div class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-accent-orange focus-within:ring-1 focus-within:ring-accent-orange transition-all">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-regular fa-calendar-check text-gray-400 group-focus-within:text-accent-orange"></i>
+                    </div>
+                    <input type="date" id="checkout" class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
               </div>
             </div>
-            <p class="text-[11px] text-gray-500">
-              Fotos ilustrativas. Consulte nossa equipe para receber mais imagens atualizadas pelo WhatsApp.
-            </p>
-          </div>
 
-          <!-- Conteúdo -->
-          <div class="space-y-3">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Casal / amigos</p>
-              <h3 class="text-xl font-bold text-gray-900">Chalé Standard</h3>
-              <p class="mt-1 text-sm text-gray-600">
-                Ideal para casais ou até 3 pessoas que buscam conforto e praticidade. Fica próximo à área do restaurante e ao acesso para o rio.
+            <!-- Horário de Chegada -->
+            <div class="space-y-1.5 group relative">
+              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Horário Previsto</label>
+              <div class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green transition-all">
+                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-regular fa-clock text-gray-400 group-focus-within:text-primary-green"></i>
+                    </div>
+                  <input type="time" id="horarioChegada" class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+              </div>
+              <p class="text-[10px] text-gray-400 px-1">
+                <i class="fa-solid fa-circle-info text-accent-orange mr-1"></i>Check-in até 17:00. Após, taxa de R$ 50,00.
               </p>
             </div>
 
-            <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-user-group text-emerald-600"></i>
-                Até 3 hóspedes
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-bed text-emerald-600"></i>
-                1 cama casal + 1 auxiliar
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-snowflake text-emerald-600"></i>
-                Ar-condicionado
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-bath text-emerald-600"></i>
-                Banheiro privativo
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-mug-hot text-emerald-600"></i>
-                Frigobar
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-tree text-emerald-600"></i>
-                Varanda com rede
-              </li>
-            </ul>
+            <hr class="border-gray-100">
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <p class="text-sm text-gray-600">
-                Diárias a partir de <span class="font-bold text-orange-600">R$ 280</span> em baixa temporada.
-              </p>
-              <button class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-emerald-400 decoration-2 underline-offset-2"
-                      onclick="scrollToForm('standard')">
-                Simular datas neste chalé
-              </button>
-            </div>
-          </div>
-        </article>
+            <!-- CONTROLE DE PESSOAS -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-bold text-gray-800 text-sm">Adultos</p>
+                    <p class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded inline-block">+9 anos • R$ 40 extra</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="stepper-btn" onclick="changeValue('adultos', -1)"><i class="fa-solid fa-minus text-xs"></i></button>
+                    <!-- TYPE=TEL USADO AQUI PARA CENTRALIZAR CORRETAMENTE -->
+                    <input type="tel" id="adultos" value="2" min="1" readonly class="w-10 text-center p-0 appearance-none bg-transparent font-bold text-gray-700 text-lg focus:outline-none tabular-nums">
+                    <button type="button" class="stepper-btn" onclick="changeValue('adultos', 1)"><i class="fa-solid fa-plus text-xs"></i></button>
+                </div>
+              </div>
 
-        <!-- CHALÉ FAMÍLIA -->
-        <article class="grid gap-5 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)]">
-          <div class="space-y-3">
-            <div class="relative overflow-hidden rounded-xl">
-              <div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
-                <img src="images/chale_familia_1.jpg" alt="Chalé Família - Beliches e cama" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-                <img src="images/chale_familia_2.jpg" alt="Chalé Família - Área interna" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-                <img src="images/chale_familia_3.jpg" alt="Chalé Família - Varanda" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
+              <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-bold text-gray-800 text-sm">Crianças</p>
+                    <p class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded inline-block">5 a 8 anos • Taxa R$ 20</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="stepper-btn" onclick="changeValue('criancas5', -1)"><i class="fa-solid fa-minus text-xs"></i></button>
+                    <input type="tel" id="criancas5" value="0" min="0" readonly class="w-10 text-center p-0 appearance-none bg-transparent font-bold text-gray-700 text-lg focus:outline-none tabular-nums">
+                    <button type="button" class="stepper-btn" onclick="changeValue('criancas5', 1)"><i class="fa-solid fa-plus text-xs"></i></button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-bold text-gray-800 text-sm">Bebês</p>
+                    <p class="text-[10px] text-primary-green font-bold bg-green-50 px-2 py-0.5 rounded inline-block">0 a 4 anos • Grátis</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="stepper-btn" onclick="changeValue('criancas0', -1)"><i class="fa-solid fa-minus text-xs"></i></button>
+                    <input type="tel" id="criancas0" value="0" min="0" readonly class="w-10 text-center p-0 appearance-none bg-transparent font-bold text-gray-700 text-lg focus:outline-none tabular-nums">
+                    <button type="button" class="stepper-btn" onclick="changeValue('criancas0', 1)"><i class="fa-solid fa-plus text-xs"></i></button>
+                </div>
               </div>
             </div>
-            <p class="text-[11px] text-gray-500">
-              Perfeito para famílias com crianças ou grupos de amigos.
-            </p>
-          </div>
 
-          <div class="space-y-3">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Famílias / grupos</p>
-              <h3 class="text-xl font-bold text-gray-900">Chalé Família</h3>
-              <p class="mt-1 text-sm text-gray-600">
-                Espaço amplo, com camas extras e boa circulação. Localizado em região tranquila do balneário, próximo às áreas verdes.
-              </p>
+            <hr class="border-gray-100">
+
+            <!-- Seleção de Chalé REFEITA -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase ml-1">Escolha seu Chalé</label>
+                    <span class="text-[10px] text-gray-400 bg-gray-50 px-2 py-1 rounded-full border border-gray-100">Atualizado agora</span>
+                </div>
+                
+                <!-- Container Onde os Chalés serão renderizados -->
+                <div id="chale-opcoes" class="space-y-4">
+                  <!-- Skeleton Loading Inicial -->
+                  <div class="animate-pulse space-y-3">
+                      <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+                      <div class="grid grid-cols-2 gap-3">
+                          <div class="h-16 bg-gray-200 rounded-xl"></div>
+                          <div class="h-16 bg-gray-200 rounded-xl"></div>
+                      </div>
+                  </div>
+                </div>
+                <p id="erro-chale" class="text-red-500 text-xs font-bold mt-2 hidden animate-bounce">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Por favor, selecione um chalé disponível.
+                </p>
             </div>
 
-            <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-user-group text-emerald-600"></i>
-                Até 5 hóspedes
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-bed text-emerald-600"></i>
-                1 cama casal + camas auxiliares
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-kitchen-set text-emerald-600"></i>
-                Espaço para refeições
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-car text-emerald-600"></i>
-                Estacionamento próximo
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-snowflake text-emerald-600"></i>
-                Ar-condicionado
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-tree text-emerald-600"></i>
-                Varanda com rede
-              </li>
+            <!-- CARD DE RESUMO FINANCEIRO -->
+            <div class="rounded-2xl bg-gradient-to-br from-orange-50 to-white border border-orange-100 p-5 space-y-3 relative shadow-sm">
+               <div class="flex justify-between text-sm text-gray-600">
+                   <span>Diárias:</span>
+                   <span id="resumoNoites" class="font-bold text-gray-800">--</span>
+               </div>
+               
+               <div class="flex justify-between text-sm text-gray-600">
+                   <span>Valor Base (Casal):</span>
+                   <span id="resumoDiaria" class="font-bold text-gray-800">R$ 0,00</span>
+               </div>
+
+               <div class="border-t border-orange-200 my-1 border-dashed"></div>
+
+               <div class="flex justify-between items-center">
+                   <span class="text-xs font-bold uppercase text-gray-500">Total Estimado</span>
+                   <span id="resumoTotal" class="text-2xl font-black text-accent-orange tracking-tight">R$ 0,00</span>
+               </div>
+            </div>
+
+            <!-- BOTÃO AÇÃO -->
+            <button onclick="enviarWhatsapp()" id="btnWhatsappReserva" class="group w-full rounded-2xl bg-primary-green hover:bg-green-700 text-white font-bold py-4 px-6 shadow-lg shadow-green-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-3">
+                <i class="fa-brands fa-whatsapp text-2xl"></i>
+                <div class="text-left leading-tight">
+                    <span class="block text-xs font-medium text-green-100 uppercase">Finalizar Reserva</span>
+                    <span class="block text-lg">Solicitar no WhatsApp</span>
+                </div>
+            </button>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUNA DIREITA: CONTEÚDO -->
+      <div class="lg:col-span-7 order-2 lg:order-1 space-y-8">
+        
+        <!-- GALERIA DESTAQUE -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-bold text-text-dark flex items-center gap-2 px-2">
+                <i class="fa-solid fa-photo-film text-primary-green"></i> Conheça o Ambiente
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 h-64 md:h-96">
+                <!-- Foto Principal -->
+                <div class="col-span-2 row-span-2 rounded-2xl bg-gray-200 overflow-hidden relative group shadow-sm cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1587595431973-160d0d94add1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Chalé Externo" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+                    <div class="absolute bottom-4 left-4">
+                        <span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded mb-1 inline-block">Destaque</span>
+                        <p class="text-white text-lg font-bold">Chalés na Natureza</p>
+                    </div>
+                </div>
+                <!-- Foto 2 -->
+                <div class="col-span-1 row-span-1 rounded-2xl bg-gray-200 overflow-hidden relative shadow-sm group">
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Piscina" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                </div>
+                <!-- Foto 3 -->
+                <div class="col-span-1 row-span-1 rounded-2xl bg-gray-200 overflow-hidden relative shadow-sm group">
+                    <img src="https://images.unsplash.com/photo-1540541338287-41700207dee6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Natureza" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                </div>
+                <!-- Foto 4 (Botão Ver Mais) -->
+                <div class="col-span-2 md:col-span-2 rounded-2xl bg-primary-green-light border border-green-100 flex items-center justify-center flex-col text-primary-green cursor-pointer hover:bg-green-100 transition p-4 text-center group">
+                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wide">Ver Galeria Completa</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AMENIDADES (Grid Melhorado) -->
+        <div class="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-soft">
+            <h3 class="text-lg font-bold text-text-dark mb-6">Comodidades Inclusas</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-river-blue flex items-center justify-center shrink-0"><i class="fa-solid fa-snowflake"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Climatização</p>
+                        <p class="text-xs text-gray-500">Ar condicionado split</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-bed"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Conforto</p>
+                        <p class="text-xs text-gray-500">Roupa de cama inclusa</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-wifi"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Conexão</p>
+                        <p class="text-xs text-gray-500">Wi-Fi Starlink</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-fire-burner"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Cozinha</p>
+                        <p class="text-xs text-gray-500">Leve seu fogão elétrico</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-burger"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Churrasco</p>
+                        <p class="text-xs text-gray-500">Mini churrasqueira ok</p>
+                    </div>
+                </div>
+                 <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-car"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">Estacionamento</p>
+                        <p class="text-xs text-gray-500">Vaga próxima ao chalé</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REGRAS -->
+        <div class="bg-amber-50 rounded-3xl border border-amber-100 p-6 md:p-8">
+            <h3 class="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Informações Importantes
+            </h3>
+            <ul class="space-y-4">
+                <li class="flex gap-3 text-sm text-amber-900/80">
+                    <i class="fa-regular fa-clock mt-1"></i>
+                    <span><strong>Check-in/out:</strong> Entrada 12h-14h. Saída até 12h (Domingos estendido até 16h30).</span>
+                </li>
+                <li class="flex gap-3 text-sm text-amber-900/80">
+                    <i class="fa-solid fa-paw mt-1"></i>
+                    <span><strong>Pets:</strong> Permitidos apenas na área externa e com coleira. Proibido dentro do chalé.</span>
+                </li>
+                <li class="flex gap-3 text-sm text-amber-900/80">
+                    <i class="fa-solid fa-utensils mt-1"></i>
+                    <span><strong>Alimentação:</strong> Não servimos café. Traga seus alimentos e bebidas (Vidro proibido).</span>
+                </li>
             </ul>
-
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <p class="text-sm text-gray-600">
-                Diárias a partir de <span class="font-bold text-orange-600">R$ 380</span>.
-              </p>
-              <button class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-emerald-400 decoration-2 underline-offset-2"
-                      onclick="scrollToForm('familia')">
-                Simular datas neste chalé
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <!-- CHALÉ BEIRA-RIO -->
-        <article class="grid gap-5 rounded-2xl border border-gray-200 bg-white p-4 md:p-5 shadow-sm md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)]">
-          <div class="space-y-3">
-            <div class="relative overflow-hidden rounded-xl">
-              <div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
-                <img src="images/chale_beirario_1.jpg" alt="Chalé Beira-Rio - Varanda" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-                <img src="images/chale_beirario_2.jpg" alt="Chalé Beira-Rio - Vista do rio" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-                <img src="images/chale_beirario_3.jpg" alt="Chalé Beira-Rio - Interior" class="h-56 w-full flex-shrink-0 snap-center object-cover md:h-64" />
-              </div>
-            </div>
-            <p class="text-[11px] text-gray-500">
-              Acorde com o som do rio Jamari e o nascer do sol na sua varanda.
-            </p>
-          </div>
-
-          <div class="space-y-3">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Vista privilegiada</p>
-              <h3 class="text-xl font-bold text-gray-900">Chalé Beira-Rio</h3>
-              <p class="mt-1 text-sm text-gray-600">
-                Nosso chalé mais desejado. Varanda ampla com rede, vista aberta para o rio e pôr do sol, perfeito para casais e momentos especiais.
-              </p>
-            </div>
-
-            <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-user-group text-emerald-600"></i>
-                Até 4 hóspedes
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-water text-emerald-600"></i>
-                Em frente ao rio
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-sun text-emerald-600"></i>
-                Pôr do sol na varanda
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-wifi text-emerald-600"></i>
-                Wi-fi nas áreas comuns
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-snowflake text-emerald-600"></i>
-                Ar-condicionado
-              </li>
-              <li class="flex items-center gap-2">
-                <i class="fa-solid fa-mug-hot text-emerald-600"></i>
-                Frigobar
-              </li>
-            </ul>
-
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <p class="text-sm text-gray-600">
-                Diárias a partir de <span class="font-bold text-orange-600">R$ 420</span>.
-              </p>
-              <button class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 underline decoration-emerald-400 decoration-2 underline-offset-2"
-                      onclick="scrollToForm('beiraRio')">
-                Simular datas neste chalé
-              </button>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- FAQ / DÚVIDAS FREQUENTES -->
-    <section class="grid gap-8 md:grid-cols-2">
-      <div>
-        <h2 class="text-xl md:text-2xl font-extrabold text-gray-800 mb-3">Dúvidas frequentes</h2>
-        <div class="space-y-3 text-sm text-gray-700">
-          <details class="rounded-xl border border-gray-200 bg-white p-3">
-            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
-              Qual o horário de check-in e check-out?
-              <span class="text-xs text-gray-400 ml-2">clique para ver</span>
-            </summary>
-            <p class="mt-2 text-sm text-gray-600">
-              O check-in é a partir das 14h e o check-out até às 11h. Necessita de outro horário? Fale com nossa equipe que avaliamos a possibilidade.
-            </p>
-          </details>
-
-          <details class="rounded-xl border border-gray-200 bg-white p-3">
-            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
-              O café da manhã está incluso?
-            </summary>
-            <p class="mt-2 text-sm text-gray-600">
-              Em algumas diárias promocionais o café da manhã pode ser opcional. Informe-se com nossa equipe na simulação da reserva.
-            </p>
-          </details>
-
-          <details class="rounded-xl border border-gray-200 bg-white p-3">
-            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
-              Animais de estimação são permitidos?
-            </summary>
-            <p class="mt-2 text-sm text-gray-600">
-              Pets de pequeno porte podem ser aceitos em algumas unidades mediante combinação prévia. Sempre nos avise no momento da reserva.
-            </p>
-          </details>
-
-          <details class="rounded-xl border border-gray-200 bg-white p-3">
-            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between gap-2">
-              Como funciona o cancelamento?
-            </summary>
-            <p class="mt-2 text-sm text-gray-600">
-              Cancelamentos até 7 dias antes da data da hospedagem têm reembolso integral ou crédito para uso posterior. Em datas especiais e feriados, podem haver regras diferentes.
-            </p>
-          </details>
         </div>
       </div>
 
-      <!-- REGRAS E MAPA -->
-      <div class="space-y-4">
-        <div class="rounded-2xl border border-gray-200 bg-white p-4 md:p-5">
-          <h2 class="text-xl font-extrabold text-gray-800 mb-2">Regras da casa</h2>
-          <ul class="space-y-1 text-sm text-gray-700">
-            <li class="flex gap-2">
-              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
-              <span>Proibido som automotivo e caixas de som em volume alto próximo aos chalés.</span>
-            </li>
-            <li class="flex gap-2">
-              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
-              <span>É proibido o acesso ao rio em locais não sinalizados pela equipe.</span>
-            </li>
-            <li class="flex gap-2">
-              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
-              <span>Visitantes extras devem ser informados antecipadamente para controle de acesso.</span>
-            </li>
-            <li class="flex gap-2">
-              <i class="fa-solid fa-circle-check text-emerald-600 mt-1"></i>
-              <span>Respeite os horários de silêncio após as 22h.</span>
-            </li>
-          </ul>
-        </div>
-
-        <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-          <h2 class="px-4 pt-4 text-lg font-extrabold text-gray-800">Localização</h2>
-          <p class="px-4 pb-2 text-xs text-gray-600">
-            BR-364, km 36 • Candeias do Jamari - RO • A cerca de 40km de Porto Velho.
-          </p>
-          <div class="h-56 w-full">
-            <iframe
-              title="Mapa Balneário Rio Preto"
-              src="https://www.google.com/maps?q=Balne%C3%A1rio%20Rio%20Preto%20Candeias%20do%20Jamari&output=embed"
-              class="h-full w-full border-0"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <!-- CTA FLUTUANTE (MOBILE) -->
-  <button class="floating-cta" onclick="document.getElementById('simulacao').scrollIntoView({ behavior: 'smooth' });">
-    Ver datas e reservar
-  </button>
-
-  <!-- BOTÃO WHATSAPP FIXO -->
-  <button
-    onclick="openWhatsappDirect()"
-    class="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl hover:bg-emerald-700 md:bottom-6">
-    <i class="fa-brands fa-whatsapp text-2xl"></i>
-  </button>
-
-  <!-- FOOTER SIMPLES -->
-  <footer class="mt-10 border-t border-gray-200 bg-white">
-    <div class="max-w-6xl mx-auto px-4 py-6 text-xs md:text-sm text-gray-500 flex flex-col md:flex-row items-center justify-between gap-2">
-      <span>© Balneário Rio Preto — Seu mergulho perfeito na natureza amazônica.</span>
-      <span>Reservas e informações: WhatsApp oficial do Balneário.</span>
+  <!-- FOOTER MANTIDO -->
+  <footer id="contact" class="border-t-8 border-primary-green bg-gray-900 py-12 text-white mt-10">
+    <div class="mx-auto grid max-w-7xl gap-8 px-4 text-center sm:grid-cols-4 sm:text-left">
+        <div class="sm:col-span-1">
+            <img src="images/logo.png" alt="Logo Rio Preto" class="mb-4 h-16 w-auto object-contain mx-auto sm:mx-0 opacity-80 hover:opacity-100 transition">
+            <p class="text-sm text-gray-400">Ecoturismo de excelência em Candeias do Jamari. Sua conexão com a natureza.</p>
+        </div>
+        <div>
+            <h4 class="mb-4 border-b border-gray-700 pb-2 text-lg font-bold">Mapa do Site</h4>
+            <ul class="space-y-2 text-sm">
+                <li><a href="index.html#simulador" class="text-gray-400 transition hover:text-white">Reservar Chalé</a></li>
+                <li><a href="index.html#loja" class="text-gray-400 transition hover:text-white">Mini Loja</a></li>
+                <li><a href="index.html#menu" class="text-gray-400 transition hover:text-white">Cardápio</a></li>
+                <li><a href="index.html#news-section" class="text-gray-400 transition hover:text-white">Blog</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="mb-4 border-b border-gray-700 pb-2 text-lg font-bold">Fale Conosco</h4>
+            <p class="mb-2 text-sm text-gray-400"><i class="fab fa-whatsapp mr-2 text-primary-green"></i> (69) 99999-9999</p>
+            <p class="mb-2 text-sm text-gray-400"><i class="far fa-envelope mr-2 text-primary-green"></i> contato@balneario.com</p>
+        </div>
+         <div>
+            <h4 class="mb-4 border-b border-gray-700 pb-2 text-lg font-bold">Destaques</h4>
+            <p class="mb-2 text-sm font-semibold text-gray-400">📍 40km de Porto Velho</p>
+            <p class="mb-2 text-sm font-semibold text-gray-400">🐕 Pet Friendly (Área Comum)</p>
+            <a href="#location" class="mt-4 inline-block text-sm font-bold text-primary-green transition hover:underline">Ver Rota Completa</a>
+        </div>
+    </div>
+    <div class="mt-12 border-t border-gray-800 pt-8 text-center text-sm text-gray-600">
+        &copy; 2025 Balneário Rio Preto.
     </div>
   </footer>
 
-  <!-- SCRIPTS -->
-  <script>
-    const nightlyPrices = {
-      standard: 280,
-      familia: 380,
-      beiraRio: 420,
-    };
-
-    function formatCurrency(value) {
-      return value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 2,
-      });
+<script>
+    // --- 1. LÓGICA DO HEADER DINÂMICO ---
+    const mainHeader = document.getElementById('main-header');
+    if(mainHeader){
+        function handleScrollHeader() {
+            if (window.scrollY > 50) {
+                mainHeader.classList.add('scrolled-header');
+            } else {
+                mainHeader.classList.remove('scrolled-header');
+            }
+        }
+        window.addEventListener('scroll', handleScrollHeader);
     }
 
-    function calculateNights(checkin, checkout) {
-      const inDate = new Date(checkin);
-      const outDate = new Date(checkout);
-      if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) return 0;
-      const diffMs = outDate.getTime() - inDate.getTime();
-      const nights = diffMs / (1000 * 60 * 60 * 24);
-      return nights > 0 ? nights : 0;
+    // --- 3. LÓGICA DO SIMULADOR ---
+    function changeValue(id, delta) {
+        const input = document.getElementById(id);
+        let val = parseInt(input.value) || 0;
+        let min = parseInt(input.getAttribute('min')) || 0;
+        
+        let newVal = val + delta;
+        if(newVal >= min) {
+            input.value = newVal;
+            calcular();
+        }
     }
 
-    function updateSimulation() {
-      const checkin = document.getElementById('checkin').value;
-      const checkout = document.getElementById('checkout').value;
-      const chaletType = document.getElementById('chaletType').value;
+    function calcular() {
+      const checkin = document.getElementById("checkin").value;
+      const checkout = document.getElementById("checkout").value;
+      const adultos = parseInt(document.getElementById("adultos").value) || 0;
+      const criancas5 = parseInt(document.getElementById("criancas5").value) || 0;
+      
+      const elNoites = document.getElementById("resumoNoites");
+      const elDiaria = document.getElementById("resumoDiaria");
+      const elTotal = document.getElementById("resumoTotal");
 
-      const nights = calculateNights(checkin, checkout);
-      const nightlyPrice = nightlyPrices[chaletType] || 0;
-      const total = nights * nightlyPrice;
-
-      const nightsLabel = document.getElementById('nightsLabel');
-      const nightlyPriceLabel = document.getElementById('nightlyPriceLabel');
-      const totalPriceLabel = document.getElementById('totalPriceLabel');
-
-      if (!nights) {
-        nightsLabel.textContent = 'Selecione as datas';
-        nightlyPriceLabel.textContent = nightlyPrice ? formatCurrency(nightlyPrice) + '/noite' : '–';
-        totalPriceLabel.textContent = '–';
-      } else {
-        nightsLabel.textContent = nights + (nights === 1 ? ' noite' : ' noites');
-        nightlyPriceLabel.textContent = formatCurrency(nightlyPrice) + '/noite';
-        totalPriceLabel.textContent = formatCurrency(total);
-      }
-    }
-
-    function scrollToForm(type) {
-      const select = document.getElementById('chaletType');
-      if (type && select) {
-        select.value = type;
-      }
-      document.getElementById('simulacao').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function openWhatsappDirect() {
-      // Atualize esse número para o WhatsApp oficial do Balneário
-      const phoneNumber = '5569999999999';
-      const text = encodeURIComponent('Olá! Gostaria de informações sobre reservas nos chalés do Balneário Rio Preto.');
-      const url = `https://wa.me/${phoneNumber}?text=${text}`;
-      window.open(url, '_blank');
-    }
-
-    function openWhatsappReservation() {
-      const checkin = document.getElementById('checkin').value;
-      const checkout = document.getElementById('checkout').value;
-      const guests = document.getElementById('guests').value;
-      const chaletType = document.getElementById('chaletType').value;
-
-      const nights = calculateNights(checkin, checkout);
-      const nightlyPrice = nightlyPrices[chaletType] || 0;
-      const total = nights * nightlyPrice;
-
-      if (!checkin || !checkout || !nights) {
-        alert('Por favor, selecione datas válidas de check-in e check-out antes de enviar sua reserva.');
+      if (!checkin || !checkout) {
+        elNoites.innerText = "--";
+        elDiaria.innerText = "R$ 0,00";
+        elTotal.innerText = "R$ 0,00";
         return;
       }
 
-      const typeLabelMap = {
-        standard: 'Chalé Standard',
-        familia: 'Chalé Família',
-        beiraRio: 'Chalé Beira-Rio',
-      };
+      const d1 = new Date(checkin);
+      const d2 = new Date(checkout);
+      d1.setHours(0,0,0,0);
+      d2.setHours(0,0,0,0);
 
-      const typeLabel = typeLabelMap[chaletType] || 'Chalé';
+      const diffMs = d2 - d1;
+      const noites = diffMs / (1000 * 60 * 60 * 24);
 
-      const msg = `
-Olá! Gostaria de fazer uma reserva no Balneário Rio Preto.
-
-• Tipo de chalé: ${typeLabel}
-• Check-in: ${checkin}
-• Check-out: ${checkout}
-• Nº de noites: ${nights}
-• Hóspedes: ${guests}
-• Estimativa pelo site: ${total ? formatCurrency(total) : 'a combinar'}
-
-Poderiam me enviar as opções disponíveis e formas de pagamento?`;
-
-      const phoneNumber = '5569999999999'; // troque pelo número oficial
-      const encoded = encodeURIComponent(msg.trim());
-      const url = `https://wa.me/${phoneNumber}?text=${encoded}`;
-      window.open(url, '_blank');
-
-      if (window.gtag) {
-        window.gtag('event', 'whatsapp_reserva_enviada', {
-          chalet_type: chaletType,
-          guests: guests,
-          nights: nights,
-          estimated_total: total,
-        });
+      if (noites <= 0) {
+        elNoites.innerText = "Data Inválida";
+        elTotal.innerText = "---";
+        return;
       }
+
+      elNoites.innerText = `${noites} noite(s)`;
+
+      let valorBase = 280; 
+      let valorExtraAdulto = 40;
+      let valorExtraCrianca = 20;
+      
+      let valorDiaria = valorBase;
+
+      if (adultos > 2) {
+          valorDiaria += (adultos - 2) * valorExtraAdulto;
+      }
+      
+      valorDiaria += criancas5 * valorExtraCrianca;
+
+      elDiaria.innerText = "R$ " + valorDiaria.toFixed(2).replace('.', ',');
+
+      const total = valorDiaria * noites;
+      elTotal.innerText = "R$ " + total.toFixed(2).replace('.', ',');
     }
 
-    document.getElementById('checkin').addEventListener('change', updateSimulation);
-    document.getElementById('checkout').addEventListener('change', updateSimulation);
-    document.getElementById('chaletType').addEventListener('change', updateSimulation);
+    function enviarWhatsapp() {
+        const checkin = document.getElementById("checkin").value;
+        const checkout = document.getElementById("checkout").value;
+        
+        if(!checkin || !checkout) {
+            alert("Por favor, selecione as datas de entrada e saída.");
+            document.getElementById("checkin").scrollIntoView({behavior: "smooth"});
+            document.getElementById("checkin").focus();
+            return;
+        }
 
-    document.getElementById('whatsappReserveButton').addEventListener('click', openWhatsappReservation);
-  </script>
+        const adultos = document.getElementById("adultos").value;
+        const criancas5 = document.getElementById("criancas5").value;
+        const criancas0 = document.getElementById("criancas0").value;
+        const horarioChegada = document.getElementById("horarioChegada").value || "Não informado";
+        const chaleInput = document.querySelector('input[name="chale"]:checked');
+        
+        if (!chaleInput) {
+            document.getElementById("erro-chale").classList.remove("hidden");
+            document.getElementById("chale-opcoes").scrollIntoView({ behavior: "smooth" });
+            return;
+        }
+        
+        const chale = chaleInput.value;
+        document.getElementById("erro-chale").classList.add("hidden");
+        const total = document.getElementById("resumoTotal").innerText;
+
+        const dataIn = new Date(checkin).toLocaleDateString('pt-BR');
+        const dataOut = new Date(checkout).toLocaleDateString('pt-BR');
+
+        const texto = `Olá! Fiz uma simulação no site e gostaria de confirmar a disponibilidade:\n\n` +
+                      `📅 *Data:* ${dataIn} até ${dataOut}\n` +
+                      `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
+                      `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
+                      `🏠 *Preferência:* ${chale}\n` +
+                      `💰 *Valor Estimado:* ${total}\n\n` +
+                      `Aguardo confirmação para efetuar o pagamento.`;
+
+        const numeroWhatsapp = "5569999999999"; 
+        
+        const url = `https://wa.me/${numeroWhatsapp}?text=${encodeURIComponent(texto)}`;
+        window.open(url, '_blank');
+    }
+
+    document.getElementById("checkin").addEventListener("change", calcular);
+    document.getElementById("checkout").addEventListener("change", calcular);
+    document.getElementById("adultos").addEventListener("change", calcular); // Caso mude manual (se remover readonly)
+    
+    document.addEventListener("change", function(e) {
+        if (e.target && e.target.name === "chale") {
+            // Remove msg de erro se selecionar
+            document.getElementById("erro-chale").classList.add("hidden");
+            calcular();
+        }
+    });
+
+</script>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyj-tvyGLJkpfhlGTxpvlGV9WnBp88nDhwxbvAorHe_dmEYC3JR0flJ98udRn5cOUBZ/exec";
+
+function carregarDisponibilidade() {
+    fetch(API_URL)
+      .then(r => r.json())
+      .then(data => {
+        renderOpcoesChale(data);
+      })
+      .catch(err => {
+        console.error("Erro ao carregar chalés", err);
+        document.getElementById("chale-opcoes").innerHTML = "<p class='text-red-500'>Erro ao carregar disponibilidade. Tente recarregar a página.</p>";
+      });
+}
+
+function renderOpcoesChale(data) {
+  const container = document.getElementById("chale-opcoes");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const grupos = {
+    "De Frente Para o Gramado": [3,4,5,6],
+    "De Frente Para a Piscina": [7,8,9,10]
+  };
+
+  Object.keys(grupos).forEach(area => {
+    // Título da Área
+    const titulo = document.createElement('div');
+    titulo.className = "flex items-center gap-2 mt-4 mb-2";
+    titulo.innerHTML = `
+        <div class="h-px bg-gray-200 flex-1"></div>
+        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${area}</span>
+        <div class="h-px bg-gray-200 flex-1"></div>
+    `;
+    container.appendChild(titulo);
+
+    // Grid Container para os Cards
+    const gridDiv = document.createElement('div');
+    gridDiv.className = "grid grid-cols-2 gap-3"; // 2 colunas para cards
+
+    grupos[area].forEach(num => {
+      const status = data[num];
+      let isAvailable = status === "disponivel";
+      let isBusy = status === "ocupado";
+      let isMaintenance = !isAvailable && !isBusy; // ou checar string exata
+
+      // Definição de estilos baseados no status
+      let wrapperClass = "relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer select-none text-center h-20";
+
+      // Adiciona cor de fundo baseada em área (antes dos status)
+      if (area === "De Frente Para a Piscina") {
+          wrapperClass += " bg-blue-50/90";
+      } else if (area === "De Frente Para o Gramado") {
+          wrapperClass += " bg-green-50/60";
+      }
+
+      let iconClass = "text-xl mb-1";
+      let textStatus = "";
+      let disabledAttr = "";
+
+      if (isAvailable) {
+          wrapperClass += " bg-white border-gray-100 hover:border-primary-green hover:shadow-md hover:bg-green-50/50";
+          iconClass += " text-primary-green";
+          textStatus = `<span class="text-[10px] font-bold text-green-600 uppercase">Livre</span>`;
+      } else if (isBusy) {
+          wrapperClass += " bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed grayscale";
+          iconClass += " text-gray-400";
+          textStatus = `<span class="text-[10px] font-bold text-gray-400 uppercase line-through">Ocupado</span>`;
+          disabledAttr = "disabled";
+      } else {
+           // Manutenção
+          wrapperClass += " bg-yellow-50 border-yellow-100 opacity-80 cursor-not-allowed";
+          iconClass += " text-yellow-600";
+          textStatus = `<span class="text-[10px] font-bold text-yellow-600 uppercase">Manut.</span>`;
+          disabledAttr = "disabled";
+      }
+
+      // Ícone baseado no numero ou aleatorio simples
+      let iconName = area === "De Frente Para a Piscina" ? "fa-water" : "fa-home";
+      
+      const cardHtml = `
+        <label class="relative block w-full">
+            <input type="radio" name="chale" value="Chalé ${num} (${area})" class="peer sr-only chale-radio" ${disabledAttr}>
+            <div class="${wrapperClass}">
+                <i class="fa-solid ${iconName} ${iconClass} opacity-80"></i>
+                <span class="font-bold text-gray-800 text-sm leading-none mb-1">Chalé ${num}</span>
+                ${textStatus}
+                
+                <!-- Check Icon quando selecionado -->
+                <div class="absolute top-2 right-2 text-primary-green opacity-0 peer-checked:opacity-100 transition-opacity">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+        </label>
+      `;
+      gridDiv.innerHTML += cardHtml;
+    });
+    
+    container.appendChild(gridDiv);
+  });
+}
+
+// Inicia carregamento
+carregarDisponibilidade();
+</script>
 </body>
 </html>
