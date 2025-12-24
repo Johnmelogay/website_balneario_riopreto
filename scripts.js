@@ -2,9 +2,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.1';
 
 // --- CONSTANTS ---
 export const CONSTANTS = {
-  WHATSAPP_NUMBER: "5569992139559",
+  WHATSAPP_NUMBER: "5569993129559",
   GA_ID: "G-X77VW91S4X",
-  CONTACT_EMAIL: "contato@riopreto.com"
+  CONTACT_EMAIL: "johnmelocontato@gmail.com"
 };
 
 // --- SUPABASE CLIENT ---
