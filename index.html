@@ -1,92 +1,136 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balneário Rio Preto - O Seu Destino de Ecoturismo</title>
     <!-- Meta Descrição Otimizada -->
-    <meta name="description" content="Day Use e Chalés no Balneário Rio Preto. Reserve online, confira a Galeria, Cardápio e Notícias em Candeias do Jamari. Atendimento via WhatsApp.">
-    
+    <meta name="description"
+        content="Day Use e Chalés no Balneário Rio Preto. Reserve online, confira a Galeria, Cardápio e Notícias em Candeias do Jamari. Atendimento via WhatsApp.">
+
     <!-- Google Analytics 4 -->
     <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-X77VW91S4X');
+    <script type="module">
+        import { initAnalytics } from './scripts.js';
+        initAnalytics();
     </script>
-    
-    <!-- Tailwind CSS -->
+
+    <!-- Tailwind CSS & Theme -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+
     <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Configuração de Design System -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-green': '#2E7D32',
-                        'primary-dark': '#1B5E20',
-                        'accent-orange': '#FF6D00',
-                        'bg-soft': '#F3F4F6',
-                        'river-blue': '#0288D1',
-                        'text-dark': '#111827',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    boxShadow: {
-                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
-                        'glow': '0 0 20px rgba(46, 125, 50, 0.3)'
-                    },
-                    backgroundImage: {
-                        'nature-pattern': "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%232E7D32\" fill-opacity=\"0.03\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"3\"/%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"3\"/%3E%3C/g%3E%3C/svg%3E')",
-                    }
-                }
-            }
-        }
-    </script>
-    
+
     <style>
         /* Efeitos Visuais */
         .hero-video {
-            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             filter: brightness(0.85);
         }
+
         .hero-gradient {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 60%, rgba(17,24,39,1) 100%);
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 60%, rgba(17, 24, 39, 1) 100%);
         }
 
         /* Modal e Animações */
-        .modal { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .modal.active { opacity: 1; visibility: visible; }
-        .modal-content { transform: scale(0.90) translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .modal.active .modal-content { transform: scale(1) translateY(0); }
-        
+        .modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            transform: scale(0.90) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
         /* Botão Flutuante Pulsante */
-        .whatsapp-float { animation: pulse-green 2s infinite; }
+        .whatsapp-float {
+            animation: pulse-green 2s infinite;
+        }
+
         @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(74, 222, 128, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(74, 222, 128, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+            }
         }
 
         /* Header Dinâmico */
-        #main-header { transition: all 0.3s ease; height: 90px; }
-        #main-header.scrolled-header { height: 70px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        #main-header .logo-img { transition: height 0.3s ease; height: 60px; }
-        #main-header.scrolled-header .logo-img { height: 45px; }
+        #main-header {
+            transition: all 0.3s ease;
+            height: 90px;
+        }
+
+
+
+        #main-header .logo-img {
+            transition: height 0.3s ease;
+            height: 60px;
+        }
+
+        #main-header.scrolled-header .logo-img {
+            height: 45px;
+        }
 
         /* Carrossel */
-        .carousel-viewport { border-radius: 1.5rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-        #slides-container { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
-        .carousel-slide { flex-shrink: 0; }
-        
+        .carousel-viewport {
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        #slides-container {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .carousel-slide {
+            flex-shrink: 0;
+        }
+
         /* Scrollbar Oculta para Containers de Scroll Horizontal */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom Clickable Card */
+        .clickable-card a {
+            display: block;
+            height: 100%;
+        }
+
+        .clickable-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 
@@ -96,41 +140,42 @@
     <div id="navbar-container" class="fixed top-0 w-full z-50"></div>
     <script src="navbar.js"></script>
 
-    
-
     <!-- 1. HERO SECTION CINEMATOGRÁFICA -->
     <section class="relative h-[95vh] flex items-center justify-center overflow-hidden">
-        <video class="hero-video" autoplay muted loop playsinline poster="images/hero-image.jpg">
+        <video class="hero-video" autoplay muted loop playsinline poster="images/hero-poster.jpg">
+            <!-- Se o poster ainda não existir, o video carrega normalmente. -->
             <source src="videos/hero-video.mp4" type="video/mp4">
         </video>
-        
+
         <!-- Gradiente para legibilidade -->
         <div class="absolute inset-0 hero-gradient z-0"></div>
-        
+
         <div class="relative z-10 container mx-auto px-4 text-center mt-10">
-            <div class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-4 py-1.5 text-sm font-semibold text-green-100 mb-6 animate-fade-in-up">
+            <div
+                class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-4 py-1.5 text-sm font-semibold text-green-100 mb-6 animate-fade-in-up">
                 <i class="fas fa-leaf"></i> Ecoturismo em Candeias do Jamari - RO
             </div>
-            
+
             <h1 class="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight drop-shadow-2xl leading-tight">
                 Mergulhe na <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-500">Natureza Amazônica</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-yellow-500">Natureza
+                    Amazônica</span>
             </h1>
-            
+
             <p class="text-lg md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto font-light drop-shadow-md">
                 A 40km de Porto Velho. Day Use com praia de rio, chalés privativos e a gastronomia que você ama.
             </p>
 
             <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="reservas.html" onclick="trackEvent('hero_cta_reserve')" 
-                   class="group relative overflow-hidden rounded-full bg-primary-green px-8 py-4 text-lg font-bold text-white shadow-glow shadow-[0_0_20px_rgba(46,125,50,0.6)] transition-all hover:scale-105 hover:bg-green-700">
+                <a href="reservas.html" onclick="trackEvent('hero_cta_reserve')"
+                    class="group relative overflow-hidden rounded-full bg-primary-green px-8 py-4 text-lg font-bold text-white shadow-glow shadow-[0_0_20px_rgba(46,125,50,0.6)] transition-all hover:scale-105 hover:bg-green-700">
                     <span class="relative z-10 flex items-center justify-center gap-2 w-full text-center">
-                        <i class="fas fa-calendar-check"></i> Reservar Chalé
+                        <i class="fas fa-calendar-check "></i> Reservar Chalé
                     </span>
                 </a>
-                
-                <a href="#dayuse" 
-                   class="rounded-full bg-white/10 backdrop-blur-sm border border-white/30 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-white hover:text-primary-green">
+
+                <a href="#dayuse"
+                    class="rounded-full bg-white/10 backdrop-blur-sm border border-white/30 px-8 py-4 text-lg font-bold text-white transition-all hover:bg-white hover:text-primary-green">
                     Ver Preços Day Use
                 </a>
             </div>
@@ -143,7 +188,7 @@
     </section>
 
     <!-- 2. CARROSSEL (Destacado) -->
-    <section class="py-16 bg-white relative -mt-10 z-20 rounded-t-[3rem]">
+    <section class="py-16 bg-white relative -mt-10 z-2 rounded-t-[3rem]">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex items-end justify-between mb-8 px-2">
                 <div>
@@ -152,10 +197,12 @@
                 </div>
                 <!-- Controles do Carrossel (Desktop) -->
                 <div class="hidden md:flex gap-2">
-                    <button id="carousel-prev" class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-primary-green hover:text-white transition shadow-sm">
+                    <button id="carousel-prev"
+                        class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-primary-green hover:text-white transition shadow-sm">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <button id="carousel-next" class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-primary-green hover:text-white transition shadow-sm">
+                    <button id="carousel-next"
+                        class="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-primary-green hover:text-white transition shadow-sm">
                         <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
@@ -164,11 +211,72 @@
             <div id="main-carousel" class="relative w-full">
                 <div class="carousel-viewport bg-gray-100 aspect-[16/9] md:aspect-[21/9]">
                     <div id="slides-container" class="h-full">
-                        <!-- Slides via Supabase -->
+                        <!-- Slides via Supabase (home.js) -->
                     </div>
                 </div>
                 <!-- Dots Mobile -->
                 <div id="carousel-dots" class="flex justify-center gap-2 mt-4 md:hidden"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. GALERIA (Masonry Grid) -->
+    <!-- Atualizado com novos placeholders e links -->
+    <section id="gallery" class="py-10 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-10">Galeria de Fotos</h2>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px]">
+                <!-- Item Grande Esquerda -->
+                <div class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/mapa rio preto.png', 'Vista Aérea')">
+                    <img src="images/mapa rio preto.png" onerror="this.src='images/mapa rio preto.png'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <div
+                        class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <span class="text-white border border-white px-4 py-2 rounded-full backdrop-blur-md">Ver
+                            Ampliado</span>
+                    </div>
+                </div>
+
+                <!-- Itens Menores -->
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/piscina.jpg', 'Banho no Rio')">
+                    <img src="images/piscina.jpg" onerror="this.src='images/piscina.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/IMG_0829.jpg', 'Área de Lazer')">
+                    <img src="images/IMG_0829.jpg" onerror="this.src='images/IMG_0829.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-2 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/IMG_0906.jpg', 'Banho de Rio')">
+                    <img src="images/IMG_0906.jpg" onerror="this.src='images/IMG_0906.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/vistachale.jpg', 'Área de Lazer')">
+                    <img src="images/vistachale.jpg" onerror="this.src='images/vistachale.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/frentechales.jpg', 'Banho no Rio')">
+                    <img src="images/frentechales.jpg" onerror="this.src='images/frentechales.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+
+            </div>
+            <div class="text-center mt-8">
+                <a href="https://www.instagram.com/balneario_riopreto/" target="_blank"
+                    class="inline-flex items-center gap-2 text-primary-green font-bold hover:underline">
+                    <i class="fab fa-instagram"></i> Ver mais no Instagram
+                </a>
             </div>
         </div>
     </section>
@@ -178,18 +286,22 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-black text-gray-900 mb-4">Escolha sua Experiência</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">Seja para passar o dia com a família ou um fim de semana romântico, temos a opção perfeita.</p>
+                <p class="text-gray-600 max-w-2xl mx-auto">Seja para passar o dia com a família ou um fim de semana
+                    romântico, temos a opção perfeita.</p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                
+
                 <!-- CARD DAY USE -->
-                <div id="dayuse" class="group relative bg-white rounded-3xl p-8 shadow-soft border border-gray-100 hover:border-river-blue/30 transition-all duration-300 hover:-translate-y-2">
-                    <div class="absolute top-0 right-0 bg-river-blue text-white text-xs font-bold px-4 py-2 rounded-bl-2xl rounded-tr-2xl">
+                <div id="dayuse"
+                    class="group relative bg-white rounded-3xl p-8 shadow-soft border border-gray-100 hover:border-river-blue/30 transition-all duration-300 hover:-translate-y-2">
+                    <div
+                        class="absolute top-0 right-0 bg-river-blue text-white text-xs font-bold px-4 py-2 rounded-bl-2xl rounded-tr-2xl">
                         MAIS PROCURADO
                     </div>
-                    
-                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-river-blue text-2xl mb-6 group-hover:bg-river-blue group-hover:text-white transition-colors">
+
+                    <div
+                        class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-river-blue text-2xl mb-6 group-hover:bg-river-blue group-hover:text-white transition-colors">
                         <i class="fas fa-umbrella-beach"></i>
                     </div>
 
@@ -203,52 +315,63 @@
 
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center gap-3 text-gray-600">
-                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Acesso à praia e piscinas
+                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Acesso à
+                            praia e piscinas
                         </li>
                         <li class="flex items-center gap-3 text-gray-600">
-                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Área de churrasqueiras
+                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Área de
+                            churrasqueiras
                         </li>
                         <li class="flex items-center gap-3 text-gray-600">
-                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Estacionamento grátis
+                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i>
+                            Estacionamento grátis
                         </li>
                     </ul>
 
-                    <button onclick="openBookingModal('Day Use')" class="w-full py-4 rounded-xl border-2 border-river-blue text-river-blue font-bold hover:bg-river-blue hover:text-white transition-colors">
-                        Solicitar Day Use
+                    <!-- "Tire sua dúvida" Alterado -->
+                    <button onclick="openBookingModal('Day Use')"
+                        class="w-full py-4 rounded-xl border-2 border-river-blue text-river-blue font-bold hover:bg-river-blue hover:text-white transition-colors">
+                        Tire sua dúvida
                     </button>
                 </div>
 
                 <!-- CARD CHALÉS -->
-                <div id="chales" class="group relative bg-white rounded-3xl p-8 shadow-2xl shadow-green-900/10 border border-green-100 hover:border-primary-green transition-all duration-300 hover:-translate-y-2 ring-1 ring-primary-green/5">
-                    <div class="absolute top-0 right-0 bg-accent-orange text-white text-xs font-bold px-4 py-2 rounded-bl-2xl rounded-tr-2xl">
+                <div id="chales"
+                    class="group relative bg-white rounded-3xl p-8 shadow-2xl shadow-green-900/10 border border-green-100 hover:border-primary-green transition-all duration-300 hover:-translate-y-2 ring-1 ring-primary-green/5">
+                    <div
+                        class="absolute top-0 right-0 bg-accent-orange text-white text-xs font-bold px-4 py-2 rounded-bl-2xl rounded-tr-2xl">
                         MELHOR CUSTO-BENEFÍCIO
                     </div>
 
-                    <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-primary-green text-2xl mb-6 group-hover:bg-primary-green group-hover:text-white transition-colors">
+                    <div
+                        class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-primary-green text-2xl mb-6 group-hover:bg-primary-green group-hover:text-white transition-colors">
                         <i class="fas fa-house-user"></i>
                     </div>
 
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">Chalé Privativo</h3>
-                    <p class="text-gray-500 text-sm mb-6">Diária (Casal) • Café Incluso</p>
+                    <!-- Alterado: Removido Café Incluso -->
+                    <p class="text-gray-500 text-sm mb-6">Diária (Casal)</p>
 
                     <div class="flex items-baseline gap-1 mb-8">
-                        <span class="text-5xl font-extrabold text-gray-900">R$ 300</span>
+                        <!-- Alterado: 300 -> 280 -->
+                        <span class="text-5xl font-extrabold text-gray-900">R$ 280</span>
                         <span class="text-gray-500 font-medium">/diária</span>
                     </div>
 
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center gap-3 text-gray-600">
-                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Ar-condicionado e Frigobar
+                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i>
+                            Ar-condicionado e Frigobar
                         </li>
                         <li class="flex items-center gap-3 text-gray-600">
-                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Café da manhã regional
+                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Área
+                            externa privativa
                         </li>
-                        <li class="flex items-center gap-3 text-gray-600">
-                            <i class="fas fa-check text-green-500 bg-green-50 p-1 rounded-full text-xs"></i> Vista para o Rio Preto
-                        </li>
+                        <!-- Alterado: Removidos itens incorretos -->
                     </ul>
 
-                    <a href="reservas.html" class="block text-center w-full py-4 rounded-xl bg-primary-green text-white font-bold shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all">
+                    <a href="reservas.html"
+                        class="block text-center w-full py-4 rounded-xl bg-primary-green text-white font-bold shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all">
                         Verificar Disponibilidade
                     </a>
                     <p class="text-center text-xs text-gray-400 mt-3">Reserve online em 2 minutos</p>
@@ -262,76 +385,54 @@
     <section id="location" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid lg:grid-cols-12 gap-8 bg-bg-soft rounded-[2.5rem] p-4 overflow-hidden shadow-inner">
-                
+
                 <!-- Coluna Texto -->
                 <div class="lg:col-span-4 flex flex-col justify-center p-6 lg:p-10 space-y-6">
                     <div>
                         <span class="text-primary-green font-bold uppercase tracking-wider text-sm">Localização</span>
                         <h2 class="text-3xl font-bold text-gray-900 mt-2">Fácil Acesso</h2>
                     </div>
-                    <p class="text-gray-600">Apenas 40km de Porto Velho, na BR-364 sentido Candeias. Estrada asfaltada até a entrada.</p>
-                    
+                    <!-- Alterado: Estrada do Rio Preto -->
+                    <p class="text-gray-600">Acesso pela Estrada do Rio Preto, Zona Rural de Candeias do Jamari.</p>
+
                     <div class="space-y-4">
                         <div class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm">
-                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-primary-green"><i class="fas fa-car"></i></div>
+                            <div
+                                class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-primary-green">
+                                <i class="fas fa-car"></i>
+                            </div>
                             <div>
                                 <p class="font-bold text-sm">Estacionamento Grátis</p>
-                                <p class="text-xs text-gray-500">Monitorado 24h</p>
+                                <p class="text-xs text-gray-500"></p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-river-blue"><i class="fas fa-map-marked-alt"></i></div>
-                            <div>
-                                <p class="font-bold text-sm">Waze / Google Maps</p>
-                                <p class="text-xs text-gray-500">Balneário Rio Preto</p>
-                            </div>
-                        </div>
+
                     </div>
 
-                    <a href="https://maps.app.goo.gl/YourActualRouteLink" target="_blank" class="inline-flex items-center justify-center gap-2 bg-text-dark text-white py-3 px-6 rounded-xl font-bold hover:bg-gray-800 transition">
+                    <a href="https://www.google.com/maps/dir//balneario%20rio%20preto" target="_blank"
+                        class="inline-flex items-center justify-center gap-2 bg-text-dark text-white py-3 px-6 rounded-xl font-bold hover:bg-gray-800 transition">
                         <i class="fas fa-location-arrow"></i> Navegar Agora
                     </a>
-                </div>
 
-                <!-- Coluna Mapa -->
-                <div class="lg:col-span-8 h-80 lg:h-auto min-h-[400px] relative rounded-[2rem] overflow-hidden shadow-lg border-4 border-white">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15545.922480608034!2d-63.70826622436214!3d-8.799986326164284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x92323c2a101d29c3%3A0x8670c56209422e1b!2sCandeias%20do%20Jamari%2C%20RO!5e0!3m2!1spt-BR!2sbr!4v1701111111111" 
-                        class="absolute inset-0 w-full h-full"
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy">
-                    </iframe>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 5. GALERIA (Masonry Grid) -->
-    <section id="gallery" class="py-20 bg-bg-soft">
-        <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-10">Galeria de Momentos</h2>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px]">
-                <!-- Item Grande Esquerda -->
-                <div class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer" onclick="openGalleryModal('IMG_4833_Original.jpg', 'Vista Aérea')">
-                    <img src="IMG_4833_Original.jpg" onerror="this.src='https://placehold.co/800x800/2E7D32/FFF?text=Vista+Aerea'" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                        <span class="text-white border border-white px-4 py-2 rounded-full backdrop-blur-md">Ver Ampliado</span>
+                    <!-- Novidade Transporte -->
+                    <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 mt-4">
+                        <p class="text-sm font-bold text-river-blue mb-1">
+                            <i class="fas fa-bus mr-2"></i> Mora em Porto Velho sem transporte?
+                        </p>
+                        <p class="text-xs text-gray-600">
+                            Não se preocupe! Em breve uma novidade exclusiva para solucionar esse problema.
+                        </p>
                     </div>
                 </div>
-                
-                <!-- Itens Menores -->
-                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer" onclick="openGalleryModal('https://placehold.co/400x400/0288D1/FFF?text=Rio', 'Banho no Rio')">
-                    <img src="https://placehold.co/400x400/0288D1/FFF?text=Rio" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                </div>
-                
-                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer" onclick="openGalleryModal('https://placehold.co/400x400/FF6D00/FFF?text=Churrasco', 'Área de Lazer')">
-                    <img src="https://placehold.co/400x400/FF6D00/FFF?text=Churrasco" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                </div>
 
-                <div class="col-span-2 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer" onclick="openGalleryModal('https://placehold.co/800x400/1B5E20/FFF?text=Natureza', 'Trilhas Ecológicas')">
-                    <img src="https://placehold.co/800x400/1B5E20/FFF?text=Natureza" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                <!-- Coluna Mapa - Atualizada com Embed Genérico do local correto -->
+                <div
+                    class="lg:col-span-8 h-80 lg:h-auto min-h-[400px] relative rounded-[2rem] overflow-hidden shadow-lg border-4 border-white">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5474.011364578611!2d-63.637612558245415!3d-8.876118385083165!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9232559b49d55b17%3A0x39f034c332bb703a!2sBalne%C3%A1rio%20Rio%20Preto!5e1!3m2!1spt-BR!2sbr!4v1766541206589!5m2!1spt-BR!2sbr"
+                        class="absolute inset-0 w-full h-full" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
                 </div>
             </div>
         </div>
@@ -340,19 +441,17 @@
     <!-- 6. MINI LOJA & BLOG (Grid Misto) -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4">
-            
+
             <!-- Loja -->
             <div id="loja" class="mb-20">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-3xl font-bold">Mini Loja Oficial</h2>
-                    <a href="#" class="text-primary-green font-bold hover:underline">Ver tudo <i class="fas fa-arrow-right ml-1"></i></a>
+                    <a href="loja.html" class="text-primary-green font-bold hover:underline">Ver tudo <i
+                            class="fas fa-arrow-right ml-1"></i></a>
                 </div>
-                <!-- Container Dinâmico da Loja -->
+
+                <!-- Cards clicáveis implementados via JS (home.js) ou CSS Wrapper -->
                 <div id="store-items-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Skeletons (Carregamento) -->
-                    <div class="animate-pulse bg-gray-100 rounded-2xl h-64"></div>
-                    <div class="animate-pulse bg-gray-100 rounded-2xl h-64"></div>
-                    <div class="animate-pulse bg-gray-100 rounded-2xl h-64"></div>
                     <div class="animate-pulse bg-gray-100 rounded-2xl h-64"></div>
                 </div>
             </div>
@@ -362,14 +461,12 @@
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-3xl font-bold">Blog Rio Preto</h2>
                 </div>
-                <!-- Container Dinâmico do Blog -->
                 <div id="blog-posts-container" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                     <!-- Skeletons -->
-                     <div class="animate-pulse space-y-4">
-                         <div class="bg-gray-100 rounded-2xl h-48 w-full"></div>
-                         <div class="h-4 bg-gray-100 rounded w-3/4"></div>
-                         <div class="h-4 bg-gray-100 rounded w-1/2"></div>
-                     </div>
+                    <!-- Loading -->
+                    <div class="animate-pulse space-y-4">
+                        <div class="bg-gray-100 rounded-2xl h-48 w-full"></div>
+                        <div class="h-4 bg-gray-100 rounded w-3/4"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -379,35 +476,44 @@
     <section id="faq" class="py-20 bg-bg-soft">
         <div class="max-w-3xl mx-auto px-4">
             <h2 class="text-3xl font-bold text-center mb-10">Dúvidas Comuns</h2>
-            
+
             <div class="space-y-4">
                 <details class="group bg-white rounded-2xl shadow-sm overflow-hidden">
-                    <summary class="flex justify-between items-center p-6 cursor-pointer font-bold text-gray-800 list-none">
+                    <summary
+                        class="flex justify-between items-center p-6 cursor-pointer font-bold text-gray-800 list-none">
                         <span>Qual o valor do Day Use?</span>
-                        <span class="transition group-open:rotate-180"><i class="fas fa-chevron-down text-primary-green"></i></span>
+                        <span class="transition group-open:rotate-180"><i
+                                class="fas fa-chevron-down text-primary-green"></i></span>
                     </summary>
                     <div class="px-6 pb-6 text-gray-600">
-                        R$ 20,00 por pessoa. Crianças até 5 anos não pagam. Dá acesso a todas as piscinas e áreas comuns.
+                        R$ 20,00 por pessoa. Crianças até 5 anos não pagam. Dá acesso a todas as piscinas e áreas
+                        comuns.
                     </div>
                 </details>
 
                 <details class="group bg-white rounded-2xl shadow-sm overflow-hidden">
-                    <summary class="flex justify-between items-center p-6 cursor-pointer font-bold text-gray-800 list-none">
+                    <summary
+                        class="flex justify-between items-center p-6 cursor-pointer font-bold text-gray-800 list-none">
                         <span>Aceita animais (Pet Friendly)?</span>
-                        <span class="transition group-open:rotate-180"><i class="fas fa-chevron-down text-primary-green"></i></span>
+                        <span class="transition group-open:rotate-180"><i
+                                class="fas fa-chevron-down text-primary-green"></i></span>
                     </summary>
                     <div class="px-6 pb-6 text-gray-600">
-                        Sim! Na área externa eles são muito bem-vindos (com coleira). Apenas não é permitido dentro dos chalés ou na água da piscina.
+                        Sim! Na área externa eles são muito bem-vindos (com coleira). Apenas não é permitido dentro dos
+                        chalés ou na água da piscina.
                     </div>
                 </details>
 
                 <details class="group bg-white rounded-2xl shadow-sm overflow-hidden">
-                    <summary class="flex justify-between items-center p-6 cursor-pointer font-bold text-gray-800 list-none">
+                    <summary
+                        class="flex justify-between items-center p-6 cursor-pointer font-bold text-gray-800 list-none">
                         <span>Pode levar comida e bebida?</span>
-                        <span class="transition group-open:rotate-180"><i class="fas fa-chevron-down text-primary-green"></i></span>
+                        <span class="transition group-open:rotate-180"><i
+                                class="fas fa-chevron-down text-primary-green"></i></span>
                     </summary>
                     <div class="px-6 pb-6 text-gray-600">
-                        Comida sim! Bebidas alcoólicas não são permitidas (temos bar no local). Bebidas não alcoólicas e água são permitidas, desde que não seja em garrafas de vidro.
+                        Comida sim! Bebidas alcoólicas não são permitidas (temos bar no local). Bebidas não alcoólicas e
+                        água são permitidas, desde que não seja em garrafas de vidro.
                     </div>
                 </details>
             </div>
@@ -415,94 +521,63 @@
     </section>
 
     <!-- 8. FOOTER MODERNO -->
-    <footer class="bg-gray-900 text-white pt-20 pb-10 border-t-4 border-primary-green">
-        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-10">
-            <div class="space-y-4">
-                <img src="images/logo.png" onerror="this.style.display='none'" alt="Logo" class="h-12 opacity-90">
-                <h3 class="text-2xl font-bold text-white">Rio Preto</h3>
-                <p class="text-gray-400 text-sm">Conectando você à natureza com conforto e segurança desde 1998.</p>
-                <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-whatsapp"></i></a>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="font-bold text-lg mb-6">Explorar</h4>
-                <ul class="space-y-3 text-gray-400 text-sm">
-                    <li><a href="reservas.html" class="hover:text-primary-green transition">Reservas</a></li>
-                    <li><a href="#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
-                    <li><a href="#gallery" class="hover:text-primary-green transition">Galeria</a></li>
-                    <li><a href="#loja" class="hover:text-primary-green transition">Loja</a></li>
-                </ul>
-            </div>
-
-            <div>
-                <h4 class="font-bold text-lg mb-6">Contato</h4>
-                <ul class="space-y-3 text-gray-400 text-sm">
-                    <li class="flex items-center gap-2"><i class="fab fa-whatsapp text-primary-green"></i> (69) 99213-9559</li>
-                    <li class="flex items-center gap-2"><i class="far fa-envelope text-primary-green"></i> contato@riopreto.com</li>
-                    <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary-green mt-1"></i> BR-364, Km 40<br>Candeias do Jamari, RO</li>
-                </ul>
-            </div>
-
-            <div class="bg-gray-800 p-6 rounded-2xl">
-                <h4 class="font-bold text-white mb-2">Novidades</h4>
-                <p class="text-xs text-gray-400 mb-4">Receba ofertas exclusivas de chalés.</p>
-                <form onsubmit="event.preventDefault(); alert('Inscrito com sucesso!')">
-                    <input type="email" placeholder="Seu e-mail" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary-green mb-2">
-                    <button class="w-full bg-primary-green text-white font-bold text-sm py-2 rounded-lg hover:bg-green-700 transition">Inscrever-se</button>
-                </form>
-            </div>
-        </div>
-        <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-            &copy; 2025 Balneário Rio Preto. Todos os direitos reservados.
-        </div>
-    </footer>
+    <div id="footer-container"></div>
+    <script src="footer.js"></script>
 
     <!-- MODAL DE RESERVA (WHATSAPP) -->
-    <div id="bookingModal" class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onclick="if(event.target === this) closeBookingModal()">
+    <div id="bookingModal"
+        class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        onclick="if(event.target === this) closeBookingModal()">
         <div class="modal-content relative w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
-            <button onclick="closeBookingModal()" class="absolute right-5 top-5 text-gray-400 hover:text-red-500 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition">
+            <button onclick="closeBookingModal()"
+                class="absolute right-5 top-5 text-gray-400 hover:text-red-500 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition">
                 <i class="fas fa-times"></i>
             </button>
-            
+
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <div
+                    class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                     <i class="fab fa-whatsapp"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900">Iniciar Conversa</h3>
-                <p class="text-gray-500 text-sm">Fale diretamente conosco para agendar.</p>
+                <!-- Alterado: Titulo genérico para servir Day Use e Chalé -->
+                <p class="text-gray-500 text-sm">Fale diretamente conosco.</p>
             </div>
 
             <form id="whatsappForm" onsubmit="sendToWhatsapp(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Seu Nome</label>
-                    <input type="text" id="name" required class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 outline-none focus:border-primary-green focus:ring-1 focus:ring-primary-green transition" placeholder="Como podemos te chamar?">
+                    <input type="text" id="name" required
+                        class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 outline-none focus:border-primary-green focus:ring-1 focus:ring-primary-green transition"
+                        placeholder="Como podemos te chamar?">
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Interesse</label>
-                        <select id="type" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-primary-green">
+                        <select id="type"
+                            class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-primary-green">
                             <option value="Chalé">Chalé</option>
                             <option value="Day Use">Day Use</option>
                             <option value="Evento">Evento</option>
+                            <option value="Dúvida">Dúvida</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pessoas</label>
-                        <input type="number" id="guests" value="2" min="1" class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 outline-none focus:border-primary-green">
+                        <input type="number" id="guests" value="2" min="1"
+                            class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 outline-none focus:border-primary-green">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data Pretendida</label>
-                    <input type="date" id="date" required class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 text-gray-600 outline-none focus:border-primary-green">
+                    <input type="date" id="date" required
+                        class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 text-gray-600 outline-none focus:border-primary-green">
                 </div>
-                
-                <button type="submit" class="w-full rounded-xl bg-primary-green py-4 font-bold text-white shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+
+                <button type="submit"
+                    class="w-full rounded-xl bg-primary-green py-4 font-bold text-white shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all transform active:scale-95 flex items-center justify-center gap-2">
                     Chamar no WhatsApp <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
@@ -510,9 +585,11 @@
     </div>
 
     <!-- MODAL DE GALERIA -->
-    <div id="galleryModal" class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4" onclick="if(event.target === this) closeGalleryModal()">
+    <div id="galleryModal" class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4"
+        onclick="if(event.target === this) closeGalleryModal()">
         <div class="relative max-w-6xl w-full">
-            <button onclick="closeGalleryModal()" class="absolute -top-12 right-0 text-white hover:text-gray-300 text-3xl">
+            <button onclick="closeGalleryModal()"
+                class="absolute -top-12 right-0 text-white hover:text-gray-300 text-3xl">
                 <i class="fas fa-times"></i>
             </button>
             <div id="galleryModalContent" class="flex justify-center items-center h-[80vh]"></div>
@@ -520,28 +597,53 @@
         </div>
     </div>
 
+    <!-- MODAL DE DETALHES DO ITEM (LOJA) -->
+    <div id="itemModal"
+        class="modal fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        onclick="if(event.target === this) closeItemModal()">
+        <div
+            class="bg-white rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative animate-fade-in-up">
+            <button onclick="closeItemModal()"
+                class="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition shadow">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+
+            <!-- Imagem Grande -->
+            <div class="md:w-1/2 h-64 md:h-auto bg-gray-100 relative">
+                <img id="modalImg" src="" class="absolute inset-0 w-full h-full object-cover">
+            </div>
+
+            <!-- Detalhes -->
+            <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                <div id="modalCategory" class="text-primary-green text-sm font-bold uppercase tracking-wider mb-2">Loja
+                    Oficial</div>
+                <h2 id="modalTitle" class="text-3xl font-black text-gray-900 mb-4 leading-tight"></h2>
+                <div id="modalPrice" class="text-4xl font-bold text-gray-900 mb-6"></div>
+
+                <div id="modalDescription" class="text-gray-600 mb-8 leading-relaxed"></div>
+
+                <!-- Botão WhatsApp -->
+                <button onclick="buyItemOnWhatsapp()"
+                    class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all flex items-center justify-center gap-3">
+                    <i class="fab fa-whatsapp text-2xl"></i> Fazer Pedido
+                </button>
+                <p class="text-center text-xs text-gray-400 mt-3">Você será redirecionado para o WhatsApp.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- BOTÃO FLUTUANTE -->
-    <button onclick="openBookingModal('Chalé')" class="whatsapp-float fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full bg-green-500 text-white shadow-2xl flex items-center justify-center hover:scale-110 transition duration-300 group">
+    <button onclick="openBookingModal('Chalé')"
+        class="whatsapp-float fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full bg-green-500 text-white shadow-2xl flex items-center justify-center hover:scale-110 transition duration-300 group">
         <i class="fab fa-whatsapp text-3xl group-hover:rotate-12 transition"></i>
     </button>
 
-    <!-- SCRIPTS -->
+    <!-- UI Interaction Scripts -->
     <script>
         // --- GA TRACKING ---
         function trackEvent(eventName, params = {}) {
             if (window.gtag) window.gtag('event', eventName, params);
         }
-
-        // --- HEADER SCROLL ---
-        const mainHeader = document.getElementById('navbar-container'); // Usando o container do navbar.js se ele injetar um nav
-        // Como navbar.js injeta, vamos monitorar o scroll na window e aplicar classe no body ou header injetado
-        window.addEventListener('scroll', () => {
-            const nav = document.querySelector('nav'); // Assume que navbar.js cria uma <nav>
-            if(nav) {
-                if (window.scrollY > 50) nav.classList.add('shadow-md', 'bg-white/95', 'backdrop-blur-md');
-                else nav.classList.remove('shadow-md', 'bg-white/95', 'backdrop-blur-md');
-            }
-        });
 
         // --- MODALS ---
         function openBookingModal(type) {
@@ -557,7 +659,7 @@
             const modal = document.getElementById('galleryModal');
             const content = document.getElementById('galleryModalContent');
             const captionEl = document.getElementById('galleryModalCaption');
-            
+
             content.innerHTML = `<img src="${src}" class="max-h-full max-w-full rounded-lg shadow-2xl object-contain">`;
             captionEl.innerText = caption;
             modal.classList.add('active');
@@ -574,124 +676,16 @@
             const guests = document.getElementById('guests').value;
             const date = new Date(document.getElementById('date').value).toLocaleDateString('pt-BR');
             const phone = "5569992139559";
-            
+
             const text = `Olá! Me chamo *${name}*.\nGostaria de saber sobre *${type}* para *${guests} pessoas* no dia *${date}*.\nPodemos conversar?`;
-            
+
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
             closeBookingModal();
         }
-
-        // --- CARROSSEL LOGIC ---
-        // (Mantida lógica original, apenas ajustada visualmente)
-        window.initMainCarousel = function() {
-            const track = document.getElementById('slides-container');
-            if(!track) return;
-            // ... (Lógica de slide existente mantida ou simplificada se necessário)
-            // Para brevidade, usando scroll snap nativo do CSS na classe se fosse o caso, 
-            // mas mantendo a estrutura para seu script supabase preencher.
-        };
     </script>
 
-    <!-- SUPABASE INTEGRATION (Mantido intacto, apenas HTML das strings alterado) -->
-    <script type="module">
-      import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.1';
-
-      document.addEventListener('DOMContentLoaded', async () => {
-        const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // --- CARROSSEL ---
-        async function loadCarouselSlides() {
-          const track = document.getElementById('slides-container');
-          if (!track) return;
-          const { data } = await supabase.from('carousel_slides').select('*').eq('is_active', true).order('order_index');
-          if (!data || !data.length) return;
-
-          track.innerHTML = '';
-          data.forEach(slide => {
-            const slideDiv = document.createElement('div');
-            // Ajuste para garantir que o slide ocupe 100% do container
-            slideDiv.className = 'carousel-slide w-full h-full relative flex-shrink-0';
-            slideDiv.innerHTML = `
-               <img src="${slide.background_image_url}" class="absolute inset-0 w-full h-full object-cover">
-               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-               <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white w-full">
-                   <span class="bg-accent-orange text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block shadow-sm">Destaque</span>
-                   <h3 class="text-3xl md:text-5xl font-black mb-2 drop-shadow-lg leading-tight">${slide.title}</h3>
-                   ${slide.description ? `<p class="text-gray-200 text-lg mb-6 max-w-xl line-clamp-2">${slide.description}</p>` : ''}
-                   ${slide.cta_label ? `<a href="${slide.cta_url || '#'}" class="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition">${slide.cta_label} <i class="fas fa-arrow-right"></i></a>` : ''}
-               </div>
-            `;
-            track.appendChild(slideDiv);
-          });
-          
-          // Script simples de slide automático
-          let idx = 0;
-          const slides = track.children;
-          setInterval(() => {
-              idx = (idx + 1) % slides.length;
-              track.style.transform = `translateX(-${idx * 100}%)`;
-          }, 5000);
-        }
-
-        // --- LOJA (Com Cards Bonitos) ---
-        async function loadStoreItems() {
-          const container = document.getElementById('store-items-container');
-          const { data } = await supabase.from('store_items').select('*').eq('is_active', true).limit(4);
-          if (!data || !data.length) { container.innerHTML = '<p class="col-span-4 text-center text-gray-400">Novidades em breve.</p>'; return; }
-
-          container.innerHTML = '';
-          data.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'group bg-white rounded-2xl p-4 shadow-soft border border-gray-100 hover:shadow-xl transition-all duration-300';
-            div.innerHTML = `
-               <div class="relative overflow-hidden rounded-xl h-56 mb-4 bg-gray-50">
-                   <img src="${item.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                   <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                        R$ ${item.price.toFixed(2)}
-                   </div>
-               </div>
-               <h4 class="font-bold text-gray-900 mb-1 truncate">${item.title}</h4>
-               <button onclick="window.open('https://wa.me/5569992139559?text=Tenho interesse em ${encodeURIComponent(item.title)}', '_blank')" 
-                   class="w-full mt-2 bg-green-50 text-primary-green font-bold py-2 rounded-lg text-sm hover:bg-primary-green hover:text-white transition-colors">
-                   <i class="fab fa-whatsapp mr-1"></i> Comprar
-               </button>
-            `;
-            container.appendChild(div);
-          });
-        }
-
-        // --- BLOG (Cards Bonitos) ---
-        async function loadBlogPosts() {
-          const container = document.getElementById('blog-posts-container');
-          const { data } = await supabase.from('blog_posts').select('*').eq('is_published', true).limit(3);
-          if (!data || !data.length) { container.innerHTML = '<p class="col-span-3 text-center text-gray-400">Posts em breve.</p>'; return; }
-
-          container.innerHTML = '';
-          data.forEach(post => {
-            const div = document.createElement('div');
-            div.className = 'group cursor-pointer flex flex-col h-full';
-            const date = new Date(post.published_at).toLocaleDateString('pt-BR', {day:'2-digit', month:'short'});
-            div.innerHTML = `
-               <div class="relative h-56 mb-4 overflow-hidden rounded-2xl shadow-sm">
-                   <img src="${post.cover_image_url}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                   <div class="absolute top-4 left-4 bg-white/90 backdrop-blur font-bold text-xs px-3 py-1 rounded-lg shadow-sm uppercase">
-                       ${date}
-                   </div>
-               </div>
-               <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-green transition line-clamp-2">${post.title}</h3>
-               <p class="text-gray-500 text-sm line-clamp-3 mb-4 flex-1">${post.excerpt || ''}</p>
-               <a href="detalhes.html?slug=${post.slug}" class="text-primary-green font-bold text-sm hover:underline">Ler Matéria <i class="fas fa-arrow-right ml-1"></i></a>
-            `;
-            container.appendChild(div);
-          });
-        }
-
-        loadCarouselSlides();
-        loadStoreItems();
-        loadBlogPosts();
-      });
-    </script>
+    <!-- Page Logic Integration -->
+    <script type="module" src="home.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Loja Oficial | Balneário Rio Preto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Scripts & CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Modal Styles */
+        .modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-text-dark font-sans">
+
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+    <script src="navbar.js"></script>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <span
+                class="inline-block bg-green-100 text-primary-green px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">Produtos
+                Exclusivos</span>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Loja Balneário Rio Preto</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Leve um pedacinho da natureza para casa. Bonés, camisetas e
+                acessórios personalizados.</p>
+        </div>
+    </header>
+
+    <!-- Store Grid -->
+    <main class="max-w-7xl mx-auto px-4 py-16">
+        <div id="loja-loading" class="text-center py-20">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-primary-green mb-4"></i>
+            <p class="text-gray-500">Carregando produtos...</p>
+        </div>
+
+        <div id="loja-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <!-- Items injected by loja.js -->
+        </div>
+    </main>
+
+    <!-- Item Modal -->
+    <div id="itemModal"
+        class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        onclick="if(event.target === this) closeModal()">
+        <div
+            class="bg-white rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative animate-fade-in-up">
+            <button onclick="closeModal()"
+                class="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition shadow">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+
+            <!-- Imagem Grande -->
+            <div class="md:w-1/2 h-64 md:h-auto bg-gray-100 relative">
+                <img id="modalImg" src="" class="absolute inset-0 w-full h-full object-cover">
+            </div>
+
+            <!-- Detalhes -->
+            <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                <div id="modalCategory" class="text-primary-green text-sm font-bold uppercase tracking-wider mb-2">
+                </div>
+                <h2 id="modalTitle" class="text-3xl font-black text-gray-900 mb-4 leading-tight"></h2>
+                <div id="modalPrice" class="text-4xl font-bold text-gray-900 mb-6"></div>
+
+                <div id="modalDescription" class="text-gray-600 mb-8 leading-relaxed"></div>
+
+                <!-- Opções de Tamanho/Cor (Mockup) -->
+                <div class="mb-8">
+                    <span class="block text-xs font-bold text-gray-400 uppercase mb-2">Tamanho</span>
+                    <div class="flex gap-2">
+                        <button
+                            class="w-10 h-10 border rounded flex items-center justify-center hover:border-black focus:bg-black focus:text-white transition">P</button>
+                        <button
+                            class="w-10 h-10 border rounded flex items-center justify-center hover:border-black focus:bg-black focus:text-white transition">M</button>
+                        <button
+                            class="w-10 h-10 border rounded flex items-center justify-center hover:border-black focus:bg-black focus:text-white transition">G</button>
+                    </div>
+                </div>
+
+                <button onclick="buyOnWhatsapp()"
+                    class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all flex items-center justify-center gap-3">
+                    <i class="fab fa-whatsapp text-2xl"></i> Fazer Pedido
+                </button>
+                <p class="text-center text-xs text-gray-400 mt-3">Você será redirecionado para o WhatsApp.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer-container"></div>
+    <script src="footer.js"></script>
+
+    <!-- Logic -->
+    <script type="module" src="loja.js"></script>
+</body>
+
+</html>

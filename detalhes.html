@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Notícias|Balneário Rio Preto</title>
+  <title>Notícias | Balneário Rio Preto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://kit.fontawesome.com/26cc0cbf69.js" crossorigin="anonymous"></script>
+
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-X77VW91S4X');
+  <script type="module">
+    import { initAnalytics } from './scripts.js';
+    initAnalytics();
   </script>
+
+  <!-- Tailwind CSS & Theme -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="theme.js"></script>
+
   <style>
-    :root {
-      --primary-green: #15803d;
-      --accent-orange: #ea580c;
-      --text-dark: #111827;
+    /* Estilos específicos que não estão no theme.js ou são overrides simples */
+    .icon-white {
+      filter: brightness(0) invert(1);
     }
-    .bg-primary-green { background-color: var(--primary-green); }
-    .text-primary-green { color: var(--primary-green); }
-    .text-accent-orange { color: var(--accent-orange); }
-    .text-text-dark { color: var(--text-dark); }
-    .icon-white { filter: brightness(0) invert(1); }
   </style>
 </head>
+
 <body class="bg-gray-50 text-text-dark">
 
   <header class="border-b bg-white">
@@ -54,441 +53,31 @@
     <div class="mx-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
       <div class="mb-4 flex items-center justify-between">
         <h2 class="text-lg font-bold text-text-dark">Compartilhar no Instagram</h2>
-        <button id="instagram-share-close" class="text-gray-500 hover:text-gray-800 text-xl leading-none">&times;</button>
+        <button id="instagram-share-close"
+          class="text-gray-500 hover:text-gray-800 text-xl leading-none">&times;</button>
       </div>
       <p class="mb-4 text-sm text-gray-600">
         Escolha como você quer compartilhar esta notícia no Instagram.
       </p>
       <div class="flex flex-col gap-3">
         <button id="insta-copy-link"
-                class="w-full rounded-full border border-primary-green px-4 py-2 text-sm font-semibold text-primary-green hover:bg-primary-green hover:text-white transition">
+          class="w-full rounded-full border border-primary-green px-4 py-2 text-sm font-semibold text-primary-green hover:bg-primary-green hover:text-white transition">
           Copiar link da notícia
         </button>
         <button id="insta-open-app"
-                class="w-full rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-400 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition">
+          class="w-full rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-400 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition">
           Abrir Instagram
         </button>
         <button id="insta-generate-story"
-                class="w-full rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-text-dark hover:bg-gray-200 transition">
+          class="w-full rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-text-dark hover:bg-gray-200 transition">
           Gerar imagem para Stories
         </button>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.1';
+  <script type="module" src="detalhes.js"></script>
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
-      const SUPABASE_ANON_KEY =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
+</body>
 
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-      const loadingEl = document.getElementById('detail-loading');
-      const contentEl = document.getElementById('detail-content');
-
-      function render404() {
-        loadingEl.innerHTML = `
-          <div class="max-w-md mx-auto mt-20 text-center">
-            <h1 class="text-3xl font-extrabold text-text-dark mb-4">Página não encontrada</h1>
-            <p class="text-gray-600 mb-6">A notícia que você está procurando não está disponível ou não existe.</p>
-            <a href="index.html" class="inline-block rounded bg-primary-green px-6 py-3 text-white hover:bg-green-700 transition">
-              Voltar para o início
-            </a>
-          </div>
-        `;
-        loadingEl.classList.remove('hidden');
-        contentEl.classList.add('hidden');
-      }
-
-      function getSlug() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get('slug');
-      }
-
-      function formatDateParts(isoString) {
-        if (!isoString) {
-          return { weekday: '', fullDate: '', time: '' };
-        }
-        const date = new Date(isoString);
-
-        const weekday = date.toLocaleDateString('pt-BR', {
-          weekday: 'long',
-        });
-        const fullDate = date.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        });
-        const time = date.toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
-        return { weekday, fullDate, time };
-      }
-
-      function formatShortDate(isoString) {
-        if (!isoString) return '';
-        return new Date(isoString).toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
-      }
-
-      async function loadRelatedPosts(currentSlug) {
-        const relatedContainer = document.getElementById('related-posts-container');
-        if (!relatedContainer) return;
-
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('is_published', true)
-          .neq('slug', currentSlug)
-          .order('published_at', { ascending: false })
-          .limit(4);
-
-        if (error) {
-          console.error('Erro ao carregar posts relacionados:', error);
-          relatedContainer.innerHTML = `
-            <p class="text-sm text-gray-500">Não foi possível carregar outras notícias.</p>
-          `;
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          relatedContainer.innerHTML = `
-            <p class="text-sm text-gray-500">Em breve você verá mais notícias por aqui.</p>
-          `;
-          return;
-        }
-
-        relatedContainer.innerHTML = '';
-
-        data.forEach((post) => {
-          const url = `detalhes.html?slug=${encodeURIComponent(post.slug)}`;
-          const imageUrl =
-            post.cover_image_url ||
-            'https://placehold.co/160x100/2E7D32/FFFFFF?text=Blog';
-
-          const dateShort = formatShortDate(post.published_at);
-
-          const item = document.createElement('a');
-          item.href = url;
-          item.className =
-            'flex gap-3 border-b border-gray-100 pb-3 mb-3 last:mb-0 last:border-b-0 hover:bg-gray-50 rounded-lg p-1 transition';
-
-          item.innerHTML = `
-            <img src="${imageUrl}" alt="${post.title}"
-                 class="h-20 w-24 flex-shrink-0 rounded-md object-cover">
-            <div class="flex flex-col">
-              <p class="text-sm font-semibold text-text-dark leading-snug">${post.title}</p>
-              <span class="mt-1 text-xs text-gray-500">${dateShort}</span>
-            </div>
-          `;
-
-          relatedContainer.appendChild(item);
-        });
-      }
-
-      async function loadBlogPost() {
-        const slug = getSlug();
-
-        if (!slug) {
-          render404();
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select('*')
-          .eq('slug', slug)
-          .eq('is_published', true)
-          .single();
-
-        if (error || !data) {
-          console.error(error);
-          render404();
-          return;
-        }
-
-        const { weekday, fullDate, time } = formatDateParts(data.published_at);
-
-        const shareUrl = encodeURIComponent(window.location.href);
-        const shareText = encodeURIComponent(data.title);
-        const coverImage =
-          data.cover_image_url ||
-          'https://placehold.co/1200x400/2E7D32/FFFFFF?text=Blog+Rio+Preto';
-
-        contentEl.innerHTML = `
-          <section class="bg-white rounded-xl shadow-md overflow-hidden">
-            <header class="border-b border-gray-100 px-4 pt-4 pb-3 md:px-8 md:pt-6">
-              <p class="text-xs font-semibold tracking-wide text-primary-green uppercase">Blog Rio Preto</p>
-              <h1 class="mt-1 text-2xl md:text-3xl font-extrabold text-gray-900">${data.title}</h1>
-              <p class="mt-2 text-xs md:text-sm text-gray-500">
-                ${weekday ? weekday.charAt(0).toUpperCase() + weekday.slice(1) + ', ' : ''}${fullDate}${
-          time ? ' - ' + time : ''
-        }${data.author_name ? ' | ' + data.author_name : ''}
-              </p>
-              <div class="mt-3 flex flex-wrap items-center gap-2 text-xs md:text-sm">
-                <span class="mr-2 font-semibold text-gray-500">Compartilhar:</span>
-                <button type="button" id="instagram-share-button"
-                   class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-400 text-white hover:opacity-90">
-                  <img src="images/instagram.svg" alt="Instagram" class="h-4 w-4 icon-white">
-                </button>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}"
-                   target="_blank" rel="noopener"
-                   class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700">
-                  <img src="images/facebook.svg" alt="Facebook" class="h-4 w-4 icon-white">
-                </a>
-                <a href="https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}"
-                   target="_blank" rel="noopener"
-                   class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600">
-                  <img src="images/whatsapp.svg" alt="WhatsApp" class="h-4 w-4 icon-white">
-                </a>
-                <a href="mailto:?subject=${shareText}&body=${shareText}%20-%20${shareUrl}"
-                   target="_blank" rel="noopener"
-                   class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-500 text-white hover:bg-gray-600">
-                  <img src="images/mail.svg" alt="Email" class="h-4 w-4 icon-white">
-                </a>
-                <button id="share-copy"
-                   class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-400 text-gray-700 hover:bg-gray-300">
-                  <img src="images/link.svg" alt="Copy link" class="h-4 w-4 icon-white">
-                </button>
-              </div>
-            </header>
-
-            <figure class="mt-4 px-4 md:px-8">
-              <img src="${coverImage}" alt="${data.title}"
-                   class="mb-4 max-h-[420px] w-full rounded-xl object-cover">
-            </figure>
-
-            <div class="px-4 pb-8 pt-2 md:px-8 md:pb-10">
-              <div class="space-y-4 leading-relaxed text-gray-800">
-                ${data.content || ''}
-              </div>
-            </div>
-          </section>
-
-          <section class="mt-8 rounded-xl bg-white p-4 shadow-sm md:p-6">
-            <h2 class="mb-4 border-b border-gray-200 pb-2 text-lg font-extrabold tracking-wide text-accent-orange">
-              VEJA TAMBÉM
-            </h2>
-            <div id="related-posts-container">
-              <p class="text-sm text-gray-500">Carregando outras notícias...</p>
-            </div>
-          </section>
-        `;
-
-        loadingEl.classList.add('hidden');
-        contentEl.classList.remove('hidden');
-
-        const instaModal = document.getElementById('instagram-share-modal');
-        const instaOpenBtn = document.getElementById('instagram-share-button');
-        const instaCloseBtn = document.getElementById('instagram-share-close');
-        const instaCopyBtn = document.getElementById('insta-copy-link');
-        const instaOpenAppBtn = document.getElementById('insta-open-app');
-
-        if (instaOpenBtn && instaModal) {
-          instaOpenBtn.addEventListener('click', () => {
-            instaModal.classList.remove('hidden');
-            instaModal.classList.add('flex');
-          });
-        }
-
-        if (instaCloseBtn && instaModal) {
-          instaCloseBtn.addEventListener('click', () => {
-            instaModal.classList.add('hidden');
-            instaModal.classList.remove('flex');
-          });
-        }
-
-        if (instaModal) {
-          instaModal.addEventListener('click', (event) => {
-            if (event.target === instaModal) {
-              instaModal.classList.add('hidden');
-              instaModal.classList.remove('flex');
-            }
-          });
-        }
-
-        if (instaCopyBtn) {
-          instaCopyBtn.addEventListener('click', async () => {
-            const urlToShare = window.location.href;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              try {
-                await navigator.clipboard.writeText(urlToShare);
-                instaCopyBtn.classList.add('bg-green-100', 'text-green-700');
-                setTimeout(() => {
-                  instaCopyBtn.classList.remove('bg-green-100', 'text-green-700');
-                }, 1500);
-              } catch (err) {
-                console.error('Erro ao copiar link:', err);
-                alert('Não foi possível copiar o link automaticamente. Copie o link pela barra de endereço.');
-              }
-            } else {
-              alert('Copie o link diretamente pela barra de endereço do navegador.');
-            }
-          });
-        }
-
-        if (instaOpenAppBtn) {
-          instaOpenAppBtn.addEventListener('click', () => {
-            const instagramUrl = 'https://www.instagram.com/balnearioriopreto/';
-            window.open(instagramUrl, '_blank');
-          });
-        }
-
-        const copyButton = document.getElementById('share-copy');
-        if (copyButton) {
-          copyButton.addEventListener('click', async () => {
-            const urlToShare = window.location.href;
-
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              try {
-                await navigator.clipboard.writeText(urlToShare);
-                copyButton.classList.add('bg-green-100', 'text-green-700');
-                setTimeout(() => {
-                  copyButton.classList.remove('bg-green-100', 'text-green-700');
-                }, 1500);
-              } catch (err) {
-                console.error('Erro ao copiar link:', err);
-                alert('Não foi possível copiar o link automaticamente. Copie o link pela barra de endereço.');
-              }
-            } else {
-              alert('Copie o link diretamente pela barra de endereço do navegador.');
-            }
-          });
-        }
-
-        // Add listener for "Gerar imagem para Stories"
-        const storyBtn = document.getElementById("insta-generate-story");
-        if (storyBtn) {
-          storyBtn.addEventListener("click", () => {
-            generateStoryImage(data.title, data.cover_image_url);
-          });
-        }
-
-        await loadRelatedPosts(data.slug);
-      }
-
-      loadBlogPost();
-    });
-    // Helper: rounded rectangle for CanvasRenderingContext2D
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-      if (typeof r === "number") r = {tl:r, tr:r, br:r, bl:r};
-      this.beginPath();
-      this.moveTo(x + r.tl, y);
-      this.lineTo(x + w - r.tr, y);
-      this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
-      this.lineTo(x + w, y + h - r.br);
-      this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
-      this.lineTo(x + r.bl, y + h);
-      this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
-      this.lineTo(x, y + r.tl);
-      this.quadraticCurveTo(x, y, x + r.tl, y);
-      this.closePath();
-    };
-
-    // Story image generator function
-    async function generateStoryImage(title, imageUrl) {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      const WIDTH = 1080;
-      const HEIGHT = 1920;
-      canvas.width = WIDTH;
-      canvas.height = HEIGHT;
-
-      // Draw pattern background
-      const patternImg = new Image();
-      patternImg.src = "images/pattern.png";
-      await new Promise(resolve => { patternImg.onload = resolve; patternImg.onerror = resolve; });
-      const pattern = ctx.createPattern(patternImg, "repeat");
-      ctx.fillStyle = pattern;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      // background gradient with partial opacity
-      const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-      gradient.addColorStop(0, "#15803d");
-      gradient.addColorStop(1, "#0e5529");
-      ctx.fillStyle = gradient;
-      ctx.globalAlpha = 0.75;
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.globalAlpha = 1;
-
-      // white rounded box for title preview
-      ctx.fillStyle = "#ffffffcc";
-      ctx.roundRect(80, 300, WIDTH - 160, 500, 40);
-      ctx.fill();
-
-      // header title "BLOG RIO PRETO"
-      ctx.fillStyle = "#15803d";
-      ctx.font = "bold 48px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("BLOG RIO PRETO", WIDTH / 2, 380);
-
-      // title wrapping
-      ctx.fillStyle = "#111827";
-      ctx.font = "bold 72px Arial";
-      const maxWidth = WIDTH - 260;
-      const lineHeight = 90;
-      function wrapText(text) {
-        const words = text.split(" ");
-        let line = "";
-        let lines = [];
-        words.forEach(word => {
-          const testLine = line + word + " ";
-          const metrics = ctx.measureText(testLine);
-          if (metrics.width > maxWidth) {
-            lines.push(line);
-            line = word + " ";
-          } else {
-            line = testLine;
-          }
-        });
-        if (line) lines.push(line);
-        return lines;
-      }
-      const lines = wrapText(title);
-      let y = 500;
-      lines.forEach(line => {
-        ctx.fillText(line.trim(), WIDTH/2, y);
-        y += lineHeight;
-      });
-
-      // call to action box
-      ctx.fillStyle = "#ffffff22";
-      ctx.roundRect(80, 1250, WIDTH - 160, 200, 40);
-      ctx.fill();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 60px Arial";
-      ctx.fillText("TOQUE PARA SABER MAIS", WIDTH/2, 1370);
-
-      // Insert logo after title and CTA box
-      const logoImg = new Image();
-      logoImg.src = "images/logo.png";
-      await new Promise(resolve => { logoImg.onload = resolve; logoImg.onerror = resolve; });
-      ctx.drawImage(logoImg, WIDTH - 260, 80, 180, 180);
-
-      // space indication for sticker (optional dashed border)
-      ctx.strokeStyle = "#ffffff55";
-      ctx.lineWidth = 5;
-      ctx.setLineDash([30, 20]);
-      ctx.roundRect(180, 1500, WIDTH - 360, 200, 40);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Download section (same as before)
-      const link = document.createElement("a");
-      link.download = "story-balneario.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    }
-  </script>
-  </body>
-  </html>
+</html>
