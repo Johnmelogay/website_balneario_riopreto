@@ -11,15 +11,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         track.innerHTML = '';
         data.forEach(slide => {
-            const slideDiv = document.createElement('div');
+            const slideDiv = document.createElement('a');
+            slideDiv.href = slide.cta_url || '#';
             slideDiv.className = 'carousel-slide w-full h-full relative flex-shrink-0';
             slideDiv.innerHTML = `
                <img src="${slide.background_image_url}" class="absolute inset-0 w-full h-full object-cover">
-               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+               <div class="absolute inset-0 bg-gradient-to-t from-black/100 via-transparent to-transparent"></div>
                <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white w-full">
                    <h3 class="text-3xl md:text-5xl font-black mb-2 drop-shadow-lg leading-tight">${slide.title}</h3>
                    ${slide.description ? `<p class="text-gray-200 text-lg mb-6 max-w-xl line-clamp-2">${slide.description}</p>` : ''}
-                   ${slide.cta_label ? `<a href="${slide.cta_url || '#'}" class="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition">${slide.cta_label} <i class="fas fa-arrow-right"></i></a>` : ''}
                </div>
             `;
             track.appendChild(slideDiv);
