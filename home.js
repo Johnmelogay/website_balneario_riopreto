@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                <img src="${slide.background_image_url}" class="absolute inset-0 w-full h-full object-cover">
                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white w-full">
-                   <span class="bg-accent-orange text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block shadow-sm">Destaque</span>
                    <h3 class="text-3xl md:text-5xl font-black mb-2 drop-shadow-lg leading-tight">${slide.title}</h3>
                    ${slide.description ? `<p class="text-gray-200 text-lg mb-6 max-w-xl line-clamp-2">${slide.description}</p>` : ''}
                    ${slide.cta_label ? `<a href="${slide.cta_url || '#'}" class="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition">${slide.cta_label} <i class="fas fa-arrow-right"></i></a>` : ''}
