@@ -40,3 +40,36 @@ export function initAnalytics() {
   gtag('config', CONSTANTS.GA_ID);
   window.gtag = gtag;
 }
+
+// --- LEAD CAPTURE ---
+export async function captureLead({ name, email, intention, details = {} }) {
+  try {
+    const { error } = await supabase
+      .from('leads')
+      .insert([
+        {
+          name,
+          email,
+          intention,
+          details,
+          created_at: new Date().toISOString()
+        }
+      ]);
+
+    if (error) {
+      console.error('Supabase Error (Lead Capture):', error);
+      // Optional: Fallback mechanisms or silent fail (don't block user flow)
+    } else {
+      console.log('Lead captured successfully');
+      // GA4 Event Tracking
+      trackEvent('generate_lead', {
+        event_category: 'lead',
+        event_label: intention,
+        value: details.total || 0, // Track value if available (e.g., reservation total)
+        currency: 'BRL'
+      });
+    }
+  } catch (err) {
+    console.error('Unexpected error capturing lead:', err);
+  }
+}

@@ -170,6 +170,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadingEl.classList.add('hidden');
         contentEl.classList.remove('hidden');
 
+        // Update SEO
+        document.title = `${data.title} | Balneário Rio Preto`;
+        document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || data.title);
+
         // Setup share listeners
         setupShareListeners(data.title, data.cover_image_url);
         await loadRelatedPosts(data.slug);

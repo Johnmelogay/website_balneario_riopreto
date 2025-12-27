@@ -1,3 +1,23 @@
+import { captureLead } from './scripts.js';
+
+window.handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('newsletter-email');
+    const email = emailInput.value;
+
+    if (!email) return;
+
+    await captureLead({
+        name: 'Newsletter Subscriber',
+        email,
+        intention: 'newsletter',
+        details: { source: 'footer_form' }
+    });
+
+    alert('Inscrito com sucesso! Obrigado.');
+    emailInput.value = '';
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const footerContainer = document.getElementById("footer-container");
     if (!footerContainer) return;
@@ -37,9 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="bg-gray-800 p-6 rounded-2xl">
                 <h4 class="font-bold text-white mb-2">Novidades</h4>
-                <p class="text-xs text-gray-400 mb-4">Receba ofertas exclusivas de chalés.</p>
-                <form onsubmit="event.preventDefault(); alert('Inscrito com sucesso!')">
-                    <input type="email" placeholder="Seu e-mail" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary-green mb-2">
+                <p class="text-xs text-gray-400 mb-4">Receba notícias e promoções.</p>
+                <form onsubmit="handleNewsletterSubmit(event)">
+                    <input type="email" id="newsletter-email" placeholder="Seu e-mail" required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary-green mb-2">
                     <button class="w-full bg-primary-green text-white font-bold text-sm py-2 rounded-lg hover:bg-green-700 transition">Inscrever-se</button>
                 </form>
             </div>

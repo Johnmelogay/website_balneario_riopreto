@@ -1,4 +1,4 @@
-import { openWhatsApp, CONSTANTS } from './scripts.js';
+import { openWhatsApp, CONSTANTS, captureLead } from './scripts.js';
 
 // --- GOOGLE APPS SCRIPT API ---
 const API_URL = "https://script.google.com/macros/s/AKfycbyj-tvyGLJkpfhlGTxpvlGV9WnBp88nDhwxbvAorHe_dmEYC3JR0flJ98udRn5cOUBZ/exec";
@@ -155,6 +155,16 @@ function calcular() {
 }
 
 function enviarWhatsapp() {
+    // --- LEAD CAPTURE VALIDATION ---
+    const nome = document.getElementById("nome-reserva").value;
+    const email = document.getElementById("email-reserva").value;
+
+    if (!nome || !email) {
+        alert("Por favor, preencha seu Nome e E-mail para continuar.");
+        document.getElementById("nome-reserva").focus();
+        return;
+    }
+
     const checkin = document.getElementById("checkin").value;
     const checkout = document.getElementById("checkout").value;
 
@@ -184,15 +194,27 @@ function enviarWhatsapp() {
     const dataIn = new Date(checkin).toLocaleDateString('pt-BR');
     const dataOut = new Date(checkout).toLocaleDateString('pt-BR');
 
-    const texto = `Olá! Fiz uma simulação no site e gostaria de confirmar a disponibilidade:\n\n` +
-        `📅 *Data:* ${dataIn} até ${dataOut}\n` +
-        `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
-        `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
-        `🏠 *Preferência:* ${chale}\n` +
-        `💰 *Valor Estimado:* ${total}\n\n` +
-        `Aguardo confirmação para efetuar o pagamento.`;
+    // --- CAPTURE LEAD ASYNC (FIRE AND FORGET OR AWAIT?) ---
+    // Since we open a new tab, async without await is risky if browser closes too fast, 
+    // but usually fine. For safety, we can await if we make function async, 
+    // but window.enviarWhatsapp is called by onclick HTML attribute.
+    // It's better to update it to be async and await captureLead.
+    captureLead({
+        name: nome,
+        email: email,
+        intention: 'reserva_simulador',
+        details: { checkin, checkout, adultos, chale, total }
+    }).then(() => {
+        const texto = `Olá! Me chamo *${nome}*.\nFiz uma simulação no site e gostaria de confirmar a disponibilidade:\n\n` +
+            `📅 *Data:* ${dataIn} até ${dataOut}\n` +
+            `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
+            `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
+            `🏠 *Preferência:* ${chale}\n` +
+            `💰 *Valor Estimado:* ${total}\n\n` +
+            `Aguardo confirmação para efetuar o pagamento.`;
 
-    openWhatsApp({ text: texto });
+        openWhatsApp({ text: texto });
+    });
 }
 
 function carregarDisponibilidade() {

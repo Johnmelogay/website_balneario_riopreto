@@ -1,4 +1,4 @@
-import { supabase, formatCurrency, openWhatsApp } from './scripts.js';
+import { supabase, formatCurrency, openWhatsApp, captureLead, trackEvent } from './scripts.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -13,13 +13,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         data.forEach(slide => {
             const slideDiv = document.createElement('a');
             slideDiv.href = slide.cta_url || '#';
-            slideDiv.className = 'carousel-slide w-full h-full relative flex-shrink-0';
+            slideDiv.className = 'carousel-slide w-full h-full relative flex-shrink-0 group overflow-hidden';
+
+            // GA4 Tracking
+            slideDiv.addEventListener('click', () => {
+                trackEvent('select_content', {
+                    content_type: 'carousel_slide',
+                    item_id: slide.id,
+                    item_name: slide.title
+                });
+            });
+
             slideDiv.innerHTML = `
-               <img src="${slide.background_image_url}" class="absolute inset-0 w-full h-full object-cover">
-               <div class="absolute inset-0 bg-gradient-to-t from-black/100 via-transparent to-transparent"></div>
-               <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white w-full">
-                   <h3 class="text-3xl md:text-5xl font-black mb-2 drop-shadow-lg leading-tight">${slide.title}</h3>
-                   ${slide.description ? `<p class="text-gray-200 text-lg mb-6 max-w-xl line-clamp-2">${slide.description}</p>` : ''}
+               <img src="${slide.background_image_url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+               
+
+
+               <div class="absolute bottom-0 left-0 px-6 pb-2 md:px-10 md:pb-6 z-20 w-full md:max-w-3xl">
+                   <div>
+                       <h3 class="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-lg">${slide.title}</h3>
+                       ${slide.description ? `<p class="text-gray-100 text-sm md:text-lg font-light leading-relaxed mb-3 max-w-xl drop-shadow-md">${slide.description}</p>` : ''}
+                       <div class="overflow-hidden">
+                           <div class="opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-full group-hover:translate-y-0">
+                                <span class="text-[10px] md:text-xs font-bold text-white/80 uppercase tracking-widest border-b border-white/30 pb-0.5">
+                                    Clique para saber mais
+                                </span>
+                           </div>
+                       </div>
+                   </div>
                </div>
             `;
             track.appendChild(slideDiv);
@@ -35,6 +57,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         initCarouselControls(track);
     }
+    // ... (rest of file)
+
+    // --- LOJA ---
+    // ...
+    // Open modal on click
+    div.addEventListener('click', () => {
+        trackEvent('select_content', {
+            content_type: 'store_item',
+            item_id: item.id,
+            item_name: item.title,
+            value: item.price,
+            currency: 'BRL'
+        });
+        window.openItemModal(item);
+    });
+    // ...
 
     function initCarouselControls(trackEl) {
         let currentIndex = 0;
@@ -115,6 +153,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Open modal on click
             div.addEventListener('click', () => {
+                trackEvent('select_content', {
+                    content_type: 'store_item',
+                    item_id: item.id,
+                    item_name: item.title,
+                    value: item.price,
+                    currency: 'BRL'
+                });
                 window.openItemModal(item);
             });
 
@@ -142,14 +187,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentStoreItem = null;
     };
 
-    window.buyItemOnWhatsapp = () => {
+    window.buyItemOnWhatsapp = async () => {
         if (!currentStoreItem) return;
-        const text = `Olá! Gostaria de fazer um pedido na loja:\n\n` +
+
+        const name = document.getElementById('storeName').value;
+        const email = document.getElementById('storeEmail').value;
+
+        if (!name || !email) {
+            alert('Por favor, preencha seu nome e e-mail antes de continuar.');
+            return;
+        }
+
+        await captureLead({
+            name,
+            email,
+            intention: 'loja_item',
+            details: { item: currentStoreItem.title, price: currentStoreItem.price }
+        });
+
+        const text = `Olá! Me chamo *${name}*.\nGostaria de fazer um pedido na loja:\n\n` +
             `🛒 *Produto:* ${currentStoreItem.title}\n` +
             `💰 *Valor:* ${formatCurrency(currentStoreItem.price)}\n` +
             `📄 *Detalhes:* (Tamanho/Cor se aplicável)\n\n` +
             `Poderia verificar o estoque e frete?`;
         openWhatsApp({ text });
+        window.closeItemModal();
+    };
+
+    // --- BOOKING MODAL LOGIC (Restored from index.html inline) ---
+    window.sendToWhatsapp = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+
+        if (!name || !email) {
+            alert('Por favor, preencha seu nome e e-mail.');
+            return;
+        }
+
+        const type = document.getElementById('type').value;
+        const guests = document.getElementById('guests').value;
+        const dateRaw = document.getElementById('date').value;
+        const date = new Date(dateRaw).toLocaleDateString('pt-BR');
+
+        await captureLead({
+            name,
+            email,
+            intention: 'reserva_modal',
+            details: { type, guests, date: dateRaw }
+        });
+
+        const text = `Olá! Me chamo *${name}*.\nGostaria de saber sobre *${type}* para *${guests} pessoas* no dia *${date}*.\nPodemos conversar?`;
+
+        openWhatsApp({ text });
+        document.getElementById('bookingModal').classList.remove('active');
     };
 
     // --- BLOG ---

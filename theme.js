@@ -13,7 +13,7 @@ tailwind.config = {
                 'text-dark': '#111827',
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
+                sans: ['Lexend', 'Inter', 'system-ui', 'sans-serif'],
             },
             boxShadow: {
                 'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',

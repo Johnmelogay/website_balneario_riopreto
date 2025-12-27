@@ -231,6 +231,33 @@
 
           <div class="p-5 md:p-6 space-y-6">
 
+            <!-- DADOS PESSOAIS -->
+            <div class="space-y-4">
+              <div class="space-y-1.5 group relative">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Seu Nome</label>
+                <div
+                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-user text-gray-400 group-focus-within:text-primary-green"></i>
+                  </div>
+                  <input type="text" id="nome-reserva" placeholder="Como podemos te chamar?"
+                    class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+              </div>
+
+              <div class="space-y-1.5 group relative">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Seu E-mail</label>
+                <div
+                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-envelope text-gray-400 group-focus-within:text-primary-green"></i>
+                  </div>
+                  <input type="email" id="email-reserva" placeholder="Para enviarmos o orçamento"
+                    class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+              </div>
+            </div>
+
             <!-- DATAS (Grid lado a lado com ícones internos) -->
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-1.5 group relative">
@@ -486,7 +513,7 @@
 
   <!-- Shared Footer -->
   <div id="footer-container"></div>
-  <script src="footer.js"></script>
+  <script type="module" src="footer.js"></script>
 
   <!-- MODAL FULLSCREEN VIEWER (Galeria) -->
   <div id="fullscreenViewer" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
