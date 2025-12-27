@@ -602,11 +602,44 @@
                         class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 text-gray-600 outline-none focus:border-primary-green">
                 </div>
 
+                <button type="button" id="btn-suggestion" onclick="redirectToSimulator()"
+                    class="hidden w-full mb-4 bg-blue-50 border border-blue-200 text-blue-800 font-bold py-3 rounded-xl hover:bg-blue-100 transition-all text-sm flex items-center justify-center gap-2 animate-fade-in-up">
+                    <i class="fas fa-calculator"></i> Calcular valor da reserva agora
+                </button>
+
                 <button type="submit"
                     class="w-full rounded-xl bg-primary-green py-4 font-bold text-white shadow-lg shadow-green-200 hover:bg-green-700 hover:shadow-green-300 transition-all transform active:scale-95 flex items-center justify-center gap-2">
                     Chamar no WhatsApp <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
+
+            <script>
+                const typeSelect = document.getElementById('type');
+                const suggestionBtn = document.getElementById('btn-suggestion');
+
+                typeSelect.addEventListener('change', function () {
+                    if (this.value === 'Chalé') {
+                        suggestionBtn.classList.remove('hidden');
+                    } else {
+                        suggestionBtn.classList.add('hidden');
+                    }
+                });
+
+                function redirectToSimulator() {
+                    const name = document.getElementById('name').value;
+                    const email = document.getElementById('email').value;
+                    const guests = document.getElementById('guests').value;
+                    const date = document.getElementById('date').value;
+
+                    const params = new URLSearchParams();
+                    if (name) params.append('nome', name);
+                    if (email) params.append('email', email);
+                    if (guests) params.append('adultos', guests);
+                    if (date) params.append('checkin', date);
+
+                    window.location.href = 'reservas.html?' + params.toString();
+                }
+            </script>
         </div>
     </div>
 
@@ -690,6 +723,11 @@
             const modal = document.getElementById('bookingModal');
             document.getElementById('type').value = type;
             modal.classList.add('active');
+
+            // Toggle suggestion button immediately
+            const btn = document.getElementById('btn-suggestion');
+            if (type === 'Chalé') btn.classList.remove('hidden');
+            else btn.classList.add('hidden');
         }
         function closeBookingModal() {
             document.getElementById('bookingModal').classList.remove('active');

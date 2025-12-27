@@ -1,7 +1,6 @@
-import { openWhatsApp, CONSTANTS, captureLead } from './scripts.js';
+import { openWhatsApp, CONSTANTS, captureLead, supabase } from './scripts.js';
 
-// --- GOOGLE APPS SCRIPT API ---
-const API_URL = "https://script.google.com/macros/s/AKfycbyj-tvyGLJkpfhlGTxpvlGV9WnBp88nDhwxbvAorHe_dmEYC3JR0flJ98udRn5cOUBZ/exec";
+// --- API REMOVED (Migrated to Supabase) ---
 
 document.addEventListener("DOMContentLoaded", () => {
     const mainHeader = document.getElementById('main-header');
@@ -16,11 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
         window.addEventListener('scroll', handleScrollHeader);
     }
 
-    carregarDisponibilidade();
+    // Verify availability (Supabase)
+    setTimeout(verificarDisponibilidade, 500);
     renderGaleria();
 
-    document.getElementById("checkin").addEventListener("change", calcular);
-    document.getElementById("checkout").addEventListener("change", calcular);
+    document.getElementById("checkin").addEventListener("change", () => {
+        calcular();
+        verificarDisponibilidade();
+    });
+    document.getElementById("checkout").addEventListener("change", () => {
+        calcular();
+        verificarDisponibilidade();
+    });
     document.getElementById("adultos").addEventListener("change", calcular);
 
     document.addEventListener("change", function (e) {
@@ -34,6 +40,26 @@ document.addEventListener("DOMContentLoaded", () => {
     window.enviarWhatsapp = enviarWhatsapp;
     window.openFullscreenItem = openFullscreenItem;
     window.closeFullscreen = closeFullscreen;
+
+    // --- PRE-FILL FROM URL PARAMS ---
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('nome')) document.getElementById('nome-reserva').value = params.get('nome');
+    if (params.has('email')) document.getElementById('email-reserva').value = params.get('email');
+    if (params.has('adultos')) document.getElementById('adultos').value = params.get('adultos');
+    if (params.has('checkin')) {
+        const checkinDate = params.get('checkin');
+        document.getElementById('checkin').value = checkinDate;
+
+        // Auto-set checkout to next day
+        try {
+            const date = new Date(checkinDate);
+            date.setDate(date.getDate() + 1);
+            document.getElementById('checkout').value = date.toISOString().split('T')[0];
+        } catch (e) { console.error('Error setting checkout date', e); }
+
+        // Trigger calculation
+        setTimeout(calcular, 500);
+    }
 });
 
 
@@ -217,20 +243,50 @@ function enviarWhatsapp() {
     });
 }
 
-function carregarDisponibilidade() {
-    fetch(API_URL)
-        .then(r => r.json())
-        .then(data => {
-            renderOpcoesChale(data);
-        })
-        .catch(err => {
-            console.error("Erro ao carregar chalés", err);
-            const container = document.getElementById("chale-opcoes");
-            if (container) container.innerHTML = "<p class='text-red-500'>Erro ao carregar disponibilidade. Tente recarregar a página.</p>";
-        });
+// --- SUPABASE AVAILABILITY LOGIC ---
+
+async function verificarDisponibilidade() {
+    const checkin = document.getElementById("checkin").value;
+    const checkout = document.getElementById("checkout").value;
+
+    // Default to today/next day if empty to show general availability
+    const start = checkin || new Date().toISOString().split('T')[0];
+    const end = checkout || new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+    // Visual loading state
+    const container = document.getElementById("chale-opcoes");
+    if (container) container.style.opacity = "0.5";
+
+    try {
+        if (!supabase) {
+            console.warn("Supabase client not ready.");
+            return;
+        }
+
+        // QUERY: Find bookings that OVERLAP with [start, end]
+        // overlap: (book_start < query_end) AND (book_end > query_start)
+        // Note: Supabase filtering on Date columns works well with strings YYYY-MM-DD
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('chalet_id')
+            .lt('checkin_date', end)
+            .gt('checkout_date', start);
+
+        if (error) throw error;
+
+        // Extract blocked IDs
+        const blockedIds = data.map(b => b.chalet_id);
+        renderOpcoesChale(blockedIds);
+
+    } catch (err) {
+        console.error("Erro ao verificar disponibilidade:", err);
+        renderOpcoesChale([]); // Fallback: Show all available (or handle error UI)
+    } finally {
+        if (container) container.style.opacity = "1";
+    }
 }
 
-function renderOpcoesChale(data) {
+function renderOpcoesChale(blockedIds = []) {
     const container = document.getElementById("chale-opcoes");
     if (!container) return;
     container.innerHTML = "";
@@ -254,9 +310,9 @@ function renderOpcoesChale(data) {
         gridDiv.className = "grid grid-cols-2 gap-3";
 
         grupos[area].forEach(num => {
-            const status = data[num];
-            let isAvailable = status === "disponivel";
-            let isBusy = status === "ocupado";
+            // CHECK IF BLOCKED
+            const isBusy = blockedIds.includes(num);
+            const isAvailable = !isBusy;
 
             let wrapperClass = "relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer select-none text-center h-20";
 
@@ -274,15 +330,11 @@ function renderOpcoesChale(data) {
                 wrapperClass += " bg-white border-gray-100 hover:border-primary-green hover:shadow-md hover:bg-green-50/50";
                 iconClass += " text-primary-green";
                 textStatus = `<span class="text-[10px] font-bold text-green-600 uppercase">Livre</span>`;
-            } else if (isBusy) {
-                wrapperClass += " bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed grayscale";
-                iconClass += " text-gray-400";
-                textStatus = `<span class="text-[10px] font-bold text-gray-400 uppercase line-through">Ocupado</span>`;
-                disabledAttr = "disabled";
             } else {
-                wrapperClass += " bg-yellow-50 border-yellow-100 opacity-80 cursor-not-allowed";
-                iconClass += " text-yellow-600";
-                textStatus = `<span class="text-[10px] font-bold text-yellow-600 uppercase">Manut.</span>`;
+                // BUSY STYLE
+                wrapperClass += " bg-gray-100 border-gray-100 opacity-50 cursor-not-allowed grayscale";
+                iconClass += " text-gray-400";
+                textStatus = `<span class="text-[10px] font-bold text-red-400 uppercase line-through">Ocupado</span>`;
                 disabledAttr = "disabled";
             }
 

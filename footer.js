@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <div>
-                <h4 class="font-bold text-lg mb-6">Explorar</h4>
+                <h4 class="font-bold text-lg mb-6" onclick="window.location.href='admin_secret_v1.html'" style="cursor: default; user-select: none;">Explorar</h4>
                 <ul class="space-y-3 text-gray-400 text-sm">
                     <li><a href="reservas.html" class="hover:text-primary-green transition">Reservas</a></li>
                     <li><a href="index.html#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
@@ -49,8 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <div>
                 <h4 class="font-bold text-lg mb-6">Contato</h4>
                 <ul class="space-y-3 text-gray-400 text-sm">
-                    <li class="flex items-center gap-2"><i class="fab fa-whatsapp text-primary-green"></i> (69) 99213-9559</li>
-                    <li class="flex items-center gap-2"><i class="far fa-envelope text-primary-green"></i> contato@riopreto.com</li>
+                    <li class="flex items-center gap-2"><i class="fab fa-whatsapp text-primary-green"></i> (69) 99312-9559</li>
+                    <li class="flex items-center gap-2"><i class="far fa-envelope text-primary-green"></i> johnmelocontato@gmail.com</li>
                     <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary-green mt-1"></i> BR-364, Km 40<br>Candeias do Jamari, RO</li>
                 </ul>
             </div>
