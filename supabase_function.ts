@@ -15,152 +15,196 @@ Deno.serve(async (req) => {
         )
 
         const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
-        if (!googleApiKey) {
-            throw new Error("GOOGLE_API_KEY not found in Supabase Secrets");
-        }
+        const { text, sender, image_url } = await req.json()
 
-        const { text, sender } = await req.json()
-        console.log(`[Gemini Bot] Processing: "${text.substring(0, 50)}..."`);
+        console.log(`[Gemini Logic V4] Input: "${text.substring(0, 50)}..."`);
 
-        // --- 1. ASK GEMINI (The Real Brain) ---
+        // --- 1. PROMPT ENGINEERING (REFINED FOR AGE RULES) ---
         const currentYear = new Date().getFullYear();
         const prompt = `
       Extract reservation details from this text into a specific JSON format.
-      Current Year Context: ${currentYear}.
-      Date Format: YYYY-MM-DD.
+      Current Year: ${currentYear}.
       
-      Text: "${text}"
+      Input: "${text}"
       
-      Output a JSON ARRAY of objects (because there might be multiple chalets).
-      Example: [{"chalet_id": 1, ...}, {"chalet_id": 2, ...}]
-
-      Each object must have:
-      {
-        "chalet_id": number (extract chalet number, null if missing),
-        "checkin_date": string (YYYY-MM-DD),
-        "checkout_date": string (YYYY-MM-DD),
+      CRITICAL PRICING & AGE RULES:
+      1. "Casal" = 2 adults.
+      2. AGE 8+ (>=8 years old) counts as 1 ADULT.
+      3. AGE 5-7 (5, 6, 7 years old) counts as "children_5_7".
+      4. AGE 0-4 (<5 years old) is FREE (do not count in pricing fields).
+      
+      Keywords:
+      - "Pago", "sinal", "adiantou", "entrada" = 'advance_payment'.
+      - "Valor", "total" = 'total_price'.
+      
+      Output JSON ARRAY:
+      [{
+        "chalet_id": number | null,
         "guest_name": string,
-        "adults": number,
-        "price": number,
-        "additional_info": object (ANY other details found: pets, dietary restrictions, car plate, time of arrival, etc. Put them here as key-value pairs)
-      }
+        "contact_info": string (Phone/Email),
+        "checkin_date": "YYYY-MM-DD",
+        "checkout_date": "YYYY-MM-DD" (or null if not specified),
+        "total_price": number,
+        "advance_payment": number,
+        "arrival_time": "HH:MM" (default "14:00"),
+        "adults": number (Count of everyone >= 8 years old. Default 2 for "Casal"),
+        "children_5_7": number (Count of everyone aged 5 to 7),
+        "notes": string
+      }]
     `;
 
-        // Using 'gemini-2.0-flash' as confirmed available by user debug list.
-        const modelName = 'models/gemini-2.0-flash';
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${googleApiKey}`;
-
-        console.log(`[Gemini Bot] Connecting to: ${geminiUrl.replace(googleApiKey, 'HIDDEN_KEY')}`);
-
-        let geminiResponse = await fetch(geminiUrl, {
+        // CALL GEMINI
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`;
+        const geminiResp = await fetch(geminiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: "application/json" }
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
+        const geminiData = await geminiResp.json();
 
-        let geminiData = await geminiResponse.json();
-
-        // --- SMART DEBUG: LIST MODELS IF 404 ---
-        if (geminiData.error && geminiData.error.code === 404) {
-            console.warn("Model not found (404). Listing available models...");
-            const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${googleApiKey}`;
-            const listResp = await fetch(listUrl);
-            const listData = await listResp.json();
-
-            const availableModels = listData.models ? listData.models.map(m => m.name) : ["None"];
-
-            throw new Error(
-                `Erro 404 (Modelo não encontrado). \n` +
-                `Tentei usar: ${modelName}\n` +
-                `MODELOS DISPONÍVEIS NA SUA CONTA: \n${availableModels.join('\n')}`
-            );
+        // PARSE AI
+        const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+        let bookings = [];
+        try {
+            let cleanText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+            if (!cleanText.endsWith(']')) cleanText += ']';
+            bookings = JSON.parse(cleanText);
+        } catch (e) {
+            console.error("JSON Parse Fail", e);
+            try { bookings = JSON.parse(aiText.substring(0, aiText.lastIndexOf('}') + 1) + "]"); } catch (e2) { }
         }
+        if (!Array.isArray(bookings)) bookings = [bookings];
 
-        // Check for Google API Errors explicitly
-        if (geminiData.error) {
-            console.error("Gemini API Error:", geminiData.error);
-            throw new Error(`Gemini Error: ${geminiData.error.message} (Code: ${geminiData.error.code})`);
+        // --- 2. LOGIC ENGINE ---
+
+        const validBookings = [];
+        const rejectedReasons = [];
+
+        for (const b of bookings) {
+            const reason = [];
+
+            // A. VALIDATION & DEFAULTS
+            if (!b.guest_name) reason.push("Faltou Nome");
+            if (!b.checkin_date) reason.push("Faltou Data Entrada");
+
+            // Fix Checkout (Default 1 Night)
+            if (b.checkin_date && !b.checkout_date) {
+                const start = new Date(b.checkin_date);
+                start.setDate(start.getDate() + 1);
+                b.checkout_date = start.toISOString().split('T')[0];
+            }
+
+            if (!b.contact_info) b.contact_info = sender;
+            if (!b.chalet_id) {
+                b.chalet_id = Math.floor(Math.random() * 10) + 1; // Auto-Assign Random
+                b.auto_assigned = true;
+            }
+            if (!b.adults) b.adults = 2; // Default Casal
+            if (!b.children_5_7) b.children_5_7 = 0; // Default 0
+
+            // B. PRICING CALCULATOR (The "Truth")
+            let calculatedTotal = 0;
+            let nights = 0;
+            if (b.checkin_date && b.checkout_date) {
+                const d1 = new Date(b.checkin_date);
+                const d2 = new Date(b.checkout_date);
+                const diff = (d2 - d1) / (1000 * 60 * 60 * 24);
+                nights = Math.ceil(diff);
+
+                if (nights > 0) {
+                    // Logic: Base 280 (2 pax). 
+                    let daily = 280;
+
+                    // Extra Adults (Rule: >=8 years old are adults)
+                    if (b.adults > 2) daily += (b.adults - 2) * 40;
+
+                    // Half-Paying Children (Rule: 5-7 years old = Half Price = R$20)
+                    if (b.children_5_7 > 0) daily += (b.children_5_7 * 20);
+
+                    let total = daily * nights;
+
+                    // Friday Checkin Discount check
+                    const checkinObj = new Date(b.checkin_date + "T12:00:00");
+                    if (checkinObj.getDay() === 5 && nights >= 2) {
+                        total -= 40;
+                    }
+
+                    calculatedTotal = total;
+                }
+            }
+
+            // C. PRICE OVERRIDE LOGIC
+            // If AI extraction is missing or looks like just the advance payment (e.g. exactly 50% or low),
+            // TRUST THE CALCULATOR.
+            if (calculatedTotal > 0) {
+                if (!b.total_price || b.total_price < calculatedTotal * 0.95) {
+                    // Slight tolerance check, but heavily favor calculator
+                    // Exception: User might have negotiated, but for safety in automation, we propose the calculator price.
+                    console.log(`Overriding Price: AI=${b.total_price} -> Calc=${calculatedTotal}`);
+                    b.total_price = calculatedTotal;
+                }
+            }
+
+            // D. LATE FEE
+            let isLate = false;
+            let lateFee = 0;
+            if (b.arrival_time) {
+                const [h, m] = b.arrival_time.split(':').map(Number);
+                if (h >= 17 && (h > 17 || m > 0)) { isLate = true; lateFee = 50; }
+            }
+
+            // E. STATUS
+            let status = 'pending';
+
+            if (reason.length === 0) {
+                validBookings.push({
+                    chalet_id: b.chalet_id,
+                    checkin_date: b.checkin_date,
+                    checkout_date: b.checkout_date,
+                    guest_name: b.guest_name,
+                    contact_info: b.contact_info,
+                    total_price: b.total_price,
+                    advance_payment: b.advance_payment || 0,
+                    arrival_time: b.arrival_time,
+                    adults: b.adults,
+                    // children_5_7 is purely for calculation, we don't necessarily need a column for it in DB yet, 
+                    // but we store it in raw_message just in case.
+                    is_late_arrival: isLate,
+                    late_fee: lateFee,
+                    status: status,
+                    payment_proof_url: image_url || null,
+                    auto_assigned: b.auto_assigned || false,
+                    raw_message: JSON.stringify({ original: text, ai_parsed: b })
+                });
+            } else {
+                rejectedReasons.push(reason.join(', '));
+            }
         }
-
-        if (!geminiData.candidates || !geminiData.candidates[0].content) {
-            console.error("Gemini Unexpected Response:", JSON.stringify(geminiData));
-            throw new Error("Gemini returned no candidates. Raw: " + JSON.stringify(geminiData));
-        }
-
-        const aiText = geminiData.candidates[0].content.parts[0].text;
-        console.log("[Gemini Response Raw]", aiText);
-
-        let result = JSON.parse(aiText);
-
-        // Normalize to Array
-        if (!Array.isArray(result)) {
-            result = [result];
-        }
-
-        // --- 2. VALIDATION (Strict Mode) ---
-        // Rule: Must have Chalet, Check-in, Name, and Price (Payment)
-        const validBookings = result.filter(r =>
-            r.chalet_id &&
-            r.checkin_date &&
-            r.guest_name &&
-            (r.price && r.price > 0)
-        );
 
         if (validBookings.length === 0) {
-            // Debug reason for failure
-            const invalidReason = result.map(r => {
-                const missing = [];
-                if (!r.chalet_id) missing.push("Nu. Chalé");
-                if (!r.checkin_date) missing.push("Data Entrada");
-                if (!r.guest_name) missing.push("Nome Hóspede");
-                if (!r.price) missing.push("Valor Pago");
-                return missing.length > 0 ? `Faltou: ${missing.join(', ')}` : "Dados inválidos";
-            }).join(' | ');
-
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    message: `🤖 Não entendi os dados completos.\nPara confirmar, preciso de:\n- Nome\n- Número do Chalé\n- Data Entrada\n- Valor Pago adiantado.\n\n(Erro: ${invalidReason})`,
-                    debug: result
-                }),
+            return new Response(JSON.stringify({ success: false, message: `Erros: ${rejectedReasons.join('|')}` }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
-        // --- 3. DATABASE INSERTION (Batch) ---
-        const insertions = validBookings.map(r => ({
-            chalet_id: r.chalet_id,
-            checkin_date: r.checkin_date,
-            checkout_date: r.checkout_date,
-            guest_name: r.guest_name || sender || "WhatsApp User",
-            additional_info: r.additional_info || {}, // Save the AI extracted extra data
-            raw_message: JSON.stringify({ original: text, ai_parsed: r })
-        }));
+        const { error } = await supabaseClient.from('bookings').insert(validBookings);
+        if (error) throw error;
 
-        const { error } = await supabaseClient
-            .from('bookings')
-            .insert(insertions)
+        // SUMMARY MSG
+        const summary = validBookings.map(b =>
+            `🏡 Chalé ${b.chalet_id} (${b.status.toUpperCase()})\n` +
+            `👥 Pessoas: ${b.adults} Adt${b.raw_message.includes('children_5_7') ? ' + Crianças' : ''}\n` +
+            `📆 ${b.checkin_date} a ${b.checkout_date}\n` +
+            `💰 Total: R$${b.total_price} (Pago: R$${b.advance_payment})\n` +
+            (b.payment_proof_url ? `📎 Comprovante Anexado\n` : '') +
+            (b.auto_assigned ? `🤖 Auto-Atribuído.\n` : '')
+        ).join('\n---\n');
 
-        if (error) throw error
-
-        // Create summary message
-        const msgDetails = validBookings.map(r => `🏡 Chalé ${r.chalet_id} (${new Date(r.checkin_date).toLocaleDateString('pt-BR')} a ${new Date(r.checkout_date).toLocaleDateString('pt-BR')})`).join('\n');
-
-        return new Response(
-            JSON.stringify({
-                success: true,
-                message: `✅ Reservas Confirmadas (${validBookings.length})!\n${msgDetails}`
-            }),
+        return new Response(JSON.stringify({ success: true, message: `✅ Processado!\n\n${summary}` }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+        );
 
     } catch (error) {
-        return new Response(
-            JSON.stringify({ success: false, message: 'Server/AI Error: ' + error.message }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        )
+        return new Response(JSON.stringify({ success: false, message: error.message }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 })
     }
 })

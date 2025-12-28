@@ -1,0 +1,3 @@
+-- RODE APENAS ISSO SE JÁ TIVER A TABELA NOVA
+ALTER TABLE public.bookings 
+ADD COLUMN adults int DEFAULT 2;
