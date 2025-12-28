@@ -56,8 +56,8 @@ async function loadDataAndRender() {
     const { data: bookings, error } = await supabase
         .from('bookings')
         .select('*')
-        .lt('checkin_date', endOfMonth)
-        .gt('checkout_date', startOfMonth);
+        .lte('checkin_date', endOfMonth)
+        .gte('checkout_date', startOfMonth);
 
     if (bookings) bookingsCache = bookings;
 
@@ -387,8 +387,13 @@ window.openConflictResolver = (bookings) => {
 window.openNewReservation = (chaletId, defaultDate) => {
     document.getElementById('newChaletId').value = chaletId;
     document.getElementById('newChaletBadge').innerText = `Chalé #${chaletId}`;
+    
+    // Security: Load Name
+    const savedOp = localStorage.getItem('riopreto_operator');
+    if(savedOp) document.getElementById('newOperatorName').value = savedOp;
+
     document.getElementById('newGuestName').value = "";
-    document.getElementById('newContact').value = ""; // NEW
+    document.getElementById('newContact').value = ""; 
     document.getElementById('newCheckin').value = defaultDate;
 
     const nextDay = new Date(defaultDate);
@@ -400,30 +405,38 @@ window.openNewReservation = (chaletId, defaultDate) => {
 
     document.getElementById('newAdults').value = "2 Adultos";
     document.getElementById('newTime').value = "14:00";
-    document.getElementById('newSource').value = "WhatsApp"; // NEW
-    document.getElementById('newPlate').value = ""; // NEW
+    document.getElementById('newSource').value = "WhatsApp"; 
+    document.getElementById('newPlate').value = ""; 
     document.getElementById('newPrice').value = "";
     document.getElementById('newPaid').value = "";
-    document.getElementById('newProof').value = ""; // NEW
+    document.getElementById('newProof').value = ""; 
     document.getElementById('newNotes').value = "";
 
     document.getElementById('modalNew').classList.remove('hidden');
 }
 
 window.saveReservation = async () => {
+    const operator = document.getElementById('newOperatorName').value.trim();
+    if(!operator) {
+        alert("⚠️ Segurança: Digite SEU NOME no topo do formulário.");
+        document.getElementById('newOperatorName').focus();
+        return;
+    }
+    localStorage.setItem('riopreto_operator', operator); // Persist
+
     const chaletId = document.getElementById('newChaletId').value;
     const name = document.getElementById('newGuestName').value;
-    const contact = document.getElementById('newContact').value; // NEW
+    const contact = document.getElementById('newContact').value; 
     const checkin = document.getElementById('newCheckin').value;
     const checkout = document.getElementById('newCheckout').value;
     const adults = document.getElementById('newAdults').value;
     const time = document.getElementById('newTime').value;
-    const source = document.getElementById('newSource').value; // NEW
-    const plate = document.getElementById('newPlate').value; // NEW
+    const source = document.getElementById('newSource').value; 
+    const plate = document.getElementById('newPlate').value; 
     const price = document.getElementById('newPrice').value;
     const paid = document.getElementById('newPaid').value;
     const notes = document.getElementById('newNotes').value;
-    const fileInput = document.getElementById('newProof'); // NEW
+    const fileInput = document.getElementById('newProof'); 
 
     if (!name || !checkin || !checkout) {
         alert("Preencha obrigatórios: Nome, check-in e check-out.");
@@ -439,10 +452,6 @@ window.saveReservation = async () => {
         const filePath = `manual_uploads/${fileName}`;
 
         try {
-            // Basic Supabase upload (using global client passed from scripts usually, or imported)
-            // We need to ensure supabase client works with storage here.
-            // Usually map.js imports `supabase`.
-
             const { error: uploadError } = await supabase.storage
                 .from('receipts')
                 .upload(filePath, file);
@@ -458,26 +467,37 @@ window.saveReservation = async () => {
         } catch (err) {
             console.error("Upload failed", err);
             alert("Falha no upload do comprovante: " + err.message);
-            // We continue saving without the file? Or stop? 
-            // Better stop and warn.
             return;
         }
     }
+
+    // Capture IP
+    let location = "Unknown IP";
+    try {
+        const resp = await fetch('https://api.ipify.org?format=json');
+        const data = await resp.json();
+        location = data.ip;
+    } catch(e) {}
 
     // Construct Object for V2 Schema
     const insertData = {
         chalet_id: chaletId,
         guest_name: name,
-        contact_info: contact, // NEW
+        contact_info: contact,
         checkin_date: checkin,
         checkout_date: checkout,
         adults: parseInt(adults) || 2,
         arrival_time: time,
         total_price: parseFloat(price) || 0,
         advance_payment: parseFloat(paid) || 0,
-        payment_proof_url: proofUrl, // NEW
-        status: 'pending', // Manual starts pending
-        // Store extras in raw_message JSON since we don't have columns for Plate/Source yet
+        payment_proof_url: proofUrl, 
+        status: 'pending', 
+        
+        // SECURITY
+        madeby: operator,
+        device: navigator.userAgent,
+        location: location,
+
         raw_message: JSON.stringify({
             manual: true,
             ai_parsed: {
@@ -497,6 +517,7 @@ window.saveReservation = async () => {
     } else {
         closeModal('modalNew');
         loadDataAndRender();
+        alert("Reserva Salva com Sucesso!");
     }
 }
 

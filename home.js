@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .limit(4);
 
             if (error) throw error;
-            
+
             // Limpa o esqueleto de carregamento (pulse)
             container.innerHTML = '';
 
@@ -168,8 +168,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="text-accent-orange font-bold text-sm flex items-center gap-1">Ler Matéria <i class="fas fa-arrow-right"></i></span>
                    </div>
                 `;
-                
-                div.onclick = () => { window.location.href = `detalhes.html?slug=${post.slug}`; };
+
+                div.onclick = () => {
+                    trackEvent('select_content', {
+                        content_type: 'blog_post',
+                        item_id: post.id,
+                        item_name: post.title
+                    });
+                    window.location.href = `detalhes.html?slug=${post.slug}`;
+                };
                 container.appendChild(div);
             });
         } catch (err) {
@@ -201,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const email = document.getElementById('storeEmail').value;
         if (!name || !email) { alert('Preencha nome e e-mail.'); return; }
 
-        await captureLead({ name, email, intention: 'loja_item', details: { item: currentStoreItem.title }});
+        await captureLead({ name, email, intention: 'loja_item', details: { item: currentStoreItem.title } });
         const text = `Olá! Me chamo *${name}*.\nQuero o produto: *${currentStoreItem.title}*`;
         openWhatsApp({ text });
         window.closeItemModal();

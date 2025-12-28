@@ -15,7 +15,13 @@ Deno.serve(async (req) => {
         )
 
         const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
-        const { text, sender, image_url } = await req.json()
+        const { text, sender, image_url, madeby, device, location } = await req.json()
+
+        // IP Fallback if not sent by client (e.g. CLI or direct curl)
+        const ipFromHeader = req.headers.get('x-forwarded-for') || "Unknown IP";
+        const finalLocation = location || ipFromHeader;
+        const finalDevice = device || req.headers.get('user-agent') || "Unknown Device";
+        const finalMadeBy = madeby || "AI/Unknown";
 
         console.log(`[Gemini Logic V4] Input: "${text.substring(0, 50)}..."`);
 
@@ -174,6 +180,11 @@ Deno.serve(async (req) => {
                     status: status,
                     payment_proof_url: image_url || null,
                     auto_assigned: b.auto_assigned || false,
+                    // SECURITY
+                    madeby: finalMadeBy,
+                    device: finalDevice,
+                    location: finalLocation,
+
                     raw_message: JSON.stringify({ original: text, ai_parsed: b })
                 });
             } else {

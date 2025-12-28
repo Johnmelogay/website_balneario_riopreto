@@ -1,4 +1,4 @@
-import { supabase, openWhatsApp } from './scripts.js';
+import { supabase, openWhatsApp, trackEvent } from './scripts.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const loadingEl = document.getElementById('detail-loading');
@@ -108,6 +108,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const shareUrl = encodeURIComponent(window.location.href);
         const shareText = encodeURIComponent(data.title);
         const coverImage = data.cover_image_url || 'https://placehold.co/1200x400/2E7D32/FFFFFF?text=Blog+Rio+Preto';
+
+        // GA4 Tracking
+        trackEvent('view_item', {
+            content_type: 'blog_post',
+            item_id: data.id,
+            item_name: data.title
+        });
 
         contentEl.innerHTML = `
           <section class="bg-white rounded-xl shadow-md overflow-hidden">
