@@ -1,4 +1,5 @@
 import { openWhatsApp, CONSTANTS, captureLead, supabase } from './scripts.js';
+import { galleryLightbox } from './lightbox.js';
 
 // --- API REMOVED (Migrated to Supabase) ---
 
@@ -362,11 +363,15 @@ function renderOpcoesChale(blockedIds = []) {
 
 // Lista dinâmica de imagens e vídeos (PLACEHOLDERS RELEVANTES)
 const galeriaMidia = [
-    "videos/hero-video.mp4",
     "images/img-aerea.jpg",
-    "images/img-rio.jpg",
-    "images/img-churrasco.jpg",
-    "images/img-natureza.jpg"
+    "videos/aconchego.mp4",
+    "videos/hero-video.mp4",
+    "videos/pool.mp4",
+    "videos/vistaparario.mp4",
+    "videos/peopleplaying.mp4",
+    "videos/paradise.mp4",
+    "videos/beach.mp4",
+    
 ];
 
 function renderGaleria() {
@@ -376,14 +381,16 @@ function renderGaleria() {
 
     galeriaMidia.forEach((src, index) => {
         const isVideo = src.endsWith(".mp4");
-
-        // Imagem fallback para placeholders de desenvolvimento se o arquivo real não existir
-        // Usando uma lógica simples de onerror no HTML
+        // Imagem fallback
         const fallbackSrc = `https://placehold.co/800x800/2E7D32/FFF?text=RioPreto-${index}`;
 
         const item = document.createElement("div");
         item.className = "rounded-2xl overflow-hidden relative shadow-sm group cursor-pointer";
-        item.setAttribute("onclick", "openFullscreenItem(this)");
+
+        // --- NEW LIGHTBOX INTEGRATION ---
+        item.onclick = () => {
+            galleryLightbox.open(galeriaMidia, index);
+        };
 
         if (index === 0) {
             item.classList.add("col-span-2", "row-span-2");
@@ -391,7 +398,7 @@ function renderGaleria() {
 
         let overlayHTML = `
       <div class="absolute bottom-4 left-4">
-          <p class="text-white text-lg font-bold drop-shadow-md">Rio Preto</p>
+          <p class="text-white text-lg font-bold drop-shadow-md"></p>
       </div>
     `;
 
@@ -399,15 +406,18 @@ function renderGaleria() {
             overlayHTML = `
           <div class="absolute bottom-4 left-4">
               <span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded mb-1 inline-block">Destaque</span>
-              <p class="text-white text-lg font-bold drop-shadow-md">Explorar Visual</p>
+              <p class="text-white text-lg font-bold drop-shadow-md">Passeio Virtual</p>
           </div>
         `;
         }
 
         if (isVideo) {
             item.innerHTML = `
-          <video src="${src}" autoplay muted loop playsinline class="w-full h-full object-cover"></video>
+          <video src="${src}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()" class="w-full h-full object-cover"></video>
           ${overlayHTML}
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <i class="fa-solid fa-play text-white/80 text-4xl drop-shadow-lg"></i>
+          </div>
         `;
         } else {
             item.innerHTML = `
@@ -420,30 +430,6 @@ function renderGaleria() {
     });
 }
 
-function openFullscreenItem(el) {
-    const viewer = document.getElementById('fullscreenViewer');
-    const img = document.getElementById('fullscreenImage');
-    const vid = document.getElementById('fullscreenVideo');
-    img.classList.add('hidden');
-    vid.classList.add('hidden');
-
-    const media = el.querySelector('img, video');
-    if (!media) return;
-
-    if (media.tagName === 'IMG') {
-        img.src = media.src;
-        img.classList.remove('hidden');
-    } else if (media.tagName === 'VIDEO') {
-        vid.src = media.getAttribute('src') || media.currentSrc;
-        vid.classList.remove('hidden');
-        vid.play();
-    }
-    viewer.classList.remove('hidden');
-}
-
-function closeFullscreen() {
-    const viewer = document.getElementById('fullscreenViewer');
-    const vid = document.getElementById('fullscreenVideo');
-    if (vid) vid.pause();
-    viewer.classList.add('hidden');
-}
+// Deprecated functions (kept as empty to avoid breakage)
+window.openFullscreenItem = () => { };
+window.closeFullscreen = () => { };

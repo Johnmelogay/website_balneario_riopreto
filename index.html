@@ -29,7 +29,12 @@
     <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
     <script type="module">
         import { initAnalytics } from './scripts.js';
+        import { galleryLightbox } from './lightbox.js';
+
         initAnalytics();
+
+        // Expose Lightbox to global scope for inline HTML onclicks (legacy support)
+        window.galleryLightbox = galleryLightbox;
     </script>
 
     <!-- Tailwind CSS & Theme -->
@@ -245,10 +250,10 @@
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-3xl font-bold mb-10">Galeria de Fotos</h2>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px]">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[2000px]">
                 <!-- Item Grande Esquerda -->
                 <div class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/mapa rio preto.jpg', 'Vista Aérea')">
+                    onclick="openGalleryModal('images/mapa rio preto.jpg', ' ')">
                     <img src="images/mapa rio preto.jpg" onerror="this.src='images/mapa rio preto.jpg'" loading="lazy"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div
@@ -260,15 +265,63 @@
 
                 <!-- Itens Menores -->
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/piscina.jpg', 'Banho no Rio')">
+                    onclick="openGalleryModal('images/piscina.jpg', 'Piscina com Toboágua')">
                     <img src="images/piscina.jpg" onerror="this.src='images/piscina.jpg'"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/IMG_0829.jpg', 'Área de Lazer')">
+                    onclick="openGalleryModal('images/IMG_0829.jpg', 'Churrasqueira Perto do Rio Preto')">
                     <img src="images/IMG_0829.jpg" onerror="this.src='images/IMG_0829.jpg'"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/vistachale.jpg', 'Vista do Chalé')">
+                    <img src="images/vistachale.jpg" onerror="this.src='images/vistachale.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('images/frentechales.jpg', 'Chalés')">
+                    <img src="images/frentechales.jpg" onerror="this.src='images/frentechales.jpg'"
+                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('videos/aconchego.mp4', 'Aconchego')">
+                    <video src="videos/aconchego.mp4" muted loop playsinline onmouseover="this.play()"
+                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
+                </div>
+                
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('videos/pool.mp4', 'Piscina')">
+                    <video src="videos/pool.mp4" muted loop playsinline onmouseover="this.play()"
+                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('videos/vistaparario.mp4', 'Vista para o Rio')">
+                    <video src="videos/vistaparario.mp4" muted loop playsinline onmouseover="this.play()"
+                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('videos/peopleplaying.mp4', 'Diversão')">
+                    <video src="videos/peopleplaying.mp4" muted loop playsinline onmouseover="this.play()"
+                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
                 </div>
 
                 <div class="col-span-2 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
@@ -278,25 +331,32 @@
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/vistachale.jpg', 'Área de Lazer')">
-                    <img src="images/vistachale.jpg" onerror="this.src='images/vistachale.jpg'"
-                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    onclick="openGalleryModal('videos/paradise.mp4', 'Paraíso')">
+                    <video src="videos/paradise.mp4" muted loop playsinline onmouseover="this.play()"
+                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/frentechales.jpg', 'Banho no Rio')">
-                    <img src="images/frentechales.jpg" onerror="this.src='images/frentechales.jpg'"
-                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    onclick="openGalleryModal('videos/beach.mp4', 'Praia')">
+                    <video src="videos/beach.mp4" muted loop playsinline onmouseover="this.play()"
+                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
                 </div>
 
 
-            </div>
-            <div class="text-center mt-8">
                 <a href="https://www.instagram.com/balneario_riopreto/" target="_blank"
-                    class="inline-flex items-center gap-2 text-primary-green font-bold hover:underline">
-                    <i class="fab fa-instagram"></i> Ver mais no Instagram
+                    class="col-span-2 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer flex flex-col items-center justify-center bg-gradient-to-br from-purple-600 to-orange-500 hover:scale-100 transition duration-300">
+                    <i class="fab fa-instagram text-6xl text-white mb-2 drop-shadow-md"></i>
+                    <p class="font-bold text-lg text-white drop-shadow-md">Ver mais</p>
                 </a>
             </div>
+            <!-- Link removed -->
+        </div>
         </div>
     </section>
 
@@ -778,22 +838,37 @@
             document.getElementById('bookingModal').classList.remove('active');
         }
 
+        // --- GALLERY LIGHTBOX ADAPTER ---
         function openGalleryModal(src, caption) {
-            const modal = document.getElementById('galleryModal');
-            const content = document.getElementById('galleryModalContent');
-            const captionEl = document.getElementById('galleryModalCaption');
+            // Find all gallery items in the DOM to build a playlist
+            // We search for elements that call this function
+            const elements = Array.from(document.querySelectorAll('[onclick^="openGalleryModal"]'));
 
-            content.innerHTML = `<img src="${src}" class="max-h-full max-w-full rounded-lg shadow-2xl object-contain">`;
-            captionEl.innerText = caption;
-            modal.classList.add('active');
+            const playlist = elements.map(el => {
+                // Parse the arguments from the onclick attribute
+                const onClickAttr = el.getAttribute('onclick');
+                // Regex to extract arguments: openGalleryModal('src', 'caption')
+                const match = onClickAttr.match(/openGalleryModal\('([^']*)',\s*'([^']*)'\)/);
+                if (match) {
+                    return { src: match[1], caption: match[2] };
+                }
+                return null;
+            }).filter(item => item !== null);
+
+            // Find index of clicked item
+            const index = playlist.findIndex(item => item.src === src);
+
+            // Open Global Lightbox (exposed in head script)
+            if (window.galleryLightbox) {
+                window.galleryLightbox.open(playlist, index !== -1 ? index : 0);
+            } else {
+                console.error("Lightbox not loaded");
+            }
         }
+
         function closeGalleryModal() {
-            document.getElementById('galleryModal').classList.remove('active');
+            // Deprecated (Lightbox handles self close)
         }
-
-        // --- WHATSAPP LOGIC ---
-        // --- WHATSAPP LOGIC ---
-        // (Moved to home.js to support imports)
     </script>
 
     <!-- Page Logic Integration -->
