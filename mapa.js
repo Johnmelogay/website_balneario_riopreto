@@ -639,12 +639,28 @@ window.saveReservation = async () => {
     }
 }
 
-window.deleteReservation = async (id) => {
+// --- SECURITY UTILS ---
+async function verifyAdminPassword() {
     const pwd = prompt("Senha de Administrador:");
-    if (pwd !== "4530apple") {
+    if (!pwd) return false;
+
+    // Hash the input to compare with stored hash (SHA-256 of '4539apple')
+    const msgBuffer = new TextEncoder().encode(pwd);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const SECRET_HASH = "d2d558bab8d446231966f8879cd71d4e0d66340731b043ee5d42dff4427a6a93";
+
+    if (hashHex !== SECRET_HASH) {
         alert("Senha incorreta!");
-        return;
+        return false;
     }
+    return true;
+}
+
+window.deleteReservation = async (id) => {
+    if (!(await verifyAdminPassword())) return;
 
     if (!confirm("Tem certeza que deseja excluir esta reserva?")) return;
 
@@ -662,6 +678,8 @@ window.deleteReservation = async (id) => {
 }
 
 window.confirmReservation = async (id) => {
+    if (!(await verifyAdminPassword())) return;
+
     if (!confirm("Confirmar oficialmente esta reserva? Ela ficará Vermelha (Ocupada).")) return;
 
     const { error } = await supabase
@@ -678,12 +696,8 @@ window.confirmReservation = async (id) => {
 }
 
 // EDIT LOGIC
-window.editReservation = (booking) => {
-    const pwd = prompt("Senha de Administrador:");
-    if (pwd !== "4530apple") {
-        alert("Senha incorreta!");
-        return;
-    }
+window.editReservation = async (booking) => {
+    if (!(await verifyAdminPassword())) return;
 
     console.log("Editing Booking:", booking);
     closeModal('modalDetails');
