@@ -63,6 +63,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="w-full bg-primary-green text-white font-bold text-sm py-2 rounded-lg hover:bg-green-700 transition">Inscrever-se</button>
                 </form>
             </div>
+            <div>
+                <h4 class="font-bold mb-4 text-primary-green">Legal</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li><a href="termos.html" class="hover:text-white transition">Termos de Uso</a></li>
+                    <li><a href="termos.html" class="hover:text-white transition">Privacidade</a></li>
+                </ul>
+            </div>
         </div>
         <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
             &copy; 2025 Balneário Rio Preto. Todos os direitos reservados.

@@ -104,10 +104,10 @@
             </div>
 
             <div
-                class="bg-white rounded-2xl p-3 border border-yellow-100 flex items-center gap-3 shadow-sm min-w-[140px] flex-1">
+                class="bg-white rounded-2xl p-3 border border-red-100 flex items-center gap-3 shadow-sm min-w-[140px] flex-1">
                 <div
-                    class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-arrows-rotate"></i>
+                    class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </div>
                 <div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase">Saída</p>
@@ -139,7 +139,17 @@
                         class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-500">Status</span>
                     <h2 id="detailGuestName" class="text-2xl font-bold text-gray-800 mt-2 leading-tight">Nome do Hóspede
                     </h2>
-                    <p id="detailChaletInfo" class="text-sm text-gray-500 font-medium">Chalé #00</p>
+
+                    <!-- Editable Chalet -->
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-sm text-gray-500 font-medium">Chalé Atual:</span>
+                        <select id="detailChaletSelect" onchange="updateChalet(this.value)"
+                            class="bg-gray-50 border border-gray-200 text-gray-800 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block p-1 font-bold">
+                            <!-- Options 1-10 populated by JS -->
+                        </select>
+                        <span id="chaletSavedMsg"
+                            class="text-xs text-green-600 font-bold hidden opacity-0 transition-opacity">Salvo!</span>
+                    </div>
                 </div>
                 <button onclick="closeModal('modalDetails')"
                     class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
@@ -175,6 +185,15 @@
                     <p class="text-[10px] uppercase font-bold text-yellow-600 mb-1">Informações Adicionais / Pagamento
                     </p>
                     <p id="detailExtra" class="text-sm text-gray-700 whitespace-pre-wrap">Nenhuma informação extra.</p>
+                </div>
+
+                <!-- Security Details -->
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs text-gray-500 space-y-1">
+                    <p class="uppercase font-bold text-[10px] text-gray-400 mb-1"><i
+                            class="fa-solid fa-shield-halved"></i> Rastreabilidade</p>
+                    <p>Criado por: <strong id="secMadeBy" class="text-gray-700">--</strong></p>
+                    <p>Dispositivo: <span id="secDevice" class="truncate block">--</span></p>
+                    <p>Localização (IP): <span id="secLocation">--</span></p>
                 </div>
             </div>
 

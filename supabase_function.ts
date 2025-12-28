@@ -198,20 +198,30 @@ Deno.serve(async (req) => {
             );
         }
 
-        const { error } = await supabaseClient.from('bookings').insert(validBookings);
+        const { data: insertedData, error } = await supabaseClient.from('bookings').insert(validBookings).select();
         if (error) throw error;
 
         // SUMMARY MSG
+        const formatDateBr = (isoStr: string) => {
+            if (!isoStr) return "";
+            const [y, m, d] = isoStr.split('-');
+            return `${d}/${m}/${y}`;
+        };
+
         const summary = validBookings.map(b =>
             `🏡 Chalé ${b.chalet_id} (${b.status.toUpperCase()})\n` +
             `👥 Pessoas: ${b.adults} Adt${b.raw_message.includes('children_5_7') ? ' + Crianças' : ''}\n` +
-            `📆 ${b.checkin_date} a ${b.checkout_date}\n` +
+            `📆 ${formatDateBr(b.checkin_date)} a ${formatDateBr(b.checkout_date)}\n` +
             `💰 Total: R$${b.total_price} (Pago: R$${b.advance_payment})\n` +
             (b.payment_proof_url ? `📎 Comprovante Anexado\n` : '') +
             (b.auto_assigned ? `🤖 Auto-Atribuído.\n` : '')
         ).join('\n---\n');
 
-        return new Response(JSON.stringify({ success: true, message: `✅ Processado!\n\n${summary}` }),
+        return new Response(JSON.stringify({
+            success: true,
+            data: insertedData,
+            message: `✅ Processado!\n\n${summary}`
+        }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
 

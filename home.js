@@ -220,10 +220,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const email = document.getElementById('email').value;
         const type = document.getElementById('type').value;
         const guests = document.getElementById('guests').value;
-        const date = new Date(document.getElementById('date').value).toLocaleDateString('pt-BR');
+        // Fix date formatting: Create date from string parts to avoid timezone issues
+        const dateVal = document.getElementById('date').value;
+        const [y, m, d] = dateVal.split('-');
+        const dateBr = `${d}/${m}/${y}`;
+
+        // Chalet ID Logic
+        const chaletId = document.getElementById('chaletId')?.value;
+        let chaletText = "";
+        if (type === 'Chalé' && chaletId) {
+            chaletText = ` (Quero o Chalé #${chaletId})`;
+        }
 
         await captureLead({ name, email, intention: 'reserva_modal' });
-        const text = `Olá! Me chamo *${name}*.\nInteresse: *${type}* para *${guests} pessoas* no dia *${date}*.`;
+
+        const text = `Olá! Me chamo *${name}*.\nInteresse: *${type}*${chaletText} para *${guests} pessoas* no dia *${dateBr}*.`;
+
         openWhatsApp({ text });
         document.getElementById('bookingModal').classList.remove('active');
     };

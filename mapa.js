@@ -59,7 +59,13 @@ async function loadDataAndRender() {
         .lte('checkin_date', endOfMonth)
         .gte('checkout_date', startOfMonth);
 
+    // FETCH BLOCKS
+    const { data: blocks } = await supabase
+        .from('blocked_chalets')
+        .select('chalet_id');
+
     if (bookings) bookingsCache = bookings;
+    if (blocks) window.blockedCache = blocks.map(b => b.chalet_id);
 
     renderGrid();
 }
@@ -115,6 +121,19 @@ function renderGrid() {
             statusColorText = "text-white/90";
 
             clickHandler = function () { openNewReservation(id, isoDate); };
+
+        } else if (status.type === 'maintenance') {
+            // --- MAINTENANCE/BLOCKED ---
+            cardColor = "bg-gray-100 border-gray-300 opacity-60 text-gray-500 grayscale";
+            iconColor = "bg-gray-200 text-gray-400";
+            iconType = "fa-ban"; // or fa-lock
+            statusText = "Bloqueado (Manutenção)";
+            statusColorText = "text-gray-400";
+            guestName = "Indisponível";
+
+            // Prevent Click or Allow Admin to Unblock? 
+            // For now, prevent click or show alert.
+            clickHandler = function () { alert("Chalé bloqueado via Painel Admin."); };
 
         } else {
             // --- BUSY (Occupied/Pending/Swap) ---
@@ -231,6 +250,9 @@ function renderGrid() {
 }
 
 function getStatus(chaletId, dateStr) {
+    // Check Blocked (Maintenance)
+    if (window.blockedCache && window.blockedCache.includes(chaletId)) return { type: 'maintenance' };
+
     const bookings = bookingsCache.filter(b => b.chalet_id == chaletId);
 
     // 1. Filter touching bookings for THIS date
@@ -291,7 +313,7 @@ window.openDetails = (booking) => {
 
     // HEADERS
     document.getElementById('detailGuestName').innerText = booking.guest_name || "Sem Nome";
-    document.getElementById('detailChaletInfo').innerText = `Chalé #${booking.chalet_id}`;
+    // document.getElementById('detailChaletInfo').innerText = ... (Removed for Edit Select)
     document.getElementById('detailCheckin').innerText = formatDate(booking.checkin_date);
     document.getElementById('detailCheckout').innerText = formatDate(booking.checkout_date);
     document.getElementById('detailAdults').innerText = booking.adults || extra.adults || "0";
@@ -355,6 +377,41 @@ window.openDetails = (booking) => {
     const btnDelete = document.getElementById('btnDelete');
     btnDelete.onclick = () => deleteReservation(booking.id);
 
+    // EDIT BUTTON
+    const existingEdit = document.getElementById('btnEditRes');
+    if (existingEdit) existingEdit.remove();
+
+    const editBtn = document.createElement('button');
+    editBtn.id = 'btnEditRes';
+    editBtn.className = "flex-1 py-3 rounded-xl border border-blue-200 text-blue-600 font-bold text-sm hover:bg-blue-50 transition ml-2";
+    editBtn.innerText = "EDITAR";
+    editBtn.onclick = () => editReservation(booking);
+
+    // Insert before Delete or Append? 
+    // Let's replace the footer structure dynamically or just append to container
+    // The current HTML has a flex container with Delete and Close. 
+    // Let's insert Edit between Delete and Close.
+    const footer = btnDelete.parentElement;
+    footer.insertBefore(editBtn, footer.lastElementChild);
+
+    // SECURITY INFO
+    document.getElementById('secMadeBy').innerText = booking.madeby || "N/A";
+    document.getElementById('secDevice').innerText = booking.device || "N/A";
+    document.getElementById('secLocation').innerText = booking.location || "N/A";
+
+    // CHALET EDIT LOGIC
+    const select = document.getElementById('detailChaletSelect');
+    select.innerHTML = ""; // Clear
+    for (let i = 1; i <= 10; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Chalé #${i}`;
+        if (i === booking.chalet_id) opt.selected = true;
+        select.appendChild(opt);
+    }
+    // Store ID for the update function
+    select.dataset.bookingId = booking.id;
+
     // CONFIRM BUTTON INJECTION
     const existingConfirm = document.getElementById('btnConfirmRes');
     if (existingConfirm) existingConfirm.remove();
@@ -373,6 +430,39 @@ window.openDetails = (booking) => {
     document.getElementById('modalDetails').classList.remove('hidden');
 }
 
+window.updateChalet = async (newChaletId) => {
+    const select = document.getElementById('detailChaletSelect');
+    const bookingId = select.dataset.bookingId;
+    const msg = document.getElementById('chaletSavedMsg');
+
+    if (!bookingId) return;
+
+    // Optional: Optimistic UI or Wait? 
+    // Let's wait.
+    select.disabled = true;
+
+    const { error } = await supabase
+        .from('bookings')
+        .update({ chalet_id: parseInt(newChaletId) })
+        .eq('id', bookingId);
+
+    select.disabled = false;
+
+    if (error) {
+        alert("Erro ao mudar chalé: " + error.message);
+    } else {
+        // Show success msg
+        msg.classList.remove('hidden', 'opacity-0');
+        setTimeout(() => {
+            msg.classList.add('opacity-0');
+            setTimeout(() => msg.classList.add('hidden'), 300);
+        }, 2000);
+
+        // Refresh Grid in Background
+        loadDataAndRender();
+    }
+}
+
 window.openConflictResolver = (bookings) => {
     let msg = `⚠️ CONFLITO DETECTADO!\n\nExistem ${bookings.length} reservas chocando neste chalé:\n`;
     bookings.forEach(b => {
@@ -385,15 +475,20 @@ window.openConflictResolver = (bookings) => {
 }
 
 window.openNewReservation = (chaletId, defaultDate) => {
+    // Reset Edit Mode
+    const modal = document.getElementById('modalNew');
+    delete modal.dataset.editingId;
+    document.querySelector('#modalNew h2').innerHTML = `Nova Reserva <span id="newChaletBadge" class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-sm ml-2">Chalé #${chaletId}</span>`;
+
     document.getElementById('newChaletId').value = chaletId;
-    document.getElementById('newChaletBadge').innerText = `Chalé #${chaletId}`;
-    
+    // document.getElementById('newChaletBadge').innerText = ... (Handled above)
+
     // Security: Load Name
     const savedOp = localStorage.getItem('riopreto_operator');
-    if(savedOp) document.getElementById('newOperatorName').value = savedOp;
+    if (savedOp) document.getElementById('newOperatorName').value = savedOp;
 
     document.getElementById('newGuestName').value = "";
-    document.getElementById('newContact').value = ""; 
+    document.getElementById('newContact').value = "";
     document.getElementById('newCheckin').value = defaultDate;
 
     const nextDay = new Date(defaultDate);
@@ -405,11 +500,11 @@ window.openNewReservation = (chaletId, defaultDate) => {
 
     document.getElementById('newAdults').value = "2 Adultos";
     document.getElementById('newTime').value = "14:00";
-    document.getElementById('newSource').value = "WhatsApp"; 
-    document.getElementById('newPlate').value = ""; 
+    document.getElementById('newSource').value = "WhatsApp";
+    document.getElementById('newPlate').value = "";
     document.getElementById('newPrice').value = "";
     document.getElementById('newPaid').value = "";
-    document.getElementById('newProof').value = ""; 
+    document.getElementById('newProof').value = "";
     document.getElementById('newNotes').value = "";
 
     document.getElementById('modalNew').classList.remove('hidden');
@@ -417,7 +512,7 @@ window.openNewReservation = (chaletId, defaultDate) => {
 
 window.saveReservation = async () => {
     const operator = document.getElementById('newOperatorName').value.trim();
-    if(!operator) {
+    if (!operator) {
         alert("⚠️ Segurança: Digite SEU NOME no topo do formulário.");
         document.getElementById('newOperatorName').focus();
         return;
@@ -426,17 +521,17 @@ window.saveReservation = async () => {
 
     const chaletId = document.getElementById('newChaletId').value;
     const name = document.getElementById('newGuestName').value;
-    const contact = document.getElementById('newContact').value; 
+    const contact = document.getElementById('newContact').value;
     const checkin = document.getElementById('newCheckin').value;
     const checkout = document.getElementById('newCheckout').value;
     const adults = document.getElementById('newAdults').value;
     const time = document.getElementById('newTime').value;
-    const source = document.getElementById('newSource').value; 
-    const plate = document.getElementById('newPlate').value; 
+    const source = document.getElementById('newSource').value;
+    const plate = document.getElementById('newPlate').value;
     const price = document.getElementById('newPrice').value;
     const paid = document.getElementById('newPaid').value;
     const notes = document.getElementById('newNotes').value;
-    const fileInput = document.getElementById('newProof'); 
+    const fileInput = document.getElementById('newProof');
 
     if (!name || !checkin || !checkout) {
         alert("Preencha obrigatórios: Nome, check-in e check-out.");
@@ -477,10 +572,11 @@ window.saveReservation = async () => {
         const resp = await fetch('https://api.ipify.org?format=json');
         const data = await resp.json();
         location = data.ip;
-    } catch(e) {}
+    } catch (e) { }
 
     // Construct Object for V2 Schema
-    const insertData = {
+    // Construct Object for V2 Schema
+    const commonData = {
         chalet_id: chaletId,
         guest_name: name,
         contact_info: contact,
@@ -490,13 +586,12 @@ window.saveReservation = async () => {
         arrival_time: time,
         total_price: parseFloat(price) || 0,
         advance_payment: parseFloat(paid) || 0,
-        payment_proof_url: proofUrl, 
-        status: 'pending', 
-        
+        // payment_proof update only if new file
+        // status: preserve existing if editing
+
         // SECURITY
         madeby: operator,
         device: navigator.userAgent,
-        location: location,
 
         raw_message: JSON.stringify({
             manual: true,
@@ -508,20 +603,49 @@ window.saveReservation = async () => {
         })
     };
 
-    const { error } = await supabase
-        .from('bookings')
-        .insert(insertData);
+    const modal = document.getElementById('modalNew');
+    const editingId = modal.dataset.editingId;
+
+    let error = null;
+
+    if (editingId) {
+        // UPDATE MODE
+        const updateData = { ...commonData };
+        if (proofUrl) updateData.payment_proof_url = proofUrl; // Only update if new file
+
+        const { error: err } = await supabase
+            .from('bookings')
+            .update(updateData)
+            .eq('id', editingId);
+        error = err;
+    } else {
+        // INSERT MODE
+        const insertData = {
+            ...commonData,
+            status: 'pending',
+            payment_proof_url: proofUrl,
+            location: location
+        };
+        const { error: err } = await supabase.from('bookings').insert(insertData);
+        error = err;
+    }
 
     if (error) {
         alert("Erro ao salvar: " + error.message);
     } else {
         closeModal('modalNew');
         loadDataAndRender();
-        alert("Reserva Salva com Sucesso!");
+        alert(editingId ? "Reserva Atualizada!" : "Reserva Criada!");
     }
 }
 
 window.deleteReservation = async (id) => {
+    const pwd = prompt("Senha de Administrador:");
+    if (pwd !== "4530apple") {
+        alert("Senha incorreta!");
+        return;
+    }
+
     if (!confirm("Tem certeza que deseja excluir esta reserva?")) return;
 
     const { error } = await supabase
@@ -551,6 +675,47 @@ window.confirmReservation = async (id) => {
         closeModal('modalDetails');
         loadDataAndRender();
     }
+}
+
+// EDIT LOGIC
+window.editReservation = (booking) => {
+    const pwd = prompt("Senha de Administrador:");
+    if (pwd !== "4530apple") {
+        alert("Senha incorreta!");
+        return;
+    }
+
+    console.log("Editing Booking:", booking);
+    closeModal('modalDetails');
+    openNewReservation(booking.chalet_id, booking.checkin_date);
+
+    // Set Edit Mode
+    const modal = document.getElementById('modalNew');
+    modal.dataset.editingId = booking.id;
+    document.querySelector('#modalNew h2').innerText = "Editar Reserva";
+    document.querySelector('#modalNew button[onclick]').innerText = "Salvar Alterações";
+
+    // Pre-fill
+    document.getElementById('newOperatorName').value = booking.madeby || "";
+    document.getElementById('newGuestName').value = booking.guest_name || "";
+    document.getElementById('newContact').value = booking.contact_info || "";
+    document.getElementById('newCheckout').value = booking.checkout_date;
+    document.getElementById('newTime').value = booking.arrival_time || "14:00";
+    document.getElementById('newPrice').value = booking.total_price || "";
+    document.getElementById('newPaid').value = booking.advance_payment || "";
+
+    // Parse extra for notes/source/plate
+    try {
+        if (booking.raw_message && booking.raw_message.startsWith('{')) {
+            const extra = JSON.parse(booking.raw_message).ai_parsed || {};
+            document.getElementById('newNotes').value = extra.notes || "";
+            document.getElementById('newSource').value = extra.source || "WhatsApp";
+            document.getElementById('newPlate').value = extra.plate || "";
+            if (!booking.adults) document.getElementById('newAdults').value = extra.adults || "2 Adultos";
+        }
+    } catch (e) { }
+
+    if (booking.adults) document.getElementById('newAdults').value = booking.adults;
 }
 
 function formatDate(isoStr) {

@@ -248,8 +248,8 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[600px]">
                 <!-- Item Grande Esquerda -->
                 <div class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/mapa rio preto.png', 'Vista Aérea')">
-                    <img src="images/mapa rio preto.png" onerror="this.src='images/mapa rio preto.png'"
+                    onclick="openGalleryModal('images/mapa rio preto.jpg', 'Vista Aérea')">
+                    <img src="images/mapa rio preto.jpg" onerror="this.src='images/mapa rio preto.jpg'" loading="lazy"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div
                         class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -400,8 +400,47 @@
         </div>
     </section>
 
+    <!-- 3.5. MAPA DE DISPONIBILIDADE (NOVO) -->
+    <section class="py-16 bg-white border-t border-gray-100">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+
+            <div class="mb-10">
+                <span class="text-primary-green font-bold uppercase tracking-wider text-sm">Ao Vivo</span>
+                <h2 class="text-3xl font-black text-gray-900 mt-2">Verifique a Disponibilidade</h2>
+                <p class="text-gray-500 mt-2">Veja quais chalés estão livres para a data desejada.</p>
+            </div>
+
+            <!-- Date Controls -->
+            <div class="flex items-center justify-center gap-4 mb-8">
+                <button id="pubPrevDay"
+                    class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <div class="relative group">
+                    <input type="date" id="publicDatePicker"
+                        class="pl-4 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl font-bold text-gray-700 outline-none focus:border-green-500 cursor-pointer shadow-sm">
+                    <i
+                        class="fa-regular fa-calendar absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                </div>
+
+                <button id="pubNextDay"
+                    class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- The Grid -->
+            <div id="publicMapGrid" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <!-- JS will popualte this -->
+                <div class="col-span-full py-10 animate-pulse text-gray-300">Carregando mapa...</div>
+            </div>
+
+        </div>
+    </section>
+
     <!-- 4. MAPA E LOCALIZAÇÃO (Estilo App) -->
-    <section id="location" class="py-20 bg-white">
+    <section id="location" class="py-20 bg-bg-soft">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid lg:grid-cols-12 gap-8 bg-bg-soft rounded-[2.5rem] p-4 overflow-hidden shadow-inner">
 
@@ -600,6 +639,7 @@
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data Pretendida</label>
                     <input type="date" id="date" required
                         class="w-full rounded-xl border border-gray-200 bg-bg-soft px-4 py-3 text-gray-600 outline-none focus:border-primary-green">
+                    <input type="hidden" id="chaletId"> <!-- Hidden ID -->
                 </div>
 
                 <button type="button" id="btn-suggestion" onclick="redirectToSimulator()"
@@ -719,9 +759,14 @@
         }
 
         // --- MODALS ---
-        function openBookingModal(type) {
+        function openBookingModal(type, chaletId = null) {
             const modal = document.getElementById('bookingModal');
             document.getElementById('type').value = type;
+
+            // Set Chalet ID if provided
+            const idInput = document.getElementById('chaletId');
+            if (idInput) idInput.value = chaletId || "";
+
             modal.classList.add('active');
 
             // Toggle suggestion button immediately
@@ -753,6 +798,7 @@
 
     <!-- Page Logic Integration -->
     <script type="module" src="home.js"></script>
+    <script type="module" src="public_map.js"></script>
 </body>
 
 </html>
