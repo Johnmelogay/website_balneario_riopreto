@@ -75,7 +75,7 @@ function renderGrid() {
     for (let id = 1; id <= 10; id++) {
         const status = getStatus(id, isoDate);
 
-        // DEFAULT: FREE
+        // DEFAULT VARS
         let cardColor = "bg-white border-green-200";
         let iconColor = "bg-green-100 text-green-600";
         let iconType = "fa-house";
@@ -83,80 +83,100 @@ function renderGrid() {
         let statusColorText = "text-gray-400";
         let guestName = "";
         let detailsHtml = "";
+        let clickHandler = null;
 
-        let isFree = status.type === 'free';
+        if (status.type === 'conflict') {
+            // --- CONFLICT ---
+            busy++; // logic busy
 
-        if (isFree) {
+            cardColor = "bg-purple-600 border-purple-700 text-white shadow-lg shadow-purple-200 animate-pulse";
+            iconColor = "bg-white/20 text-white";
+            iconType = "fa-triangle-exclamation";
+            statusText = "DUPLICIDADE!";
+            statusColorText = "text-white font-black opacity-100";
+
+            const count = status.bookings ? status.bookings.length : "?";
+            guestName = `${count} Reservas (Conflito)`;
+
+            detailsHtml = `
+                <div class="mt-3 pt-2 border-t border-white/20 text-xs font-medium text-white/90">
+                    <i class="fa-solid fa-hand-pointer mr-1"></i> Toque para resolver
+                </div>
+            `;
+
+            clickHandler = function () { openConflictResolver(status.bookings); };
+
+        } else if (status.type === 'free') {
+            // --- FREE ---
             free++;
-            // FREE = GREEN (USER REQUEST)
             cardColor = "bg-green-500 border-green-600 text-white shadow-lg shadow-green-200 hover:brightness-110";
             iconColor = "bg-white/20 text-white";
             statusText = "Disponível";
             statusColorText = "text-white/90";
-        }
-        else {
-            // OCCUPIED / PENDING / SWAP
-            // Extract Details
+
+            clickHandler = function () { openNewReservation(id, isoDate); };
+
+        } else {
+            // --- BUSY (Occupied/Pending/Swap) ---
             const b = status.booking;
+            if (!b) {
+                // Fallback error safely
+                console.error("Booking missing for status", status);
+                continue;
+            }
+
             const isPending = b.status === 'pending';
 
-            // Extract detailed info from JSON if needed for display
+            // Extract Extra
             let extraInfo = {};
             try {
                 if (b.raw_message && b.raw_message.startsWith('{')) {
-                    const rawObj = JSON.parse(b.raw_message);
-                    extraInfo = rawObj.ai_parsed || {};
+                    extraInfo = JSON.parse(b.raw_message).ai_parsed || {};
                 }
             } catch (e) { }
 
-            // COLORS & TEXT
+            // Base Colors
             if (isPending) {
-                // PENDENTE = AMARELO
                 busy++;
                 cardColor = "bg-yellow-400 border-yellow-500 text-white shadow-lg shadow-yellow-200";
                 iconColor = "bg-white/20 text-white";
                 iconType = "fa-clock";
                 statusText = "Pendente (Aguardando)";
                 statusColorText = "text-white/90";
-                guestName = b.guest_name;
             } else {
-                // CONFIRMADO = VERMELHO
                 busy++;
                 cardColor = "bg-red-600 border-red-700 text-white shadow-lg shadow-red-200";
                 iconColor = "bg-white/20 text-white";
                 iconType = "fa-bed";
                 statusText = "Ocupado (Confirmado)";
                 statusColorText = "text-white/90";
-                guestName = b.guest_name;
             }
+            guestName = b.guest_name;
 
-            // DAY SPECIFIC OVERRIDES (Check-in/Check-out visuals)
+            // Day Specific Overrides
             if (status.type === 'entrada') {
                 statusText = isPending ? "Entrada (Pendente)" : "Entrada (Check-in)";
                 iconType = "fa-right-to-bracket";
-
             } else if (status.type === 'saida') {
                 swap++;
-                // Don't double count busy if we count swap separately conceptually, but here we just style it
                 if (!isPending) {
-                    // SAÍDA CONFIRMADA -> RED CLARO / ROSE (Ending Cycle)
                     cardColor = "bg-red-400 border-red-500 text-white shadow-lg shadow-red-200";
                     statusText = "Saída (Finalizando)";
                 } else {
-                    // Saída Pendente (Yellow still)
                     statusText = "Saída (Pendente)";
                 }
                 iconType = "fa-right-from-bracket";
             }
 
-            // BUILD MINI DETAILS
+            // Mini Details
             const adults = b.adults || extraInfo.adults || "?";
             const price = b.total_price || extraInfo.price ? `R$ ${b.total_price || extraInfo.price}` : "";
-
-            const [yIn, mIn, dIn] = b.checkin_date.split('-');
-            const [yOut, mOut, dOut] = b.checkout_date.split('-');
-            const fmtDate = (d, m) => `${d}/${m}`;
-            const dateRange = `${fmtDate(dIn, mIn)} a ${fmtDate(dOut, mOut)}`;
+            const fmtDate = (dStr) => {
+                if (!dStr) return "";
+                const [y, m, d] = dStr.split('-');
+                return `${d}/${m}`;
+            };
+            const dateRange = `${fmtDate(b.checkin_date)} a ${fmtDate(b.checkout_date)}`;
 
             detailsHtml = `
                 <div class="mt-3 pt-2 border-t border-white/20 text-xs font-medium opacity-90 space-y-1 pointe-events-none">
@@ -169,18 +189,15 @@ function renderGrid() {
                     </div>
                 </div>
             `;
+
+            clickHandler = function () { openDetails(b); };
         }
 
+        // --- CREATE CARD ---
         const card = document.createElement('div');
         card.className = `chalet-card relative p-4 rounded-3xl border-2 flex flex-col justify-between min-h-[12rem] ${cardColor} cursor-pointer transition-all`;
 
-        // CLICK HANDLERS
-        if (isFree) {
-            card.onclick = function () { openNewReservation(id, isoDate); };
-        } else {
-            const bookingRef = status.booking;
-            card.onclick = function () { openDetails(bookingRef); };
-        }
+        if (clickHandler) card.onclick = clickHandler;
 
         card.innerHTML = `
             <div class="flex justify-between items-start pointer-events-none">
@@ -192,11 +209,11 @@ function renderGrid() {
             
             <div class="mt-2 text-left pointer-events-none">
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-0.5 ${statusColorText}">${statusText}</p>
-                <p class="font-bold text-lg leading-tight truncate w-full" title="${guestName}">${guestName || 'Chalé ' + id}</p>
+                <p class="font-bold text-lg leading-tight truncate w-full" title="${guestName || ''}">${guestName || 'Chalé ' + id}</p>
                  ${detailsHtml}
             </div>
             
-            ${isFree ?
+            ${status.type === 'free' ?
                 `<div class="mt-auto pt-4 flex justify-center opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
                     <span class="bg-white text-green-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">Reservar</span>
                 </div>` : ''
@@ -206,27 +223,52 @@ function renderGrid() {
         container.appendChild(card);
     }
 
+    // Update Headers
     document.getElementById('countFree').innerText = free;
+    // We can sum busy + conflicts if we want accurate 'Currently Occupied' count
     document.getElementById('countBusy').innerText = busy;
     document.getElementById('countSwap').innerText = swap;
 }
 
 function getStatus(chaletId, dateStr) {
     const bookings = bookingsCache.filter(b => b.chalet_id == chaletId);
-    let entrada = null, saida = null, ocupado = null;
 
-    for (const b of bookings) {
-        if (b.checkin_date === dateStr) entrada = b;
-        if (b.checkout_date === dateStr) saida = b;
-        if (dateStr > b.checkin_date && dateStr < b.checkout_date) ocupado = b;
-    }
+    // 1. Filter touching bookings for THIS date
+    const touching = bookings.filter(b =>
+        b.checkin_date <= dateStr && b.checkout_date >= dateStr
+    );
 
+    if (touching.length === 0) return { type: 'free' };
+
+    // 2. Classify overlapping types
+    const entrada = touching.find(b => b.checkin_date === dateStr);
+    const saida = touching.find(b => b.checkout_date === dateStr);
+    const ocupado = touching.filter(b => b.checkin_date < dateStr && b.checkout_date > dateStr);
+
+    // 3. CONFLICT CHECK LOGIC
+    // If >1 "Occupied" (Middle of stay) -> Conflict
+    if (ocupado.length > 1) return { type: 'conflict', bookings: touching };
+
+    // If >1 "Check-in" -> Conflict
+    const countIn = touching.filter(b => b.checkin_date === dateStr).length;
+    if (countIn > 1) return { type: 'conflict', bookings: touching };
+
+    // If "Occupied" AND "Check-in" -> Conflict (Overlap)
+    if (ocupado.length > 0 && entrada) return { type: 'conflict', bookings: touching };
+
+    // If logic falls through but total touching > 2 (Complexity beyond simple swap) -> Conflict
+    if (touching.length > 2) return { type: 'conflict', bookings: touching };
+
+    // If "Saida" AND "Entrada" (Swap) AND touching > 2 => Conflict (Means 3 people involved)
+    if (saida && entrada && touching.length > 2) return { type: 'conflict', bookings: touching };
+
+    // --- RETURN NORMAL STATUS ---
     if (saida && entrada) return { type: 'saida', guest: `Sai: ${saida.guest_name?.split(' ')[0]}`, booking: saida };
     if (saida) return { type: 'saida', guest: saida.guest_name, booking: saida };
     if (entrada) return { type: 'entrada', guest: entrada.guest_name, booking: entrada };
-    if (ocupado) return { type: 'ocupado', guest: ocupado.guest_name, booking: ocupado };
+    if (ocupado.length > 0) return { type: 'ocupado', guest: ocupado[0].guest_name, booking: ocupado[0] };
 
-    return { type: 'free' };
+    return { type: 'conflict', bookings: touching };
 }
 
 // --- MODAL LOGIC ---
@@ -329,6 +371,17 @@ window.openDetails = (booking) => {
     }
 
     document.getElementById('modalDetails').classList.remove('hidden');
+}
+
+window.openConflictResolver = (bookings) => {
+    let msg = `⚠️ CONFLITO DETECTADO!\n\nExistem ${bookings.length} reservas chocando neste chalé:\n`;
+    bookings.forEach(b => {
+        msg += `\n- ID: ...${b.id.substring(0, 6)} | ${b.guest_name} | ${formatDate(b.checkin_date)}\n`;
+    });
+    msg += "\nClique em OK para abrir a primeira da lista. Você pode excluí-la se desejar para resolver o conflito.";
+
+    alert(msg);
+    if (bookings.length > 0) openDetails(bookings[0]);
 }
 
 window.openNewReservation = (chaletId, defaultDate) => {
