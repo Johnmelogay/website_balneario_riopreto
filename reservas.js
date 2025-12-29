@@ -361,18 +361,19 @@ function renderOpcoesChale(blockedIds = []) {
     });
 }
 
-// Lista dinâmica de imagens e vídeos (SUPABASE HOSTED)
+// Lista dinâmica de imagens e vídeos (SUPABASE HOSTED + THUMBNAILS)
 const BASE_VIDEO_URL = "https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos";
 
+// Use images present in repo as temporary placeholders for video covers to speed up loading
 const galeriaMidia = [
-    "images/img-aerea.jpg",
-    `${BASE_VIDEO_URL}/aconchego720p.mp4`,
-    `${BASE_VIDEO_URL}/hero-video720p.mp4`,
-    `${BASE_VIDEO_URL}/pool720p.mp4`,
-    `${BASE_VIDEO_URL}/vistaparario720p.mp4`,
-    `${BASE_VIDEO_URL}/peopleplaying720p.mp4`,
-    `${BASE_VIDEO_URL}/paradise720p.mp4`,
-    `${BASE_VIDEO_URL}/beach720p.mp4`,
+    { type: 'image', src: "images/img-aerea.jpg", caption: "Vista Aérea" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/aconchego720p.mp4`, thumb: "images/aconchego_thumbnail.png", caption: "Aconchego" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/hero-video720p.mp4`, thumb: "images/hero-video_thumbnail.png", caption: "Destaques" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/pool720p.mp4`, thumb: "images/pool_thumbnail.png", caption: "Piscina" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/vistaparario720p.mp4`, thumb: "images/vistaparario_thumbnail.png", caption: "Vista para o Rio" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/peopleplaying720p.mp4`, thumb: "images/peopleplaying_thumbnail.png", caption: "Diversão" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/paradise720p.mp4`, thumb: "images/paradise_thumbnail.png", caption: "Paraíso" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/beach720p.mp4`, thumb: "images/beach_thumbnail.png", caption: "Praia" },
 ];
 
 function renderGaleria() {
@@ -380,54 +381,66 @@ function renderGaleria() {
     if (!grid) return;
     grid.innerHTML = "";
 
-    galeriaMidia.forEach((src, index) => {
-        const isVideo = src.endsWith(".mp4");
-        // Imagem fallback
-        const fallbackSrc = `https://placehold.co/800x800/2E7D32/FFF?text=RioPreto-${index}`;
+    galeriaMidia.forEach((mediaItem, index) => {
+        // Support both old string format (fallback) and new object format
+        const isObj = typeof mediaItem === 'object';
+        const src = isObj ? mediaItem.src : mediaItem;
+        const type = isObj ? mediaItem.type : (src.endsWith('.mp4') ? 'video' : 'image');
+        const thumb = isObj ? (mediaItem.thumb || src) : src;
+        const caption = isObj ? mediaItem.caption : "";
 
-        const item = document.createElement("div");
-        item.className = "rounded-2xl overflow-hidden relative shadow-sm group cursor-pointer";
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "rounded-2xl overflow-hidden relative shadow-sm group cursor-pointer bg-gray-100 min-h-[200px]";
 
-        // --- NEW LIGHTBOX INTEGRATION ---
-        item.onclick = () => {
+        // Grid Spacing: First item is big
+        if (index === 0) {
+            itemDiv.classList.add("col-span-2", "row-span-2", "md:min-h-[400px]");
+        }
+
+        // On Click -> Lightbox
+        itemDiv.onclick = () => {
             galleryLightbox.open(galeriaMidia, index);
         };
 
-        if (index === 0) {
-            item.classList.add("col-span-2", "row-span-2");
-        }
+        // Render Content (Thumbnail Image)
+        const img = document.createElement('img');
+        img.src = thumb;
+        img.alt = caption;
+        img.className = "w-full h-full object-cover transition duration-700 group-hover:scale-110";
+        img.loading = "lazy";
 
-        let overlayHTML = `
-      <div class="absolute bottom-4 left-4">
-          <p class="text-white text-lg font-bold drop-shadow-md"></p>
-      </div>
-    `;
+        // Error handling for thumbnail
+        img.onerror = () => {
+            if (thumb.includes('supabase')) img.src = 'images/droneview.png';
+        };
 
-        if (index === 0) {
-            overlayHTML = `
-          <div class="absolute bottom-4 left-4">
-              <span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded mb-1 inline-block">Destaque</span>
-              <p class="text-white text-lg font-bold drop-shadow-md">Passeio Virtual</p>
-          </div>
-        `;
-        }
+        itemDiv.appendChild(img);
 
-        if (isVideo) {
-            item.innerHTML = `
-          <video src="${src}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()" class="w-full h-full object-cover"></video>
-          ${overlayHTML}
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <i class="fa-solid fa-play text-white/80 text-4xl drop-shadow-lg"></i>
-          </div>
-        `;
+        // Overlays
+        const overlayDiv = document.createElement('div');
+        overlayDiv.className = "absolute inset-0 transition-colors duration-300";
+
+        if (type === 'video') {
+            overlayDiv.classList.add("bg-black/10", "group-hover:bg-black/20", "flex", "items-center", "justify-center");
+            overlayDiv.innerHTML = `
+                <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/50 shadow-lg group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-play text-white text-2xl ml-1"></i>
+                </div>
+            `;
         } else {
-            item.innerHTML = `
-          <img src="${src}" onerror="this.src='${fallbackSrc}'" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-          ${overlayHTML}
-        `;
+            overlayDiv.classList.add("bg-black/0", "group-hover:bg-black/10");
+        }
+        itemDiv.appendChild(overlayDiv);
+
+        // Caption Badge (Optional)
+        if (caption) {
+            const capDiv = document.createElement('div');
+            capDiv.className = "absolute bottom-4 left-4 pointer-events-none";
+            capDiv.innerHTML = `<p class="text-white text-sm font-bold drop-shadow-md border border-white/20 bg-black/20 backdrop-blur-md px-3 py-1 rounded-full">${caption}</p>`;
+            itemDiv.appendChild(capDiv);
         }
 
-        grid.appendChild(item);
+        grid.appendChild(itemDiv);
     });
 }
 
