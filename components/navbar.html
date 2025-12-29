@@ -3,7 +3,7 @@
 
     <!-- LOGO -->
     <a href="index.html" class="flex items-center gap-2">
-      <img src="images/logo.png" class="logo-img h-12 w-auto transition-all" />
+      <img src="images/logo.jpg" class="logo-img h-12 w-auto transition-all" />
       <span class="hidden sm:block font-extrabold text-primary-green text-sm tracking-wide">Balneário Rio Preto</span>
     </a>
 
@@ -23,7 +23,8 @@
   </div>
 
   <!-- MOBILE MENU (FULLSCREEN OVERLAY) -->
-  <div id="mobileMenu" class="fixed inset-0 hidden z-[60] bg-black/90 text-white flex flex-col items-center justify-center space-y-10 text-2xl font-bold transition-opacity duration-300">
+  <div id="mobileMenu"
+    class="fixed inset-0 hidden z-[60] bg-black/90 text-white flex flex-col items-center justify-center space-y-10 text-2xl font-bold transition-opacity duration-300">
     <button id="closeMenu" class="absolute top-6 right-6 text-4xl"><i class="fa-solid fa-xmark"></i></button>
 
     <a href="index.html" class="mobile-link hover:text-accent-orange transition">Início</a>
@@ -32,7 +33,8 @@
     <a href="index.html#news-section" class="mobile-link hover:text-accent-orange transition">Blog</a>
     <a href="index.html#location" class="mobile-link hover:text-accent-orange transition">Como Chegar</a>
 
-    <button onclick="document.getElementById('mobileMenu').classList.add('hidden')" class="mt-6 bg-primary-green px-10 py-3 rounded-full text-white font-bold shadow-lg hover:bg-green-700 transition">
+    <button onclick="document.getElementById('mobileMenu').classList.add('hidden')"
+      class="mt-6 bg-primary-green px-10 py-3 rounded-full text-white font-bold shadow-lg hover:bg-green-700 transition">
       Fechar Menu
     </button>
   </div>

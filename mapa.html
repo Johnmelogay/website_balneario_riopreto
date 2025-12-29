@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="images/logo.png">
     <title>Gestão de Chalés • Rio Preto</title>
 
     <!-- Tailwind & Theme -->
@@ -105,8 +106,7 @@
 
             <div
                 class="bg-white rounded-2xl p-3 border border-red-100 flex items-center gap-3 shadow-sm min-w-[140px] flex-1">
-                <div
-                    class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-lg">
+                <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-lg">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </div>
                 <div>
@@ -128,10 +128,10 @@
     </main>
 
     <!-- MODAL DETALHES -->
-    <div id="modalDetails" class="fixed inset-0 z-50 hidden">
+    <div id="modalDetails" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('modalDetails')"></div>
         <div
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 transform transition-all scale-100">
+            class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
 
             <div class="flex justify-between items-start mb-6">
                 <div>
