@@ -101,10 +101,48 @@ Deno.serve(async (req) => {
             }
 
             if (!b.contact_info) b.contact_info = sender;
-            if (!b.chalet_id) {
-                b.chalet_id = Math.floor(Math.random() * 10) + 1; // Auto-Assign Random
-                b.auto_assigned = true;
+
+            // --- AVAILABILITY CHECK (DATABASE) ---
+            if (b.checkin_date && b.checkout_date) {
+                // Fetch busy chalets for this date range
+                // Overlap Logic: (StartA < EndB) AND (EndA > StartB)
+                const { data: busyData, error: busyError } = await supabaseClient
+                    .from('bookings')
+                    .select('chalet_id')
+                    .lt('checkin_date', b.checkout_date)
+                    .gt('checkout_date', b.checkin_date)
+                    .neq('status', 'cancelled'); // Ignore cancelled
+
+                if (busyError) {
+                    console.error("Availability Check Error:", busyError);
+                    reason.push("Erro ao verificar disponibilidade");
+                } else {
+                    const busyIds = busyData.map((row: any) => row.chalet_id);
+
+                    if (b.chalet_id) {
+                        // User requested specific chalet
+                        if (busyIds.includes(b.chalet_id)) {
+                            reason.push(`Chalé ${b.chalet_id} indisponível para esta data.`);
+                        }
+                    } else {
+                        // Auto-Assign
+                        // TODO: Use 'blocked_chalets' table in future
+                        const allChalets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+                        // Hardcoded Maintenance: Remove 1 and 2 if needed via code, but for now we trust the DB not to have them if blocked
+                        // Using a simple filter for now
+                        const available = allChalets.filter(id => !busyIds.includes(id));
+
+                        if (available.length > 0) {
+                            // Simple Random Pick from Available
+                            b.chalet_id = available[Math.floor(Math.random() * available.length)];
+                            b.auto_assigned = true;
+                        } else {
+                            reason.push("Sem chalés disponíveis para esta data.");
+                        }
+                    }
+                }
             }
+
             if (!b.adults) b.adults = 2; // Default Casal
             if (!b.children_5_7) b.children_5_7 = 0; // Default 0
 
