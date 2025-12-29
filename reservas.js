@@ -361,17 +361,18 @@ function renderOpcoesChale(blockedIds = []) {
     });
 }
 
-// Lista dinâmica de imagens e vídeos (PLACEHOLDERS RELEVANTES)
+// Lista dinâmica de imagens e vídeos (SUPABASE HOSTED)
+const BASE_VIDEO_URL = "https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos";
+
 const galeriaMidia = [
     "images/img-aerea.jpg",
-    "videos/aconchego.mp4",
-    "videos/hero-video.mp4",
-    "videos/pool.mp4",
-    "videos/vistaparario.mp4",
-    "videos/peopleplaying.mp4",
-    "videos/paradise.mp4",
-    "videos/beach.mp4",
-    
+    `${BASE_VIDEO_URL}/aconchego720p.mp4`,
+    `${BASE_VIDEO_URL}/hero-video720p.mp4`,
+    `${BASE_VIDEO_URL}/pool720p.mp4`,
+    `${BASE_VIDEO_URL}/vistaparario720p.mp4`,
+    `${BASE_VIDEO_URL}/peopleplaying720p.mp4`,
+    `${BASE_VIDEO_URL}/paradise720p.mp4`,
+    `${BASE_VIDEO_URL}/beach720p.mp4`,
 ];
 
 function renderGaleria() {

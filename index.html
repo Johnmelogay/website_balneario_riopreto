@@ -167,7 +167,9 @@
     <section class="relative h-[95vh] flex items-center justify-center overflow-hidden">
         <video class="hero-video" autoplay muted loop playsinline poster="images/droneview.png">
             <!-- Se o poster ainda não existir, o video carrega normalmente. -->
-            <source src="videos/hero-video.mp4" type="video/mp4">
+            <source
+                src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/hero-video720p.mp4"
+                type="video/mp4">
         </video>
 
         <!-- Gradiente para legibilidade -->
@@ -289,60 +291,77 @@
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('videos/aconchego.mp4', 'Aconchego')">
-                    <video src="videos/aconchego.mp4" muted loop playsinline onmouseover="this.play()"
-                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
-                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
-                    </div>
-                </div>
-                
-                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('videos/pool.mp4', 'Piscina')">
-                    <video src="videos/pool.mp4" muted loop playsinline onmouseover="this.play()"
-                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/aconchego720p.mp4', 'Aconchego')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/aconchego720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
                     </div>
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('videos/vistaparario.mp4', 'Vista para o Rio')">
-                    <video src="videos/vistaparario.mp4" muted loop playsinline onmouseover="this.play()"
-                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/pool720p.mp4', 'Piscina')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/pool720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer text-center"
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/hero-video720p.mp4', 'Destaques')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/hero-video720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
                     </div>
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('videos/peopleplaying.mp4', 'Diversão')">
-                    <video src="videos/peopleplaying.mp4" muted loop playsinline onmouseover="this.play()"
-                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
-                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
-                    </div>
-                </div>
-
-                <div class="col-span-2 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/IMG_0906.jpg', 'Banho de Rio')">
-                    <img src="images/IMG_0906.jpg" onerror="this.src='images/IMG_0906.jpg'"
-                        class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                </div>
-
-                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('videos/paradise.mp4', 'Paraíso')">
-                    <video src="videos/paradise.mp4" muted loop playsinline onmouseover="this.play()"
-                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/vistaparario720p.mp4', 'Vista para o Rio')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/vistaparario720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
                     </div>
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('videos/beach.mp4', 'Praia')">
-                    <video src="videos/beach.mp4" muted loop playsinline onmouseover="this.play()"
-                        onmouseout="this.pause()" class="w-full h-full object-cover"></video>
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/peopleplaying720p.mp4', 'Diversão')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/peopleplaying720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/paradise720p.mp4', 'Paraíso')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/paradise720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
+                    </div>
+                </div>
+
+                <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
+                    onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/beach720p.mp4', 'Praia')">
+                    <video
+                        src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/beach720p.mp4"
+                        muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"
+                        class="w-full h-full object-cover"></video>
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <i class="fa-solid fa-play text-white/80 text-3xl drop-shadow-lg"></i>
                     </div>
