@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <div>
-                <h4 class="font-bold text-lg mb-6" onclick="window.location.href='admin_secret_v1.html'" style="cursor: default; user-select: none;">Explorar</h4>
+                <h4 class="font-bold text-lg mb-6"  style="cursor: default; user-select: none;">Explorar</h4>
                 <ul class="space-y-3 text-gray-400 text-sm">
                     <li><a href="reservas.html" class="hover:text-primary-green transition">Reservas</a></li>
                     <li><a href="index.html#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
