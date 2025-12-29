@@ -366,10 +366,11 @@ const BASE_VIDEO_URL = "https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/obje
 
 // Use images present in repo as temporary placeholders for video covers to speed up loading
 const galeriaMidia = [
-    { type: 'image', src: "images/img-aerea.jpg", caption: "Vista Aérea" },
+    { type: 'image', src: "images/img-aerea.jpg", caption: "Chalé 10" },
     { type: 'video', src: `${BASE_VIDEO_URL}/aconchego720p.mp4`, thumb: "images/aconchego_thumbnail.png", caption: "Aconchego" },
     { type: 'video', src: `${BASE_VIDEO_URL}/hero-video720p.mp4`, thumb: "images/hero-video_thumbnail.png", caption: "Destaques" },
     { type: 'video', src: `${BASE_VIDEO_URL}/pool720p.mp4`, thumb: "images/pool_thumbnail.png", caption: "Piscina" },
+    { type: 'video', src: `${BASE_VIDEO_URL}/toboagua720p.mp4`, thumb: "images/toboagua_thumbnail.png", caption: "Toboágua" },
     { type: 'video', src: `${BASE_VIDEO_URL}/vistaparario720p.mp4`, thumb: "images/vistaparario_thumbnail.png", caption: "Vista para o Rio" },
     { type: 'video', src: `${BASE_VIDEO_URL}/peopleplaying720p.mp4`, thumb: "images/peopleplaying_thumbnail.png", caption: "Diversão" },
     { type: 'video', src: `${BASE_VIDEO_URL}/paradise720p.mp4`, thumb: "images/paradise_thumbnail.png", caption: "Paraíso" },
