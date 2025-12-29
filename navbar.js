@@ -29,9 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 
-                <!-- LOGO -->
                 <a href="index.html" class="flex items-center gap-2 group z-50 relative">
-                    <img src="images/logo.jpg" id="nav-logo" class="transition-all duration-300 ${isTransparentPage ? 'h-14' : 'h-10'}" alt="Logo" />
+                    <img src="images/logo_opt.png" id="nav-logo" class="transition-all duration-300 ${isTransparentPage ? 'h-14' : 'h-10'}" alt="Logo" />
                     <div class="flex flex-col">
                         <span id="nav-logo-text" class="hidden sm:block font-extrabold text-sm tracking-wide transition-colors duration-300 ${isTransparentPage ? 'text-white' : 'text-gray-900'}">
                             Balneário Rio Preto

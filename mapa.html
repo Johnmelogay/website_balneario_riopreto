@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/png" href="images/logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestão de Chalés • Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logotipo.png">
 
     <!-- Tailwind & Theme -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -128,10 +129,10 @@
     </main>
 
     <!-- MODAL DETALHES -->
-    <div id="modalDetails" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div id="modalDetails" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('modalDetails')"></div>
         <div
-            class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 transform transition-all scale-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 transform transition-all scale-100 flex flex-col max-h-[90vh]">
 
             <div class="flex justify-between items-start mb-6">
                 <div>
@@ -157,7 +158,7 @@
                 </button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-4 overflow-y-auto custom-scrollbar flex-1 pr-2">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-gray-50 p-3 rounded-xl">
                         <p class="text-[10px] uppercase font-bold text-gray-400">Entrada</p>
@@ -197,7 +198,7 @@
                 </div>
             </div>
 
-            <div class="mt-6 flex gap-3">
+            <div class="mt-6 flex gap-3 shrink-0">
                 <button id="btnDelete"
                     class="flex-1 py-3 rounded-xl border border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition">
                     Excluir

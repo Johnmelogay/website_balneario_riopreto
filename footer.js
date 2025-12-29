@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     <footer class="bg-gray-900 text-white pt-20 pb-10 border-t-4 border-primary-green">
         <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-10">
             <div class="space-y-4">
-                <img src="images/logo.jpg" onerror="this.style.display='none'" alt="Logo" class="h-12 opacity-90">
+                <img src="images/logo.png" onerror="this.style.display='none'" alt="Logo" class="h-12 opacity-90">
                 <h3 class="text-2xl font-bold text-white">Rio Preto</h3>
                 <p class="text-gray-400 text-sm">Conectando você à natureza com conforto e segurança desde 1998.</p>
                 <div class="flex gap-4">

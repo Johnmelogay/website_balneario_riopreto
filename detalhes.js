@@ -325,7 +325,7 @@ async function generateStoryImage(title, imageUrl) {
 
     // Logo
     const logoImg = new Image();
-    logoImg.src = "images/logo.jpg";
+    logoImg.src = "images/logo.png";
     // Best effort load
     try {
         await new Promise((resolve, reject) => { logoImg.onload = resolve; logoImg.onerror = reject; });
