@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             <div class="mt-8 flex gap-6">
                 <a href="https://instagram.com/balneario_riopreto" target="_blank" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-instagram text-xl"></i></a>
-                <a href="https://wa.me/5569992139559" target="_blank" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-whatsapp text-xl"></i></a>
+                <a href="https://wa.me/5569993129559" target="_blank" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-whatsapp text-xl"></i></a>
             </div>
         </div>
     </header>
