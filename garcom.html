@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Comanda • Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#064e3b">
+
+    <!-- Tailwind & Theme -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: { preflight: true }
+        }
+    </script>
+    <script src="theme.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #064e3b; overscroll-behavior: none; }
+        h1, h2, h3, button { font-family: 'Outfit', sans-serif; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-green { 0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); } 70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); } }
+        .anim-slide { animation: slideUp 0.3s ease-out; }
+        .anim-pulse { animation: pulse-green 2s infinite; }
+
+        .cart-badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px;
+            background: #ef4444; color: white; border-radius: 999px; display: flex; align-items: center;
+            justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #064e3b; }
+
+        .product-card { transition: all 0.15s ease; }
+        .product-card:active { transform: scale(0.96); }
+
+        .qty-btn { width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center;
+            justify-content: center; font-weight: 900; font-size: 18px; transition: all 0.15s; }
+        .qty-btn:active { transform: scale(0.9); }
+
+        /* Pin input */
+        .pin-dot { width: 16px; height: 16px; border-radius: 999px; background: rgba(255,255,255,0.2);
+            transition: all 0.2s; }
+        .pin-dot.filled { background: #22c55e; transform: scale(1.2); }
+
+        /* Category Tab */
+        .cat-tab { transition: all 0.2s; white-space: nowrap; }
+        .cat-tab.active { background: white; color: #064e3b; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-stone-100 font-sans selection:bg-emerald-500 selection:text-white pb-safe overflow-hidden">
+
+    <!-- ====== LOGIN SCREEN ====== -->
+    <div id="loginScreen" class="flex-1 flex flex-col items-center justify-center p-6 bg-emerald-950 fixed inset-0 z-50">
+        <div class="text-center mb-10 anim-slide">
+            <div class="w-20 h-20 bg-emerald-800/50 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl backdrop-blur">
+                🍽️
+            </div>
+            <h1 class="text-3xl font-black text-white tracking-tight">Comanda</h1>
+            <p class="text-emerald-400 text-sm font-medium mt-1">Balneário Rio Preto</p>
+        </div>
+
+        <div class="w-full max-w-xs space-y-6 anim-slide">
+            <div class="flex justify-center gap-3" id="pinDots">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+
+            <p id="loginError" class="text-red-400 text-xs font-bold text-center hidden">PIN inválido</p>
+
+            <!-- Numpad -->
+            <div class="grid grid-cols-3 gap-3 max-w-[240px] mx-auto">
+                <button onclick="pinInput('1')" class="numpad-btn">1</button>
+                <button onclick="pinInput('2')" class="numpad-btn">2</button>
+                <button onclick="pinInput('3')" class="numpad-btn">3</button>
+                <button onclick="pinInput('4')" class="numpad-btn">4</button>
+                <button onclick="pinInput('5')" class="numpad-btn">5</button>
+                <button onclick="pinInput('6')" class="numpad-btn">6</button>
+                <button onclick="pinInput('7')" class="numpad-btn">7</button>
+                <button onclick="pinInput('8')" class="numpad-btn">8</button>
+                <button onclick="pinInput('9')" class="numpad-btn">9</button>
+                <button onclick="pinClear()" class="numpad-btn text-red-400 text-sm"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="pinInput('0')" class="numpad-btn">0</button>
+                <button onclick="pinDelete()" class="numpad-btn text-yellow-400 text-sm"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+
+        <style>
+            .numpad-btn { width: 64px; height: 64px; border-radius: 20px; background: rgba(255,255,255,0.08);
+                color: white; font-size: 24px; font-weight: 800; display: flex; align-items: center;
+                justify-content: center; transition: all 0.15s; border: 1px solid rgba(255,255,255,0.08); }
+            .numpad-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.92); }
+        </style>
+    </div>
+
+    <!-- ====== LOCATION SELECT ====== -->
+    <div id="locationScreen" class="fixed inset-0 z-40 bg-stone-100 hidden flex-col p-6">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="logoutAndGoLogin()" class="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center text-stone-600 active:scale-95 transition">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="text-center">
+                <p class="text-emerald-600 text-[10px] font-black uppercase tracking-widest">Garçom</p>
+                <p id="staffNameDisplay" class="text-stone-800 font-bold text-sm"></p>
+            </div>
+            <div class="w-10"></div>
+        </div>
+
+        <h2 class="text-2xl font-black text-stone-900 mb-4 text-center">Onde é o pedido?</h2>
+        
+        <!-- Stats Summary -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 mb-6 flex justify-between items-center">
+            <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-stone-400 uppercase">Minhas Vendas (Hoje)</span>
+                <span class="font-black text-lg text-emerald-600" id="garcomTotalSales">R$ 0,00</span>
+            </div>
+            <div class="h-8 w-px bg-stone-100"></div>
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] font-bold text-stone-400 uppercase">Receber Pendente</span>
+                <span class="font-black text-lg text-amber-500" id="garcomPendingAmount">R$ 0,00</span>
+            </div>
+        </div>
+
+        <!-- Location Type Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6 justify-center max-w-sm mx-auto">
+            <button onclick="setLocationType('chale')" id="tab_chale" class="loc-tab px-4 py-2 rounded-full font-bold text-sm bg-emerald-600 text-white shadow shadow-emerald-200 transition">Chalés</button>
+            <button onclick="setLocationType('mesa')" id="tab_mesa" class="loc-tab px-4 py-2 rounded-full font-bold text-sm text-stone-500 hover:bg-stone-200 transition">Mesas</button>
+            <button onclick="setLocationType('balcao')" id="tab_balcao" class="loc-tab px-4 py-2 rounded-full font-bold text-sm text-stone-500 hover:bg-stone-200 transition">Balcão</button>
+            <button onclick="showResumoDia()" id="tab_resumo" class="loc-tab px-4 py-2 rounded-full font-bold text-sm text-stone-500 hover:bg-stone-200 transition whitespace-nowrap">Resumo do Dia</button>
+        </div>
+
+        <style>
+            .loc-tab { padding: 10px 20px; border-radius: 16px; font-weight: 700; font-size: 14px;
+                color: #78716c; background: white; transition: all 0.2s; border: 1px solid #e7e5e4;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+            .loc-tab.active { background: #064e3b; color: white; border-color: #064e3b; }
+        </style>
+
+        <!-- Location Grid -->
+        <div id="locationGrid" class="grid grid-cols-3 gap-3 flex-1 content-start overflow-y-auto p-4 no-scrollbar pb-20">
+        </div>
+        
+        <!-- Resumo do Dia -->
+        <div id="resumoContainer" class="hidden flex-col flex-1 p-4 overflow-y-auto no-scrollbar bg-stone-50 pb-20">
+            <h3 class="font-black text-stone-800 text-lg mb-4">Minhas Comandas de Hoje</h3>
+            
+            <div class="flex gap-2 mb-4">
+                <button onclick="filterResumo('aberto')" id="btnResumoAberto" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Em Aberto</button>
+                <button onclick="filterResumo('pago')" id="btnResumoPago" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-stone-200 text-stone-500 border border-stone-300">Finalizadas</button>
+            </div>
+            
+            <div id="resumoList" class="space-y-3">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MAIN APP (Catálogo + Carrinho) ====== -->
+    <div id="mainApp" class="hidden flex flex-col min-h-screen">
+
+        <!-- Top Bar -->
+        <header class="bg-white sticky top-0 z-30 px-4 py-3 shadow-sm border-b border-stone-200">
+            <div class="flex items-center justify-between">
+                <button onclick="goBackToLocation()" class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 active:scale-95 transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div class="text-center flex-1 mx-3 flex flex-col items-center">
+                    <p id="locationLabel" class="text-stone-800 font-black text-sm truncate"></p>
+                    <p id="staffNameBar" class="text-emerald-600 text-[10px] font-black uppercase tracking-widest mt-0.5"></p>
+                </div>
+                <button onclick="openExtrato()" class="relative w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 active:scale-95 transition">
+                    <i class="fa-solid fa-list-ul"></i>
+                </button>
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1" id="categoryTabs">
+                <div class="cat-tab animate-pulse bg-stone-100 rounded-xl px-8 py-2 h-9"></div>
+                <div class="cat-tab animate-pulse bg-stone-100 rounded-xl px-8 py-2 h-9"></div>
+                <div class="cat-tab animate-pulse bg-stone-100 rounded-xl px-8 py-2 h-9"></div>
+            </div>
+
+            <!-- Search -->
+            <div class="mt-3 relative">
+                <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-sm"></i>
+                <input type="text" id="searchInput" placeholder="Buscar produto..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 text-sm font-medium outline-none focus:bg-white focus:border-emerald-500 transition">
+            </div>
+
+            <!-- Customer Info -->
+            <div class="flex gap-2 mt-3">
+                <input type="text" id="customerName" placeholder="Nome do Cliente (Opc.)"
+                    class="w-1/2 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 text-xs font-medium outline-none focus:bg-white focus:border-emerald-500 transition">
+                <input type="tel" id="customerPhone" placeholder="Telefone (Opc.)"
+                    class="w-1/2 px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 text-xs font-medium outline-none focus:bg-white focus:border-emerald-500 transition">
+            </div>
+        </header>
+
+        <!-- Products Grid -->
+        <main class="flex-1 bg-stone-100 p-4 overflow-y-auto pb-32" id="productsContainer">
+            <!-- Skeleton Loading -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-2xl h-36 animate-pulse border border-stone-100"></div>
+                <div class="bg-white rounded-2xl h-36 animate-pulse border border-stone-100"></div>
+                <div class="bg-white rounded-2xl h-36 animate-pulse border border-stone-100"></div>
+                <div class="bg-white rounded-2xl h-36 animate-pulse border border-stone-100"></div>
+            </div>
+        </main>
+
+        <!-- Cart Drawer -->
+        <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
+            <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-3xl shadow-2xl flex flex-col anim-slide">
+                <!-- Cart Header -->
+                <div class="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+                    <div>
+                        <h2 class="text-lg font-black text-gray-800">Comanda</h2>
+                        <p id="cartLocation" class="text-xs text-gray-400 font-bold"></p>
+                    </div>
+                    <button onclick="toggleCart()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-gray-500"></i>
+                    </button>
+                </div>
+
+                <!-- Cart Items -->
+                <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+                    <p class="text-center text-gray-400 text-sm py-8">Comanda vazia</p>
+                </div>
+
+                <div class="px-4 pb-2 shrink-0 space-y-2">
+                    <input type="text" id="orderNotes" placeholder="Observações gerais do pedido..."
+                        class="w-full px-4 py-2.5 bg-stone-50 rounded-xl border border-stone-200 text-sm font-medium text-stone-800 outline-none focus:border-emerald-500 focus:bg-white">
+                </div>
+
+                <!-- Cart Footer -->
+                <div class="p-4 border-t border-gray-100 shrink-0 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-bold text-sm">Total</span>
+                        <span id="cartTotal" class="text-2xl font-black text-gray-800">R$ 0,00</span>
+                    </div>
+                    <button onclick="sendOrder()" id="btnSendOrder"
+                        class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-lg shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        ENVIAR PEDIDO
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Cart Button (when cart has items) -->
+        <div id="floatingCart" class="fixed bottom-6 left-4 right-4 z-30 hidden">
+            <button onclick="toggleCart()"
+                class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-bold shadow-xl shadow-emerald-900/30 flex items-center justify-between px-5 active:scale-[0.98] transition anim-pulse">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-receipt text-lg"></i>
+                    <span id="floatingCount">0 itens</span>
+                </div>
+                <span id="floatingTotal" class="font-black text-lg">R$ 0,00</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ====== SUCCESS OVERLAY ====== -->
+    <div id="successOverlay" class="fixed inset-0 z-[9999] hidden bg-emerald-600 flex-col items-center justify-center">
+        <div class="text-center anim-slide">
+            <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">
+                ✅
+            </div>
+            <h2 class="text-3xl font-black text-white mb-2">Pedido Enviado!</h2>
+            <p id="successMsg" class="text-emerald-100 font-medium text-lg"></p>
+            <button onclick="closeSuccess()" class="mt-8 px-8 py-3 bg-white text-emerald-700 font-bold rounded-2xl shadow-lg">
+                NOVO PEDIDO
+            </button>
+        </div>
+    </div>
+    
+    <!-- ====== CONSUMPTION HISTORY (Extrato) ====== -->
+    <div id="extratoScreen" class="fixed inset-0 z-[80] bg-gray-50 hidden flex-col anim-slide">
+        <!-- Header -->
+        <header class="bg-gray-900 px-4 py-4 flex items-center justify-between shadow-md shrink-0">
+            <button onclick="closeExtrato()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="text-center">
+                <h2 class="text-white font-black text-lg">Consumo Total</h2>
+                <p id="extratoLocation" class="text-gray-400 text-xs font-bold uppercase tracking-widest"></p>
+            </div>
+            <div class="w-10"></div>
+        </header>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto p-4 pb-32" id="extratoList">
+            <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl text-gray-300"></i></div>
+        </main>
+        
+        <!-- Footer Total -->
+        <div class="bg-white p-6 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100 shrink-0">
+            <div class="flex justify-between items-end mb-4">
+                <span class="text-stone-500 font-bold uppercase tracking-widest text-xs">Total Parcial</span>
+                <span id="extratoTotal" class="text-3xl font-black text-emerald-600">R$ 0,00</span>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeExtrato()" class="flex-1 py-4 bg-stone-100 text-stone-600 font-black rounded-xl shadow-sm active:scale-95 transition">
+                    VOLTAR
+                </button>
+                <button onclick="openPaymentModalGarcom()" class="flex-[2] py-4 bg-emerald-600 text-white font-black rounded-xl shadow-lg shadow-emerald-200 active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check text-lg"></i> FECHAR COMANDA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PAYMENT MODAL ====== -->
+    <div id="paymentModalGarcom" class="fixed inset-0 z-[90] hidden bg-black/60 backdrop-blur-sm flex-col justify-end">
+        <div class="bg-white rounded-t-3xl p-6 relative" style="animation: slideUp 0.3s ease-out forwards; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-black text-stone-800">Receber Pagamento</h3>
+                <button onclick="closePaymentModalGarcom()" class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <!-- Resumo dos Valores -->
+            <div class="bg-stone-50 rounded-2xl p-4 mb-4 border border-stone-200">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-stone-500 font-bold text-sm">Subtotal</span>
+                    <span id="garcomPaySubtotal" class="font-bold text-stone-800">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-stone-500 font-bold text-sm">Serviço (10%)</span>
+                        <button onclick="toggleGarcomServiceFee()" id="btnGarcomService" class="w-10 h-6 bg-stone-300 rounded-full relative transition-colors duration-300 shadow-inner">
+                            <div id="garcomServiceToggle" class="w-4 h-4 bg-white rounded-full absolute left-1 top-1 transition-transform duration-300 shadow"></div>
+                        </button>
+                    </div>
+                    <span id="garcomPayService" class="font-bold text-stone-800">R$ 0,00</span>
+                </div>
+                <div class="h-px bg-stone-200 w-full mb-3"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-emerald-700 font-black text-lg">TOTAL A PAGAR</span>
+                    <span id="garcomPayTotal" class="font-black text-2xl text-emerald-600">R$ 0,00</span>
+                </div>
+            </div>
+
+            <!-- Valores Pagos -->
+            <p class="text-[11px] font-bold text-stone-400 mb-2 uppercase tracking-widest">Valores Recebidos</p>
+            <div class="space-y-3 mb-6">
+                <!-- PIX -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center text-lg"><i class="fa-brands fa-pix"></i></div>
+                    <span class="font-bold text-stone-600 flex-1">PIX</span>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
+                        <input type="number" id="garcomPayVal_pix" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('pix')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
+                    </div>
+                </div>
+                <!-- Dinheiro -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <span class="font-bold text-stone-600 flex-1">Dinheiro</span>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
+                        <input type="number" id="garcomPayVal_dinheiro" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('dinheiro')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
+                    </div>
+                </div>
+                <!-- Crédito -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg"><i class="fa-solid fa-credit-card"></i></div>
+                    <span class="font-bold text-stone-600 flex-1">Crédito</span>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
+                        <input type="number" id="garcomPayVal_credito" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('credito')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
+                    </div>
+                </div>
+                <!-- Débito -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg"><i class="fa-regular fa-credit-card"></i></div>
+                    <span class="font-bold text-stone-600 flex-1">Débito</span>
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
+                        <input type="number" id="garcomPayVal_debito" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('debito')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-6 px-2">
+                <span class="text-stone-500 font-bold text-sm" id="garcomPayStatusLabel">Falta Receber</span>
+                <span id="garcomPayRemaining" class="font-black text-amber-500 text-lg">R$ 0,00</span>
+            </div>
+
+            <style>
+                @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+            </style>
+
+            <button onclick="confirmPaymentGarcom()" id="btnConfirmPaymentGarcom" disabled
+                class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-lg shadow-lg hover:bg-emerald-700 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                <i class="fa-solid fa-lock"></i> CONFIRMAR E FECHAR
+            </button>
+        </div>
+    </div>
+
+    <!-- ====== NOTIFICATION TOAST (Pronto) ====== -->
+    <div id="notiToast" class="fixed top-4 left-4 right-4 z-[99999] bg-white rounded-2xl shadow-2xl border-l-4 border-green-500 p-4 transform -translate-y-[150%] transition-transform duration-500 flex items-center gap-4">
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 shrink-0">
+            <i class="fa-solid fa-bell text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <h4 class="font-black text-gray-800 text-sm">Pedido Pronto!</h4>
+            <p id="notiMsg" class="text-xs font-medium text-gray-600 mt-0.5"></p>
+        </div>
+        <button onclick="hideNoti()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <script type="module" src="garcom.js"></script>
+    <script type="module" src="garcom_mods_1.js"></script>
+    <script type="module" src="garcom_mods_2.js"></script>
+</body>
+
+</html>

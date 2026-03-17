@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portaria PDV • Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f9fafb"> <!-- Gray 50 for standalone look -->
+
+    <!-- Tailwind & Theme -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #f9fafb; overscroll-behavior: none; }
+        h1, h2, h3, button { font-family: 'Outfit', sans-serif; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-fade { animation: fadeSlide 0.4s ease-out both; }
+        
+        .border-blue-hover:hover { border-color: #3b82f6; }
+
+        /* Numpad styles */
+        .pin-dot { width: 14px; height: 14px; border-radius: 999px; background: rgba(0,0,0,0.1); transition: all 0.2s; }
+        .pin-dot.filled { background: #3b82f6; transform: scale(1.2); }
+        .numpad-btn { width: 64px; height: 64px; border-radius: 20px; background: white; color: #111827; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: all 0.15s; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .numpad-btn:active { background: #f3f4f6; transform: scale(0.92); }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col text-gray-900 bg-gray-50">
+
+    <!-- ====== AUTHENTICATION SCREEN ====== -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-gray-50 flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-blue-100 text-4xl">
+                <i class="fa-solid fa-door-open text-blue-500"></i>
+            </div>
+            <h1 class="text-3xl font-black tracking-tighter text-gray-900">Portaria</h1>
+            <p class="text-gray-500 font-bold mt-1 text-sm tracking-widest uppercase">Ponto de Venda</p>
+        </div>
+        
+        <div class="w-full max-w-xs space-y-6">
+            <div class="flex justify-center gap-4" id="pinDots">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            <p id="loginError" class="text-red-400 text-sm font-bold text-center h-4 opacity-0 transition">PIN inválido ou Acesso Negado</p>
+            
+            <div class="grid grid-cols-3 gap-3 max-w-[240px] mx-auto">
+                <button onclick="window.pinInputStandalone('1')" class="numpad-btn">1</button>
+                <button onclick="window.pinInputStandalone('2')" class="numpad-btn">2</button>
+                <button onclick="window.pinInputStandalone('3')" class="numpad-btn">3</button>
+                <button onclick="window.pinInputStandalone('4')" class="numpad-btn">4</button>
+                <button onclick="window.pinInputStandalone('5')" class="numpad-btn">5</button>
+                <button onclick="window.pinInputStandalone('6')" class="numpad-btn">6</button>
+                <button onclick="window.pinInputStandalone('7')" class="numpad-btn">7</button>
+                <button onclick="window.pinInputStandalone('8')" class="numpad-btn">8</button>
+                <button onclick="window.pinInputStandalone('9')" class="numpad-btn">9</button>
+                <button onclick="window.pinClearStandalone()" class="numpad-btn text-red-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="window.pinInputStandalone('0')" class="numpad-btn">0</button>
+                <button onclick="window.pinDeleteStandalone()" class="numpad-btn text-yellow-400 text-lg"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== APP MAIN SCREEN ====== -->
+    <div id="appMain" class="hidden flex-col h-full overflow-y-auto">
+        <div class="max-w-5xl mx-auto w-full p-4 lg:p-8 pt-8">
+            <div id="portariaMount"></div>
+        </div>
+    </div>
+    
+    <!-- Module Script Loaders -->
+    <script type="module">
+        import { loginStaff, getCurrentStaff } from './sistema_auth.js';
+        import { mountPortaria } from './portaria.js';
+
+        window.currentPin = '';
+
+        // Auth Logic
+        window.pinInputStandalone = (num) => {
+            if (window.currentPin.length < 4) {
+                window.currentPin += num;
+                window.updatePinVisuals();
+                if (window.currentPin.length === 4) window.attemptLogin();
+            }
+        };
+
+        window.pinClearStandalone = () => { window.currentPin = ''; window.updatePinVisuals(); };
+        window.pinDeleteStandalone = () => { window.currentPin = window.currentPin.slice(0, -1); window.updatePinVisuals(); };
+
+        window.updatePinVisuals = () => {
+            const dots = document.querySelectorAll('#pinDots .pin-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('filled', i < window.currentPin.length);
+            });
+            document.getElementById('loginError').classList.add('opacity-0');
+        };
+
+        window.attemptLogin = async () => {
+            const result = await loginStaff(window.currentPin);
+            if (!result.success) {
+                window.showError();
+            } else {
+                const user = result.user;
+                // Ensure Roles (Admin, Caixa, Portaria only)
+                if(!['admin', 'caixa', 'portaria'].includes(user.role)) {
+                    window.showError("Perfil sem acesso à Portaria");
+                    return;
+                }
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appMain').classList.remove('hidden');
+                document.getElementById('appMain').classList.add('flex');
+                
+                // Mount standalone component
+                mountPortaria('portariaMount', {
+                    mode: 'standalone',
+                    onBack: () => {
+                        window.location.reload(); // Logout simple
+                    }
+                });
+            }
+        };
+
+        window.showError = (msg = "PIN inválido") => {
+            const err = document.getElementById('loginError');
+            err.textContent = msg;
+            err.classList.remove('opacity-0');
+            setTimeout(() => { window.currentPin = ''; window.updatePinVisuals(); }, 1000);
+        };
+
+        // Auto login check
+        const activeUser = getCurrentStaff();
+        if(activeUser && ['admin', 'caixa', 'portaria'].includes(activeUser.role)) {
+             document.getElementById('loginScreen').classList.add('hidden');
+             document.getElementById('appMain').classList.remove('hidden');
+             document.getElementById('appMain').classList.add('flex');
+             mountPortaria('portariaMount', {
+                 mode: 'standalone',
+                 onBack: () => {
+                     // Since auth is localstorage, we can't fully 'logout' portaria without logging out everything. 
+                     // We redirect to main index instead for now.
+                     window.location.href = 'index.html'; 
+                 }
+             });
+        }
+    </script>
+</body>
+</html>

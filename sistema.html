@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema • Balneário Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="theme-color" content="#064e3b">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8faf9; }
+        h1, h2, h3, button { font-family: 'Outfit', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-fade { animation: fadeIn 0.3s ease-out; }
+
+        .sidebar-btn { transition: all 0.15s; }
+        .sidebar-btn.active { background: #064e3b; color: white; box-shadow: 0 4px 12px rgba(6,78,59,0.3); }
+
+        .pin-dot { width: 14px; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.2); transition: all 0.2s; }
+        .pin-dot.filled { background: #22c55e; transform: scale(1.2); }
+        .numpad-btn { width: 60px; height: 60px; border-radius: 18px; background: rgba(255,255,255,0.08);
+            color: white; font-size: 22px; font-weight: 800; display: flex; align-items: center;
+            justify-content: center; transition: all 0.15s; border: 1px solid rgba(255,255,255,0.08); }
+        .numpad-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.92); }
+
+        .stat-card { transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+
+        .input-sys { width: 100%; padding: 10px 14px; border-radius: 12px; background: #f9fafb; border: 1px solid #e5e7eb;
+            font-weight: 600; color: #1f2937; outline: none; transition: all 0.2s; font-size: 14px; }
+        .input-sys:focus { background: white; border-color: #22c55e; box-shadow: 0 0 0 3px #dcfce7; }
+
+        .label-sys { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #9ca3af; margin-left: 2px; margin-bottom: 4px; display: block; }
+
+        .modal-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .modal-box { background: white; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            padding: 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- ====== LOGIN ====== -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-gradient-to-br from-emerald-900 via-emerald-950 to-stone-950 flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-emerald-800/40 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl backdrop-blur">⚙️</div>
+            <h1 class="text-3xl font-black text-white tracking-tight">Sistema</h1>
+            <p class="text-emerald-400 text-sm font-medium mt-1">Balneário Rio Preto</p>
+        </div>
+        <div class="w-full max-w-xs space-y-5">
+            <div class="flex justify-center gap-3" id="pinDots">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            <p id="loginError" class="text-red-400 text-xs font-bold text-center hidden">PIN inválido ou sem permissão</p>
+            <div class="grid grid-cols-3 gap-3 max-w-[230px] mx-auto">
+                <button onclick="pinInput('1')" class="numpad-btn">1</button>
+                <button onclick="pinInput('2')" class="numpad-btn">2</button>
+                <button onclick="pinInput('3')" class="numpad-btn">3</button>
+                <button onclick="pinInput('4')" class="numpad-btn">4</button>
+                <button onclick="pinInput('5')" class="numpad-btn">5</button>
+                <button onclick="pinInput('6')" class="numpad-btn">6</button>
+                <button onclick="pinInput('7')" class="numpad-btn">7</button>
+                <button onclick="pinInput('8')" class="numpad-btn">8</button>
+                <button onclick="pinInput('9')" class="numpad-btn">9</button>
+                <button onclick="pinClear()" class="numpad-btn text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="pinInput('0')" class="numpad-btn">0</button>
+                <button onclick="pinDelete()" class="numpad-btn text-yellow-400"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MAIN LAYOUT ====== -->
+    <div id="mainLayout" class="hidden min-h-screen flex">
+
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 h-screen sticky top-0 shadow-sm">
+            <div class="p-5 border-b border-gray-100">
+                <h1 class="text-xl font-black text-gray-800 tracking-tight">Painel<span class="text-emerald-600">Rio</span></h1>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Sistema de Gestão v3.0</p>
+            </div>
+
+            <div class="p-3 border-b border-gray-100">
+                <div class="bg-emerald-50 rounded-xl p-3 flex items-center gap-3">
+                    <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white text-xs font-black" id="staffAvatar">—</div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 leading-tight" id="staffDisplayName">—</p>
+                        <p class="text-[10px] font-bold text-emerald-600 uppercase" id="staffDisplayRole">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-3 space-y-1 overflow-y-auto no-scrollbar" id="sidebarNav">
+                <!-- Populated by JS -->
+            </nav>
+
+            <div class="p-3 border-t border-gray-100 space-y-2">
+                <a href="mapa.html" class="flex items-center gap-3 px-3 py-2 text-xs font-bold text-gray-400 hover:text-emerald-600 transition rounded-lg hover:bg-emerald-50">
+                    <i class="fa-solid fa-map w-5 text-center"></i> Mapa Chalés
+                </a>
+                <a href="index.html" class="flex items-center gap-3 px-3 py-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition rounded-lg hover:bg-gray-50">
+                    <i class="fa-solid fa-arrow-left w-5 text-center"></i> Voltar ao Site
+                </a>
+                <button onclick="doLogout()" class="flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-400 hover:text-red-600 transition rounded-lg hover:bg-red-50 w-full text-left">
+                    <i class="fa-solid fa-right-from-bracket w-5 text-center"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <div class="flex-1 min-h-screen">
+            <!-- Top Bar -->
+            <header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+                <div>
+                    <h2 class="text-lg font-black text-gray-800" id="pageTitle">Dashboard</h2>
+                    <p class="text-xs text-gray-400 font-medium" id="pageSubtitle">Visão geral do dia</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-bold text-gray-400" id="todayDate"></span>
+                    <div class="w-px h-6 bg-gray-200"></div>
+                    <span class="text-sm font-bold text-gray-500" id="clockDisplay">--:--</span>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="p-6" id="pageContent">
+                <!-- Pages loaded dynamically -->
+            </main>
+        </div>
+    </div>
+
+    <!-- ====== MODALS CONTAINER ====== -->
+    <div id="modalContainer"></div>
+
+    <script type="module" src="sistema.js"></script>
+    <script type="module" src="sistema_mods_1.js"></script>
+    <script type="module" src="sistema_mods_2.js"></script>
+</body>
+
+</html>

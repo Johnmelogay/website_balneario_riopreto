@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bar • Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="theme-color" content="#1e1b18">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #1c1917; overflow: hidden; }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes urgentPulse { 0%, 100% { border-color: rgba(239,68,68,0.5); } 50% { border-color: rgba(239,68,68,1); } }
+        .anim-in { animation: slideIn 0.4s ease-out; }
+        .urgent { animation: urgentPulse 1s ease-in-out infinite; }
+
+        .order-card { transition: all 0.3s ease; }
+        .order-card:active { transform: scale(0.98); }
+
+        .status-preparing { border-left: 6px solid #f59e0b; }
+        .status-pending { border-left: 6px solid #ef4444; }
+        .status-ready { border-left: 6px solid #22c55e; }
+
+        .pin-dot { width: 14px; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.15); transition: all 0.2s; }
+        .pin-dot.filled { background: #f59e0b; transform: scale(1.2); }
+        .numpad-btn { width: 56px; height: 56px; border-radius: 16px; background: rgba(255,255,255,0.06);
+            color: white; font-size: 22px; font-weight: 800; display: flex; align-items: center;
+            justify-content: center; transition: all 0.15s; border: 1px solid rgba(255,255,255,0.06); }
+        .numpad-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.92); }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- LOGIN -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-gradient-to-b from-stone-900 to-stone-950 flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-amber-900/30 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl">🍺</div>
+            <h1 class="text-2xl font-black text-white" id="kdsTitle">Bar</h1>
+            <p class="text-amber-500 text-xs font-bold mt-1">Balneário Rio Preto</p>
+        </div>
+        <div class="w-full max-w-xs space-y-5">
+            <div class="flex justify-center gap-3" id="pinDots">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            <p id="loginError" class="text-red-400 text-xs font-bold text-center hidden">PIN inválido</p>
+            <div class="grid grid-cols-3 gap-3 max-w-[220px] mx-auto">
+                <button onclick="pinInput('1')" class="numpad-btn">1</button>
+                <button onclick="pinInput('2')" class="numpad-btn">2</button>
+                <button onclick="pinInput('3')" class="numpad-btn">3</button>
+                <button onclick="pinInput('4')" class="numpad-btn">4</button>
+                <button onclick="pinInput('5')" class="numpad-btn">5</button>
+                <button onclick="pinInput('6')" class="numpad-btn">6</button>
+                <button onclick="pinInput('7')" class="numpad-btn">7</button>
+                <button onclick="pinInput('8')" class="numpad-btn">8</button>
+                <button onclick="pinInput('9')" class="numpad-btn">9</button>
+                <button onclick="pinClear()" class="numpad-btn text-red-400 text-sm"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="pinInput('0')" class="numpad-btn">0</button>
+                <button onclick="pinDelete()" class="numpad-btn text-yellow-400 text-sm"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KDS MAIN -->
+    <div id="kdsMain" class="hidden flex flex-col h-screen">
+        <header class="bg-stone-900 border-b border-stone-800 px-6 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-4">
+                <span class="text-2xl" id="kdsIcon">🍺</span>
+                <div>
+                    <h1 class="text-white font-black text-xl leading-tight" id="kdsHeaderTitle">Bar</h1>
+                    <p class="text-stone-500 text-[10px] font-bold uppercase tracking-widest">Pedidos em tempo real</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex gap-3">
+                    <div class="text-center">
+                        <p class="text-red-500 font-black text-2xl" id="countPending">0</p>
+                        <p class="text-stone-600 text-[9px] font-bold uppercase">Pendente</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-amber-500 font-black text-2xl" id="countPreparing">0</p>
+                        <p class="text-stone-600 text-[9px] font-bold uppercase">Fazendo</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-green-500 font-black text-2xl" id="countReady">0</p>
+                        <p class="text-stone-600 text-[9px] font-bold uppercase">Pronto</p>
+                    </div>
+                </div>
+                <button onclick="toggleSound()" id="soundBtn"
+                    class="w-10 h-10 rounded-xl bg-stone-800 text-amber-500 flex items-center justify-center hover:bg-stone-700 transition">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="text-stone-400 font-bold text-sm" id="currentTime">--:--</div>
+            </div>
+        </header>
+        <main class="flex-1 overflow-y-auto p-4" id="ordersContainer">
+            <div class="flex flex-col items-center justify-center h-full text-stone-600">
+                <i class="fa-solid fa-wine-glass text-6xl mb-4 opacity-30"></i>
+                <p class="font-bold text-lg">Nenhum pedido</p>
+                <p class="text-sm text-stone-700">Aguardando novos pedidos...</p>
+            </div>
+        </main>
+    </div>
+
+    <audio id="notifSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRl4FAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YToFAACAgICAgICAgICAgICAgICBkaSxu7i0qJuShYOHjZiirK+wrKSalI2Li5OdqLK2t7Svo52UjYuPlqGrsLOzr6mhmZOPj5OaoKistLWxq6Wdl5KRlJqfpa2xsK2poJqVkpKVm6GnrbCvrKegnJiWlZicoKWqrq+tq6eknJqZmJeYmp6iq62urq2rqaajoaCgoJ+eoKOlp6mqq6ysrKuqqKajop+enp+go6WnqKmpqaqrq6uppqSioaCgoKGjpKanqKipqqqqqainpaOioaGio6Slpqeoqamqqqmnp6WkoqGhoqOkpaanp6ipqamop6alpKOioqKjpKWmp6eoqKmoqKempaSkpKOkpKWmpqenqKinp6ampaSkpKSlpaamp6eoqKinp6ampaWlpaWlpaamp6enp6enp6ampaWlpaWlpqamp6enp6enp6ampaWlpaWlpqamp6enp6enp6ampaWlpaWmpqamp6enp6enp6ampaWl" type="audio/wav">
+    </audio>
+
+    <!-- Reuses same JS as cozinha - auto-detects 'bar' from URL -->
+    <script type="module" src="cozinha.js"></script>
+</body>
+
+</html>
