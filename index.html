@@ -5,26 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balneário Rio Preto - O Seu Destino de Ecoturismo</title>
-    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <link rel="icon" type="image/webp" href="images/logo_opt.webp">
     <!-- Meta Descrição Otimizada -->
     <meta name="description"
         content="Day Use e Chalés no Balneário Rio Preto. Reserve online, confira a Galeria, Cardápio e Notícias em Candeias do Jamari. Atendimento via WhatsApp.">
-    <link rel="canonical" href="https://balnearioriopreto.com.br/" />
+    <link rel="canonical" href="https://www.balnearioriopreto.com.br/" />
 
     <!-- Open Graph (Facebook / WhatsApp) -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://balnearioriopreto.com.br/">
+    <meta property="og:url" content="https://www.balnearioriopreto.com.br/">
     <meta property="og:title" content="Balneário Rio Preto - Ecoturismo e Lazer">
     <meta property="og:description"
         content="Day Use, Chalés e Gastronomia em Candeias do Jamari - RO. O refúgio perfeito a 40km da capital.">
-    <meta property="og:image" content="https://balnearioriopreto.com.br/images/hero-image.PNG">
+    <meta property="og:image" content="https://www.balnearioriopreto.com.br/images/hero-image.webp">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://balnearioriopreto.com.br/">
+    <meta name="twitter:url" content="https://www.balnearioriopreto.com.br/">
     <meta name="twitter:title" content="Balneário Rio Preto - Ecoturismo">
     <meta name="twitter:description" content="Day Use, Chalés e Gastronomia em Candeias do Jamari - RO.">
-    <meta name="twitter:image" content="https://balnearioriopreto.com.br/images/hero-image.PNG">
+    <meta name="twitter:image" content="https://www.balnearioriopreto.com.br/images/hero-image.webp">
 
     <!-- Google Analytics 4 -->
     <script async defer src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
@@ -39,16 +39,16 @@
     </script>
 
     <!-- Tailwind CSS & Theme -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="theme.js"></script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <script src="theme.js" defer></script>
 
     <!-- Font Awesome 6 -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
 
-    <!-- Google Fonts: Lexend -->
+    <!-- Google Fonts: Lexend (reduced to 3 essential weights) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap"
         rel="stylesheet">
 
     <style>
@@ -162,11 +162,11 @@
 
     <!-- Navbar Container -->
     <div id="navbar-container" class="fixed top-0 w-full z-50"></div>
-    <script src="navbar.js"></script>
+    <script src="navbar.js" defer></script>
 
     <!-- 1. HERO SECTION CINEMATOGRÁFICA -->
     <section class="relative h-[95vh] flex items-center justify-center overflow-hidden">
-        <video class="hero-video" autoplay muted loop playsinline poster="images/droneview.png">
+        <video class="hero-video" autoplay muted loop playsinline poster="images/droneview.webp">
             <!-- Se o poster ainda não existir, o video carrega normalmente. -->
             <source
                 src="https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/hero-video720p.mp4"
@@ -256,8 +256,9 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 h-[2000px]">
                 <!-- Item Grande Esquerda -->
                 <div class="col-span-2 row-span-2 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/mapa rio preto.jpg', ' ')">
-                    <img src="images/mapa rio preto.jpg" onerror="this.src='images/mapa rio preto.jpg'" loading="lazy"
+                    onclick="openGalleryModal('images/mapa_rio_preto.webp', ' ')">
+                    <img src="images/mapa_rio_preto.webp" loading="lazy" width="800" height="600"
+                        alt="Vista aérea do Balneário Rio Preto"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div
                         class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -268,32 +269,36 @@
 
                 <!-- Itens Menores -->
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/piscina.jpg', 'Piscina com Toboágua')">
-                    <img src="images/piscina.jpg" onerror="this.src='images/piscina.jpg'"
+                    onclick="openGalleryModal('images/piscina.webp', 'Piscina com Toboágua')">
+                    <img src="images/piscina.webp" loading="lazy" width="600" height="400"
+                        alt="Piscina com Toboágua"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/IMG_0829.jpg', 'Churrasqueira Perto do Rio Preto')">
-                    <img src="images/IMG_0829.jpg" onerror="this.src='images/IMG_0829.jpg'"
+                    onclick="openGalleryModal('images/IMG_0829.webp', 'Churrasqueira Perto do Rio Preto')">
+                    <img src="images/IMG_0829.webp" loading="lazy" width="600" height="400"
+                        alt="Churrasqueira Perto do Rio Preto"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/vistachale.jpg', 'Vista do Chalé')">
-                    <img src="images/vistachale.jpg" onerror="this.src='images/vistachale.jpg'"
+                    onclick="openGalleryModal('images/vistachale.webp', 'Vista do Chalé')">
+                    <img src="images/vistachale.webp" loading="lazy" width="600" height="400"
+                        alt="Vista do Chalé"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
-                    onclick="openGalleryModal('images/frentechales.jpg', 'Chalés')">
-                    <img src="images/frentechales.jpg" onerror="this.src='images/frentechales.jpg'"
+                    onclick="openGalleryModal('images/frentechales.webp', 'Chalés')">
+                    <img src="images/frentechales.webp" loading="lazy" width="600" height="400"
+                        alt="Chalés"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                 </div>
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/aconchego720p.mp4', 'Aconchego')">
-                    <img src="images/aconchego_thumbnail.png"
+                    <img src="images/aconchego_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Aconchego">
                     <div
@@ -307,7 +312,7 @@
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/pool720p.mp4', 'Piscina')">
-                    <img src="images/pool_thumbnail.png"
+                    <img src="images/pool_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Piscina">
                     <div
@@ -321,7 +326,7 @@
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer text-center"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/hero-video720p.mp4', 'Destaques')">
-                    <img src="images/hero-video_thumbnail.png"
+                    <img src="images/hero-video_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Destaques">
                     <div
@@ -335,7 +340,7 @@
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/vistaparario720p.mp4', 'Vista para o Rio')">
-                    <img src="images/vistaparario_thumbnail.png"
+                    <img src="images/vistaparario_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Vista para o Rio">
                     <div
@@ -349,7 +354,7 @@
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/peopleplaying720p.mp4', 'Diversão')">
-                    <img src="images/peopleplaying_thumbnail.png"
+                    <img src="images/peopleplaying_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Diversão">
                     <div
@@ -363,7 +368,7 @@
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/paradise720p.mp4', 'Paraíso')">
-                    <img src="images/paradise_thumbnail.png"
+                    <img src="images/paradise_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Paraíso">
                     <div
@@ -377,7 +382,7 @@
 
                 <div class="col-span-1 row-span-1 relative group overflow-hidden rounded-3xl shadow-lg cursor-pointer"
                     onclick="openGalleryModal('https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/object/public/website-assets/videos/beach720p.mp4', 'Praia')">
-                    <img src="images/beach_thumbnail.png"
+                    <img src="images/beach_thumbnail.webp" loading="lazy" width="640" height="360"
                         class="w-full h-full object-cover transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         alt="Praia">
                     <div
@@ -864,19 +869,19 @@
 
         // This array must match the order of items in the grid below
         const galeriaHomeData = [
-            { type: 'image', src: "images/mapa rio preto.jpg", caption: "Vista Aérea" },
-            { type: 'image', src: "images/piscina.jpg", caption: "Piscina com Toboágua" },
-            { type: 'image', src: "images/IMG_0829.jpg", caption: "Churrasqueira Perto do Rio Preto" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/aconchego720p.mp4`, thumb: "images/aconchego_thumbnail.png", caption: "Aconchego" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/pool720p.mp4`, thumb: "images/pool_thumbnail.png", caption: "Piscina" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/hero-video720p.mp4`, thumb: "images/hero-video_thumbnail.png", caption: "Destaques" },
-            { type: 'image', src: "images/vistachale.jpg", caption: "Vista do Chalé" },
-            { type: 'image', src: "images/frentechales.jpg", caption: "Chalés" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/vistaparario720p.mp4`, thumb: "images/vistaparario_thumbnail.png", caption: "Vista para o Rio" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/peopleplaying720p.mp4`, thumb: "images/peopleplaying_thumbnail.png", caption: "Diversão" },
-            { type: 'image', src: "images/IMG_0906.jpg", caption: "Banho de Rio" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/paradise720p.mp4`, thumb: "images/paradise_thumbnail.png", caption: "Paraíso" },
-            { type: 'video', src: `${BASE_VIDEO_URL}/beach720p.mp4`, thumb: "images/beach_thumbnail.png", caption: "Praia" },
+            { type: 'image', src: "images/mapa_rio_preto.webp", caption: "Vista Aérea" },
+            { type: 'image', src: "images/piscina.webp", caption: "Piscina com Toboágua" },
+            { type: 'image', src: "images/IMG_0829.webp", caption: "Churrasqueira Perto do Rio Preto" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/aconchego720p.mp4`, thumb: "images/aconchego_thumbnail.webp", caption: "Aconchego" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/pool720p.mp4`, thumb: "images/pool_thumbnail.webp", caption: "Piscina" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/hero-video720p.mp4`, thumb: "images/hero-video_thumbnail.webp", caption: "Destaques" },
+            { type: 'image', src: "images/vistachale.webp", caption: "Vista do Chalé" },
+            { type: 'image', src: "images/frentechales.webp", caption: "Chalés" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/vistaparario720p.mp4`, thumb: "images/vistaparario_thumbnail.webp", caption: "Vista para o Rio" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/peopleplaying720p.mp4`, thumb: "images/peopleplaying_thumbnail.webp", caption: "Diversão" },
+            { type: 'image', src: "images/IMG_0906.webp", caption: "Banho de Rio" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/paradise720p.mp4`, thumb: "images/paradise_thumbnail.webp", caption: "Paraíso" },
+            { type: 'video', src: `${BASE_VIDEO_URL}/beach720p.mp4`, thumb: "images/beach_thumbnail.webp", caption: "Praia" },
         ];
 
         // --- MODALS ---
