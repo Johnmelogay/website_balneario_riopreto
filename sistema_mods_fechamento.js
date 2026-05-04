@@ -43,31 +43,41 @@ export async function renderFechamentoSemanal(container){
   };
 
   async function loadReport(startDate,endDate){
-    const [orders,gate,bookings,funcs]=await Promise.all([
-      supabase.from('orders').select('*, staff_users(name)').gte('created_at',startDate+'T00:00:00').lte('created_at',endDate+'T23:59:59').eq('status','delivered'),
+    const [orders,orderItems,gate,bookings,funcs]=await Promise.all([
+      supabase.from('orders').select('*, staff_users(name)').gte('created_at',startDate+'T00:00:00').lte('created_at',endDate+'T23:59:59').neq('status','cancelado'),
+      supabase.from('order_items').select('*, orders!inner(created_at, status, staff_id)').gte('orders.created_at',startDate+'T00:00:00').lte('orders.created_at',endDate+'T23:59:59'),
       supabase.from('gate_entries').select('*').gte('created_at',startDate+'T00:00:00').lte('created_at',endDate+'T23:59:59'),
       supabase.from('bookings').select('*').gte('checkin_date',startDate).lte('checkin_date',endDate),
       supabase.from('funcionarios').select('*').eq('is_active',true)
     ]);
 
-    const ordersData=orders.data||[], gateData=gate.data||[], bookingsData=bookings.data||[], funcsData=funcs.data||[];
+    const ordersData=orders.data||[], itemsData=orderItems.data||[], gateData=gate.data||[], bookingsData=bookings.data||[], funcsData=funcs.data||[];
 
-    // Group orders by day and destination
+    // Group by day using ORDER ITEMS for accurate bar/cozinha split
     const dayMap={};
     ordersData.forEach(o=>{
       const day=new Date(o.created_at).toLocaleDateString('pt-BR',{weekday:'long'});
       const dayKey=day.charAt(0).toUpperCase()+day.slice(1);
       if(!dayMap[dayKey]) dayMap[dayKey]={cozinha:0,bar:0,orders:[],cozinha_items:[],bar_items:[]};
-      const dest=(o.destination||'').toLowerCase();
-      const total=Number(o.total||0);
-      if(dest.includes('cozinha')||dest.includes('kitchen')){
-        dayMap[dayKey].cozinha+=total;
-        dayMap[dayKey].cozinha_items.push(o);
-      } else {
-        dayMap[dayKey].bar+=total;
-        dayMap[dayKey].bar_items.push(o);
-      }
       dayMap[dayKey].orders.push(o);
+    });
+
+    // Use order_items to split cozinha vs bar revenue accurately
+    itemsData.forEach(item=>{
+      const orderDate=item.orders?.created_at;
+      if(!orderDate) return;
+      const day=new Date(orderDate).toLocaleDateString('pt-BR',{weekday:'long'});
+      const dayKey=day.charAt(0).toUpperCase()+day.slice(1);
+      if(!dayMap[dayKey]) dayMap[dayKey]={cozinha:0,bar:0,orders:[],cozinha_items:[],bar_items:[]};
+      const dest=(item.destination||'').toLowerCase();
+      const itemTotal=Number(item.quantity||0)*Number(item.unit_price||0);
+      if(dest==='cozinha'){
+        dayMap[dayKey].cozinha+=itemTotal;
+        dayMap[dayKey].cozinha_items.push(item);
+      } else {
+        dayMap[dayKey].bar+=itemTotal;
+        dayMap[dayKey].bar_items.push(item);
+      }
     });
 
     // Group gate entries by day
@@ -83,11 +93,17 @@ export async function renderFechamentoSemanal(container){
       totalPortaria+=val;
     });
 
-    // Payment method totals from orders
+    // Payment method totals — use split columns when available
     const payMethods={dinheiro:0,pix:0,cartao_debito:0,cartao_credito:0,cartao:0};
     ordersData.forEach(o=>{
       const pm=(o.payment_method||'').toLowerCase();
-      if(pm.includes('dinheiro')) payMethods.dinheiro+=Number(o.total||0);
+      if(pm==='split'){
+        // Use individual split columns
+        payMethods.pix+=Number(o.split_pix||0);
+        payMethods.dinheiro+=Number(o.split_dinheiro||0);
+        payMethods.cartao_credito+=Number(o.split_credito||0);
+        payMethods.cartao_debito+=Number(o.split_debito||0);
+      } else if(pm.includes('dinheiro')) payMethods.dinheiro+=Number(o.total||0);
       else if(pm.includes('pix')) payMethods.pix+=Number(o.total||0);
       else if(pm.includes('deb')) payMethods.cartao_debito+=Number(o.total||0);
       else if(pm.includes('cred')) payMethods.cartao_credito+=Number(o.total||0);
@@ -101,7 +117,11 @@ export async function renderFechamentoSemanal(container){
       if(!garcomMap[waiter]) garcomMap[waiter]={total:0,card:0,pix:0,cash:0};
       const t=Number(o.total||0), pm=(o.payment_method||'').toLowerCase();
       garcomMap[waiter].total+=t;
-      if(pm.includes('cart')||pm.includes('deb')||pm.includes('cred')) garcomMap[waiter].card+=t;
+      if(pm==='split'){
+        garcomMap[waiter].card+=Number(o.split_credito||0)+Number(o.split_debito||0);
+        garcomMap[waiter].pix+=Number(o.split_pix||0);
+        garcomMap[waiter].cash+=Number(o.split_dinheiro||0);
+      } else if(pm.includes('cart')||pm.includes('deb')||pm.includes('cred')) garcomMap[waiter].card+=t;
       else if(pm.includes('pix')) garcomMap[waiter].pix+=t;
       else garcomMap[waiter].cash+=t;
     });

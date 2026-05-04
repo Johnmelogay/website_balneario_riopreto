@@ -301,6 +301,15 @@ window.confirmPaymentGarcom = async () => {
     const pDEB = Number(document.getElementById('garcomPayVal_debito').value) || 0;
     const totalPaid = pPIX + pDIN + pCRE + pDEB;
     const serviceVal = garcomServiceEnabled ? garcomBaseTotal * 0.10 : 0;
+    const customerName = (document.getElementById('garcomPayCustomerName')?.value || '').trim();
+    
+    // Determine payment method — use specific name if only one method used, else 'SPLIT'
+    const methodsUsed = [];
+    if(pPIX > 0) methodsUsed.push('pix');
+    if(pDIN > 0) methodsUsed.push('dinheiro');
+    if(pCRE > 0) methodsUsed.push('credito');
+    if(pDEB > 0) methodsUsed.push('debito');
+    const payMethod = methodsUsed.length === 1 ? methodsUsed[0] : 'SPLIT';
     
     // Distribute paid values and service fee among the open orders proportionally based on order total
     const updates = garcomOpenOrders.map(o => {
@@ -308,7 +317,8 @@ window.confirmPaymentGarcom = async () => {
         return {
             ...o,
             payment_status: 'pago',
-            payment_method: 'SPLIT',
+            payment_method: payMethod,
+            customer_name: customerName || o.customer_name,
             service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
             split_pix: parseFloat((pPIX * ratio).toFixed(2)),
             split_dinheiro: parseFloat((pDIN * ratio).toFixed(2)),
