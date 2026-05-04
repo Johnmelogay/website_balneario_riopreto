@@ -119,18 +119,31 @@ export async function updateStaffPin(id, newPin) {
 // ====== ROLE LABELS ======
 export const ROLE_LABELS = {
     admin: 'Administrador',
+    gerente: 'Gerente',
+    ceo: 'CEO',
     caixa: 'Caixa',
     garcom: 'Garçom',
     bar: 'Bar',
+    balcao: 'Balcão / PDV',
     cozinha: 'Cozinha',
-    portaria: 'Portaria'
+    portaria: 'Portaria',
+    marketing: 'Marketing'
 };
 
 export const ROLE_COLORS = {
     admin: 'bg-purple-100 text-purple-700',
+    gerente: 'bg-purple-100 text-purple-700',
+    ceo: 'bg-indigo-100 text-indigo-700',
     caixa: 'bg-blue-100 text-blue-700',
     garcom: 'bg-green-100 text-green-700',
     bar: 'bg-amber-100 text-amber-700',
+    balcao: 'bg-orange-100 text-orange-700',
     cozinha: 'bg-red-100 text-red-700',
-    portaria: 'bg-cyan-100 text-cyan-700'
+    portaria: 'bg-cyan-100 text-cyan-700',
+    marketing: 'bg-pink-100 text-pink-700'
 };
+
+// All roles that are allowed to log into the sistema panel
+export const ALLOWED_SISTEMA_ROLES = [
+    'admin', 'gerente', 'ceo', 'caixa', 'garcom', 'bar', 'balcao', 'cozinha', 'portaria', 'marketing'
+];

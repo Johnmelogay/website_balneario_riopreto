@@ -3,7 +3,7 @@
  * Routing and Core Logic
  */
 import { supabase } from './scripts.js';
-import { loginStaff, getCurrentStaff, logoutStaff, ROLE_LABELS, ROLE_COLORS } from './sistema_auth.js';
+import { loginStaff, getCurrentStaff, logoutStaff, ROLE_LABELS, ROLE_COLORS, ALLOWED_SISTEMA_ROLES } from './sistema_auth.js';
 
 // ====== STATE ======
 let currentPin = '';
@@ -38,7 +38,7 @@ window.pinInput = async (digit) => {
 
     if (currentPin.length === 4) {
         const result = await loginStaff(currentPin);
-        if (result.success && ['admin', 'caixa', 'portaria', 'garcom'].includes(result.user.role)) {
+        if (result.success && ALLOWED_SISTEMA_ROLES.includes(result.user.role)) {
             initDashboard(result.user);
         } else {
             showLoginError();
@@ -86,13 +86,15 @@ function initDashboard(staff) {
 
 // ====== ROUTING & SIDEBAR ======
 const MODULES = {
-    dashboard: { icon: 'chart-pie', label: 'Visão Geral', roles: ['admin'] },
-    comandas: { icon: 'receipt', label: 'Comandas (Mesas)', roles: ['admin', 'caixa', 'garcom'] },
-    pdv: { icon: 'cash-register', label: 'PDV (Balcão)', roles: ['admin', 'caixa'] },
-    portaria: { icon: 'door-open', label: 'Portaria Híbrida', roles: ['admin', 'portaria'] },
-    estoque: { icon: 'boxes-stacked', label: 'Estoque', roles: ['admin'] },
-    funcionarios: { icon: 'users', label: 'Equipe', roles: ['admin'] },
-    fechamento: { icon: 'chart-line', label: 'Fechamento de Caixa', roles: ['admin', 'caixa'] }
+    dashboard:          { icon: 'chart-pie',       label: 'Visão Geral',           roles: ['admin', 'gerente', 'ceo'] },
+    comandas:           { icon: 'receipt',          label: 'Comandas (Mesas)',       roles: ['admin', 'gerente', 'ceo', 'caixa', 'garcom'] },
+    pdv:                { icon: 'cash-register',    label: 'PDV (Balcão)',           roles: ['admin', 'gerente', 'ceo', 'caixa', 'balcao', 'bar'] },
+    portaria:           { icon: 'door-open',        label: 'Portaria',               roles: ['admin', 'gerente', 'ceo', 'portaria'] },
+    estoque:            { icon: 'boxes-stacked',    label: 'Estoque',                roles: ['admin', 'gerente', 'ceo'] },
+    funcionarios:       { icon: 'users',            label: 'Equipe (Staff)',         roles: ['admin', 'gerente', 'ceo'] },
+    funcionarios_db:    { icon: 'id-card',          label: 'Funcionários / Freelancers', roles: ['admin', 'gerente', 'ceo'] },
+    fechamento:         { icon: 'chart-line',       label: 'Fechamento de Caixa',    roles: ['admin', 'gerente', 'ceo', 'caixa'] },
+    fechamento_semanal: { icon: 'file-csv',         label: 'Fechamento Semanal',     roles: ['admin', 'gerente', 'ceo'] }
 };
 
 function renderSidebar(role) {
@@ -159,6 +161,14 @@ window.loadModule = (key) => {
         case 'fechamento':
             subEl.textContent = 'Relatório Geral Financeiro e de Equipe';
             import('./sistema_mods_2.js').then(m => m.renderFechamento(content));
+            break;
+        case 'fechamento_semanal':
+            subEl.textContent = 'Relatório Semanal Completo com Exportação CSV';
+            import('./sistema_mods_fechamento.js').then(m => m.renderFechamentoSemanal(content));
+            break;
+        case 'funcionarios_db':
+            subEl.textContent = 'Cadastro de Funcionários e Freelancers';
+            import('./sistema_mods_func.js').then(m => m.renderFuncionariosDB(content));
             break;
         default:
             content.innerHTML = '<p class="text-gray-500 p-10 text-center">Módulo em desenvolvimento</p>';
