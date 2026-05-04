@@ -4,7 +4,7 @@ import { mountPortaria } from './portaria.js';
 
 // ====== MODULE: PORTARIA (Simplificada) ======
 // Day Use: R$20/pessoa | Camping: R$40/pessoa/pernoite | Churrasqueira/Quiosque: R$45/diária (família)
-export async function renderPortaria(container) {
+async function renderPortaria(container) {
     if (!container.id) container.id = 'portaria-admin-container';
     container.innerHTML = '<div id="portaria-admin-inner" class="w-full h-full"></div>';
     

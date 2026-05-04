@@ -93,7 +93,6 @@ const MODULES = {
     estoque:            { icon: 'boxes-stacked',    label: 'Estoque',                roles: ['admin', 'gerente', 'ceo'] },
     funcionarios:       { icon: 'users',            label: 'Equipe (Staff)',         roles: ['admin', 'gerente', 'ceo'] },
     funcionarios_db:    { icon: 'id-card',          label: 'Funcionários / Freelancers', roles: ['admin', 'gerente', 'ceo'] },
-    fechamento:         { icon: 'chart-line',       label: 'Fechamento de Caixa',    roles: ['admin', 'gerente', 'ceo', 'caixa'] },
     fechamento_semanal: { icon: 'file-csv',         label: 'Fechamento Semanal',     roles: ['admin', 'gerente', 'ceo'] }
 };
 
@@ -158,10 +157,7 @@ window.loadModule = (key) => {
             subEl.textContent = 'Registro de visitantes e Day Use';
             import('./sistema_mods_2.js').then(m => m.renderPortaria(content));
             break;
-        case 'fechamento':
-            subEl.textContent = 'Relatório Geral Financeiro e de Equipe';
-            import('./sistema_mods_2.js').then(m => m.renderFechamento(content));
-            break;
+
         case 'fechamento_semanal':
             subEl.textContent = 'Relatório Semanal Completo com Exportação CSV';
             import('./sistema_mods_fechamento.js').then(m => m.renderFechamentoSemanal(content));
