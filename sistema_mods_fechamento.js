@@ -46,7 +46,7 @@ export async function renderFechamentoSemanal(container){
     const [orders,gate,bookings,funcs]=await Promise.all([
       supabase.from('orders').select('*, staff_users(name)').gte('created_at',startDate+'T00:00:00').lte('created_at',endDate+'T23:59:59').eq('status','delivered'),
       supabase.from('gate_entries').select('*').gte('created_at',startDate+'T00:00:00').lte('created_at',endDate+'T23:59:59'),
-      supabase.from('bookings').select('*').gte('check_in',startDate).lte('check_in',endDate),
+      supabase.from('bookings').select('*').gte('checkin_date',startDate).lte('checkin_date',endDate),
       supabase.from('funcionarios').select('*').eq('is_active',true)
     ]);
 
@@ -184,7 +184,7 @@ export async function renderFechamentoSemanal(container){
     <div class="bg-white rounded-2xl border border-gray-100 p-6">
       <h3 class="text-lg font-black text-gray-800 mb-4"><i class="fa-solid fa-house text-teal-500 mr-2"></i>Chalés</h3>
       <table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="py-2 px-3 text-left text-xs font-black text-gray-500">Hóspede</th><th class="py-2 px-3">Check-in</th><th class="py-2 px-3">Check-out</th><th class="py-2 px-3 text-right">Total</th><th class="py-2 px-3">Status</th></tr></thead>
-      <tbody>${(r.bookingsData||[]).map(b=>`<tr class="border-t border-gray-100"><td class="py-2 px-3 font-bold">${b.guest_name||b.name||'—'}</td><td class="py-2 px-3 text-center text-xs">${b.check_in||'—'}</td><td class="py-2 px-3 text-center text-xs">${b.check_out||'—'}</td><td class="py-2 px-3 text-right font-black">${fmt(b.total_price)}</td><td class="py-2 px-3 text-center"><span class="text-xs font-bold ${b.status==='confirmed'?'text-green-600':'text-yellow-600'}">${b.status||'—'}</span></td></tr>`).join('')||'<tr><td colspan="5" class="py-4 text-center text-gray-400">Sem reservas no período</td></tr>'}</tbody></table>
+      <tbody>${(r.bookingsData||[]).map(b=>`<tr class="border-t border-gray-100"><td class="py-2 px-3 font-bold">${b.guest_name||b.name||'—'}</td><td class="py-2 px-3 text-center text-xs">${b.checkin_date||'—'}</td><td class="py-2 px-3 text-center text-xs">${b.checkout_date||'—'}</td><td class="py-2 px-3 text-right font-black">${fmt(b.total_price)}</td><td class="py-2 px-3 text-center"><span class="text-xs font-bold ${b.status==='confirmed'?'text-green-600':'text-yellow-600'}">${b.status||'—'}</span></td></tr>`).join('')||'<tr><td colspan="5" class="py-4 text-center text-gray-400">Sem reservas no período</td></tr>'}</tbody></table>
     </div>`;
 
     document.getElementById('fsActions').classList.remove('hidden');
@@ -208,7 +208,7 @@ export async function renderFechamentoSemanal(container){
     (r.funcsData||[]).forEach(f=>{csv+=`${f.nome};${f.cargo};${Number(f.diaria||0).toFixed(2)}\n`});
 
     csv+=`\nCHALÉS\nHóspede;Check-in;Check-out;Total;Status\n`;
-    (r.bookingsData||[]).forEach(b=>{csv+=`${b.guest_name||b.name||''};${b.check_in||''};${b.check_out||''};${Number(b.total_price||0).toFixed(2)};${b.status||''}\n`});
+    (r.bookingsData||[]).forEach(b=>{csv+=`${b.guest_name||b.name||''};${b.checkin_date||''};${b.checkout_date||''};${Number(b.total_price||0).toFixed(2)};${b.status||''}\n`});
 
     const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
     const url=URL.createObjectURL(blob);
