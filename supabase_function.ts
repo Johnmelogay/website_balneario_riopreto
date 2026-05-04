@@ -67,6 +67,8 @@ Deno.serve(async (req) => {
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const geminiData = await geminiResp.json();
+        console.log("Gemini status:", geminiResp.status);
+        console.log("Gemini data:", JSON.stringify(geminiData));
 
         // PARSE AI
         const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";

@@ -151,7 +151,7 @@ window.loadModule = (key) => {
             break;
         case 'pdv':
             subEl.textContent = 'Lançamento rápido (Contingência)';
-            import('./sistema_mods_2.js').then(m => m.renderPDV(content));
+            import('./sistema_mods_pdv.js').then(m => m.renderPDV(content));
             break;
         case 'portaria':
             subEl.textContent = 'Registro de visitantes e Day Use';
@@ -168,6 +168,23 @@ window.loadModule = (key) => {
             break;
         default:
             content.innerHTML = '<p class="text-gray-500 p-10 text-center">Módulo em desenvolvimento</p>';
+    }
+    // Auto-close sidebar on mobile after clicking a link
+    const sidebar = document.getElementById('sysSidebar');
+    if(sidebar && !sidebar.classList.contains('-translate-x-full')) {
+        window.toggleSidebar();
+    }
+};
+
+window.toggleSidebar = () => {
+    const sidebar = document.getElementById('sysSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if(sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
     }
 };
 

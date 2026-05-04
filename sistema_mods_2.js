@@ -183,17 +183,7 @@ window.fecharCaixa = async (sessId) => {
     else loadModule('fechamento');
 };
 
-// ====== MODULE: PDV ======
-function renderPDV(container) {
-    container.innerHTML = `
-        <div class="p-10 text-center bg-white rounded-2xl border border-gray-100 anim-fade">
-            <i class="fa-solid fa-mobile-screen-button text-6xl text-emerald-200 mb-4"></i>
-            <h2 class="text-xl font-black text-gray-800">Contingência / Balcão</h2>
-            <p class="text-gray-500 font-medium">Use a versão mobile <a href="garcom.html" target="_blank" class="text-emerald-600 underline font-bold">garcom.html</a> para enviar pedidos para a cozinha/bar.</p>
-             <p class="text-xs text-gray-400 mt-4">(Tela de PDV Desktop nativa agendada para v2.1)</p>
-        </div>
-    `;
-}
+
 
 // ====== MODULE: FECHAMENTO (Relatório Geral do Dia) ======
 async function renderFechamento(container) {
@@ -366,4 +356,4 @@ async function renderFechamento(container) {
     `;
 }
 
-export { renderPortaria, renderCaixa, renderPDV, renderFechamento };
+export { renderPortaria, renderCaixa, renderFechamento };
