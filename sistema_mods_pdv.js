@@ -164,8 +164,8 @@ export async function renderPDV(container) {
         renderProducts();
     });
 
-    document.getElementById('dinheiroReceived').addEventListener('input', calculateTroco);
-    document.getElementById('paymentAttachment').addEventListener('change', handleAttachmentPreview);
+    document.getElementById('dinheiroReceived').addEventListener('input', window.calculateTroco);
+    document.getElementById('paymentAttachment').addEventListener('change', window.handleAttachmentPreview);
 
     await loadData();
     updateCartUI();
@@ -219,7 +219,7 @@ function renderProducts() {
         const outOfStock = p.is_stock_controlled && p.stock_qty <= 0;
         
         return `
-            <div onclick="${outOfStock ? '' : 'window.addPdvCart(\\'' + p.id + '\\')'}" class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full relative overflow-hidden active:scale-[0.98] transition ${outOfStock ? 'opacity-50 grayscale cursor-not-allowed' : 'cursor-pointer'}">
+            <div onclick="${outOfStock ? '' : "window.addPdvCart('" + p.id + "')"}" class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full relative overflow-hidden active:scale-[0.98] transition ${outOfStock ? 'opacity-50 grayscale cursor-not-allowed' : 'cursor-pointer'}">
                 ${outOfStock ? '<div class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full z-10">ESGOTADO</div>' : ''}
                 ${lowStock && !outOfStock ? '<div class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full z-10">BAIXO</div>' : ''}
                 
@@ -459,7 +459,7 @@ window.confirmPayment = async () => {
         let receiptUrl = null;
         if(paymentMethod !== 'dinheiro' && currentReceiptFile) {
             const ext = currentReceiptFile.name.split('.').pop();
-            const fileName = \`receipt_\${Date.now()}.\${ext}\`;
+            const fileName = `receipt_${Date.now()}.${ext}`;
             
             const { error } = await supabase.storage
                 .from('receipts')
@@ -531,7 +531,7 @@ async function submitOrder(destination, paymentStatus, orderStatus, method, rece
                     quantity: c.qty,
                     previous_qty: c.product.stock_qty,
                     new_qty: newQty,
-                    reason: \`PDV - Pedido #\${order.order_number}\`,
+                    reason: `PDV - Pedido #${order.order_number}`,
                     order_id: order.id,
                     staff_id: staff.id
                 });
