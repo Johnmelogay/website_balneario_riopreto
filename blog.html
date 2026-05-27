@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Blog do Rio Preto | Balneário Rio Preto</title>
+    <link rel="icon" type="image/webp" href="images/logo_opt.webp">
+    <link rel="canonical" href="https://balnearioriopreto.com.br/blog.html" />
+    <meta name="description" content="Leia notícias, guias de turismo e dicas de viagem sobre Porto Velho, Candeias do Jamari e o Balneário Rio Preto." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4663305908223205"
+         crossorigin="anonymous"></script>
+
+    <!-- Scripts & CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+</head>
+
+<body class="bg-gray-50 text-text-dark font-sans">
+
+    <!-- Navbar -->
+    <div id="navbar-container"></div>
+    <script src="navbar.js" defer></script>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <span
+                class="inline-block bg-orange-100 text-accent-orange px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">Notícias & Dicas</span>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Blog Rio Preto</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">Confira nosso guia de ecoturismo, pontos turísticos de Porto Velho, dicas de pesca esportiva e muito mais.</p>
+        </div>
+    </header>
+
+    <!-- Blog Grid -->
+    <main class="max-w-7xl mx-auto px-4 py-16">
+        <div id="blog-loading" class="text-center py-20">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-accent-orange mb-4"></i>
+            <p class="text-gray-500">Carregando matérias...</p>
+        </div>
+
+        <div id="blog-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Items injected by blog.js -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-container"></div>
+    <script src="footer.js"></script>
+
+    <!-- Logic -->
+    <script type="module" src="blog.js"></script>
+</body>
+
+</html>
