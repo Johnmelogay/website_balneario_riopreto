@@ -157,9 +157,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                    class="mb-4 max-h-[420px] w-full rounded-xl object-cover">
             </figure>
 
+            <!-- Bloco de Anúncio de Artigo (Superior) -->
+            <div class="px-4 md:px-8 my-6">
+              <div class="text-[10px] text-gray-400 uppercase tracking-widest text-center mb-2">Publicidade</div>
+              <div class="min-h-[90px] w-full flex justify-center bg-gray-50/50 py-2 rounded-xl">
+                <ins class="adsbygoogle"
+                     style="display:block; width:100%;"
+                     data-ad-client="ca-pub-4663305908223205"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+              </div>
+            </div>
+
             <div class="px-4 pb-8 pt-2 md:px-8 md:pb-10">
               <div class="space-y-4 leading-relaxed text-gray-800">
                 ${data.content || ''}
+              </div>
+            </div>
+
+            <!-- Bloco de Anúncio de Artigo (Inferior) -->
+            <div class="px-4 md:px-8 my-6">
+              <div class="text-[10px] text-gray-400 uppercase tracking-widest text-center mb-2">Publicidade</div>
+              <div class="min-h-[90px] w-full flex justify-center bg-gray-50/50 py-2 rounded-xl">
+                <ins class="adsbygoogle"
+                     style="display:block; width:100%;"
+                     data-ad-client="ca-pub-4663305908223205"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
               </div>
             </div>
           </section>
@@ -176,6 +200,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         loadingEl.classList.add('hidden');
         contentEl.classList.remove('hidden');
+
+        // Inicializar anúncios do AdSense
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+            console.error("AdSense Push Error:", e);
+        }
 
         // Update SEO
         document.title = `${data.title} | Balneário Rio Preto`;
