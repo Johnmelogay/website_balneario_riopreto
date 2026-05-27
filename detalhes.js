@@ -180,6 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Update SEO
         document.title = `${data.title} | Balneário Rio Preto`;
         document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || data.title);
+        document.getElementById('canonical-link')?.setAttribute('href', `https://balnearioriopreto.com.br/detalhes.html?slug=${data.slug}`);
 
         // Setup share listeners
         setupShareListeners(data.title, data.cover_image_url);
