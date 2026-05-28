@@ -1094,9 +1094,14 @@ btnShareStory.addEventListener('click', async () => {
     }
 
     if (checkinPhotos.length === 0) {
-      hideLoading();
-      showToast('Nenhum check-in com foto encontrado.', 'warning');
-      return;
+      // Fallback: Use the logo image so the user can still share a card even with 0 check-ins
+      if (logoImg) {
+        checkinPhotos.push({ img: logoImg, type: 'lazer' });
+      } else {
+        hideLoading();
+        showToast('Nenhum check-in com foto encontrado.', 'warning');
+        return;
+      }
     }
 
     setLoadingText('Montando card...');
