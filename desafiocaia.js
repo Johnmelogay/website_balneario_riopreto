@@ -804,3 +804,19 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
+// ─── Early Geolocation Prompt on Page Load ───
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      console.log('[Early Geolocation] Permissão concedida:', pos.coords.latitude, pos.coords.longitude);
+    },
+    (err) => {
+      console.warn('[Early Geolocation] Permissão negada ou indisponível:', err.message);
+      if (err.code === 1) {
+        showToast('⚠️ Ative a permissão de localização para participar do desafio.', 'warning');
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
