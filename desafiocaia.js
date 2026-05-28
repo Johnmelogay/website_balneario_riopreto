@@ -1178,7 +1178,7 @@ btnShareStory.addEventListener('click', async () => {
   try {
     // 1. Load all static assets in parallel
     const [bgImg, logoImg] = await Promise.all([
-      loadImg('images/PROMO CAIA.webp'),
+      loadImg('images/PROMO CAIA.png'),
       loadImg('images/logo_opt.webp')
     ]);
 
