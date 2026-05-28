@@ -144,12 +144,6 @@ async function loadUserData() {
     statCheckins.textContent = currentUserData.totalCheckins || 0;
     userStreakDisplay.innerHTML = `🔥 <span>${currentUserData.streakCount || 0}</span> dias`;
 
-    // Update story card
-    const storyName = $('#story-user-name');
-    const storyStreak = $('#story-streak-count');
-    if (storyName) storyName.textContent = currentUser.displayName || 'Visitante';
-    if (storyStreak) storyStreak.textContent = `🔥 ${currentUserData.streakCount || 0} dias seguidos`;
-
     // Calculate rank
     await updateRank();
   }
@@ -681,82 +675,206 @@ btnShareStory.addEventListener('click', async () => {
 
   showLoading('Gerando seu card...');
 
-  const storyCard = $('#story-export-card');
-  const storyPhotoStack = $('#story-photo-stack');
-  storyPhotoStack.innerHTML = '';
+  const W = 1080, H = 1920;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
 
-  // Fetch up to 3 latest check-in photos to stack them
-  try {
-    const q = query(
-      collection(db, 'checkins'),
-      where('userId', '==', currentUser.uid),
-      orderBy('timestamp', 'desc'),
-      limit(3)
-    );
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      const loadPromises = snap.docs.map((docSnap, i) => {
-        const checkin = docSnap.data();
-        const frame = document.createElement('div');
-        frame.className = `story-photo-frame stack-${i}`;
-        const img = document.createElement('img');
-        img.crossOrigin = 'anonymous';
-        img.src = checkin.photoUrl;
-        frame.appendChild(img);
-        storyPhotoStack.appendChild(frame);
-
-        return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve; // continue even if loading fails
-          if (img.complete) resolve();
-        });
-      });
-      await Promise.all(loadPromises);
-    } else {
-      hideLoading();
-      showToast('Nenhum check-in encontrado para compartilhar.', 'warning');
-      return;
-    }
-  } catch (err) {
-    console.warn('Could not load photos for story:', err);
+  // --- Helper: load image ---
+  function loadImg(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => { console.warn('[Story] Failed to load:', src); resolve(null); };
+      img.src = src;
+    });
   }
 
-  // Temporarily position card on-screen for html2canvas
-  storyCard.style.left = '0';
-  storyCard.style.top = '0';
-  storyCard.style.position = 'fixed';
-  storyCard.style.zIndex = '-1';
-  storyCard.style.opacity = '1';
+  // --- Helper: draw image with "cover" behaviour ---
+  function drawCover(img, x, y, w, h) {
+    if (!img) return;
+    const iR = img.width / img.height;
+    const bR = w / h;
+    let sx = 0, sy = 0, sw = img.width, sh = img.height;
+    if (iR > bR) { sw = img.height * bR; sx = (img.width - sw) / 2; }
+    else { sh = img.width / bR; sy = (img.height - sh) / 2; }
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
 
-  // Small delay to ensure DOM is painted before capture
-  await new Promise(r => setTimeout(r, 500));
+  // --- Helper: draw image with "contain" behaviour ---
+  function drawContain(img, x, y, w, h) {
+    if (!img) return;
+    const iR = img.width / img.height;
+    const bR = w / h;
+    let dw, dh, dx, dy;
+    if (iR > bR) { dw = w; dh = w / iR; dx = x; dy = y + (h - dh) / 2; }
+    else { dh = h; dw = h * iR; dy = y; dx = x + (w - dw) / 2; }
+    ctx.drawImage(img, dx, dy, dw, dh);
+  }
+
+  // --- Helper: draw rotated polaroid ---
+  function drawPolaroid(img, cx, cy, size, angle) {
+    if (!img) return;
+    const pad = 14;
+    const bottomPad = 56;
+    const totalW = size + pad * 2;
+    const totalH = size + pad + bottomPad;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle * Math.PI / 180);
+    // Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 10;
+    // White polaroid background
+    ctx.fillStyle = '#fdfbf7';
+    ctx.fillRect(-totalW / 2, -totalH / 2, totalW, totalH);
+    ctx.shadowColor = 'transparent';
+    // Photo
+    drawCover(img, -totalW / 2 + pad, -totalH / 2 + pad, size, size);
+    ctx.restore();
+  }
 
   try {
-    console.log('[Story] Starting html2canvas render...');
-    const canvas = await html2canvas(storyCard, {
-      width: 1080,
-      height: 1920,
-      scale: 1,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#0a1f14',
-      logging: true
-    });
-    console.log('[Story] html2canvas render complete. Canvas size:', canvas.width, 'x', canvas.height);
+    // 1. Load all static assets in parallel
+    const [bgImg, bannerImg, logoImg] = await Promise.all([
+      loadImg('images/peopleplaying_thumbnail.webp'),
+      loadImg('images/seurefugiodepraiaemrondonia_campainimage.png'),
+      loadImg('images/logo_opt.webp')
+    ]);
 
-    // Reset position
-    storyCard.style.left = '-9999px';
-    storyCard.style.zIndex = '';
+    // 2. Load user's check-in photos (up to 3)
+    let checkinPhotos = [];
+    try {
+      const q = query(
+        collection(db, 'checkins'),
+        where('userId', '==', currentUser.uid),
+        orderBy('timestamp', 'desc'),
+        limit(3)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const photoPromises = snap.docs.map(d => loadImg(d.data().photoUrl));
+        checkinPhotos = await Promise.all(photoPromises);
+        checkinPhotos = checkinPhotos.filter(Boolean);
+      }
+    } catch (err) {
+      console.warn('[Story] Error fetching checkins:', err);
+    }
 
+    if (checkinPhotos.length === 0) {
+      hideLoading();
+      showToast('Nenhum check-in com foto encontrado.', 'warning');
+      return;
+    }
+
+    setLoadingText('Montando card...');
+
+    // ========== DRAW THE CARD ==========
+
+    // A) Dark green solid background
+    ctx.fillStyle = '#0a1f14';
+    ctx.fillRect(0, 0, W, H);
+
+    // B) Background photo (semi-transparent, darkened)
+    if (bgImg) {
+      ctx.globalAlpha = 0.25;
+      drawCover(bgImg, 0, 0, W, H);
+      ctx.globalAlpha = 1.0;
+    }
+
+    // C) Dark gradient overlay
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(10, 31, 20, 0.2)');
+    grad.addColorStop(0.35, 'rgba(10, 31, 20, 0.6)');
+    grad.addColorStop(1, 'rgba(10, 31, 20, 0.95)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // D) Campaign banner at the top (contain-fit, centered)
+    const bannerH = 500;
+    if (bannerImg) {
+      drawContain(bannerImg, 0, 0, W, bannerH);
+    }
+
+    // E) Photo stack (polaroids) — center of card
+    const stackCenterY = bannerH + 380;
+    const photoSize = 380;
+    if (checkinPhotos.length >= 3) {
+      drawPolaroid(checkinPhotos[2], W / 2 + 35, stackCenterY + 20, photoSize, 7);
+    }
+    if (checkinPhotos.length >= 2) {
+      drawPolaroid(checkinPhotos[1], W / 2 - 25, stackCenterY - 10, photoSize, -5);
+    }
+    drawPolaroid(checkinPhotos[0], W / 2, stackCenterY, photoSize, 1.5);
+
+    // F) User name
+    const nameY = stackCenterY + photoSize / 2 + 120;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 52px Lexend, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 12;
+    ctx.fillText(currentUser.displayName || 'Visitante', W / 2, nameY);
+    ctx.shadowColor = 'transparent';
+
+    // G) Streak badge
+    const streakCount = currentUserData.streakCount || 0;
+    const streakText = `🔥 ${streakCount} dias seguidos`;
+    ctx.font = '800 38px Lexend, sans-serif';
+    const tm = ctx.measureText(streakText);
+    const badgeW = tm.width + 100;
+    const badgeH = 80;
+    const badgeY = nameY + 40;
+
+    // Badge background
+    ctx.fillStyle = 'rgba(46, 125, 50, 0.4)';
+    const badgeX = W / 2 - badgeW / 2;
+    const br = 999;
+    ctx.beginPath();
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, br);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Badge text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 38px Lexend, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(streakText, W / 2, badgeY + 54);
+
+    // H) Brand footer
+    const brandY = H - 160;
+    if (logoImg) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(W / 2, brandY, 40, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(logoImg, W / 2 - 40, brandY - 40, 80, 80);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 30px Lexend, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Desafio CAIA', W / 2, brandY + 65);
+    ctx.font = '400 24px Lexend, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('@balneario_riopreto', W / 2, brandY + 100);
+    ctx.globalAlpha = 1.0;
+
+    // ========== EXPORT ==========
     canvas.toBlob(async (blob) => {
       hideLoading();
-
       if (!blob) {
         showToast('Erro ao gerar imagem.', 'error');
         return;
       }
 
-      console.log('[Story] Blob generated:', blob.size, 'bytes');
+      console.log('[Story] Card generated:', blob.size, 'bytes');
       const file = new File([blob], 'desafio-caia-story.png', { type: 'image/png' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -772,17 +890,15 @@ btnShareStory.addEventListener('click', async () => {
           }
         }
       } else {
-        // Fallback: download the image
         downloadBlob(blob, 'desafio-caia-story.png');
         showToast('Imagem salva! Compartilhe nos Stories 📱', 'success');
       }
     }, 'image/png');
 
   } catch (err) {
-    storyCard.style.left = '-9999px';
     hideLoading();
     showToast('Erro ao gerar card.', 'error');
-    console.error('html2canvas error:', err);
+    console.error('[Story] Error:', err);
   }
 });
 

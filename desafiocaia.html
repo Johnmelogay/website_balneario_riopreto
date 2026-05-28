@@ -31,8 +31,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@4.1.0/dist/nsfwjs.min.js" defer></script>
 
-    <!-- html2canvas (for Story Export) -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
 
     <!-- Desafio CSS -->
     <link rel="stylesheet" href="desafiocaia.css">
@@ -192,36 +190,7 @@
     <!-- ═══════════════════════════════════════ -->
     <!-- STORY EXPORT CARD (Hidden, rendered by html2canvas) -->
     <!-- ═══════════════════════════════════════ -->
-    <div id="story-export-card">
-        <!-- Background Image (actual img tag for html2canvas compatibility) -->
-        <img class="story-bg-image" src="images/hero-image.webp" alt="">
-        <div class="story-bg-overlay"></div>
-
-        <!-- Campaign Banner at the Top -->
-        <img class="story-campaign-banner" src="images/seurefugiodepraiaemrondonia_campainimage.png" alt="Campanha">
-
-        <div class="story-content">
-            <!-- Photo Stack (dynamic — populated by JS) -->
-            <div id="story-photo-stack" class="story-photo-stack">
-            </div>
-
-            <!-- User Info -->
-            <div id="story-user-name" class="story-user-name">Visitante</div>
-
-            <!-- Streak Badge -->
-            <div class="story-streak-badge">
-                <span class="fire">🔥</span>
-                <span id="story-streak-count">0 dias seguidos</span>
-            </div>
-        </div>
-
-        <!-- Brand Footer -->
-        <div class="story-brand">
-            <img class="story-brand-logo" src="images/logo_opt.webp" alt="Logo">
-            <div class="story-brand-text">Desafio CAIA</div>
-            <div class="story-brand-handle">@balneario_riopreto</div>
-        </div>
-    </div>
+    <div id="story-export-card"></div>
 
     <!-- ═══════════════════════════════════════ -->
     <!-- MAIN SCRIPT (Module) -->

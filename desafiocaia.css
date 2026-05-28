@@ -465,13 +465,15 @@ body.desafio-body {
   gap: 0.3rem;
 }
 
-/* --- STORY EXPORT CARD --- */
+/* --- STORY EXPORT CARD (hidden off-screen, rendered via Canvas API) --- */
 #story-export-card {
   width: 1080px;
   height: 1920px;
   position: fixed;
   left: -9999px;
-  top: 0;
+  top: -9999px;
+  visibility: hidden;
+  pointer-events: none;
   background: #0a1f14;
   overflow: hidden;
   font-family: 'Lexend', sans-serif;
@@ -480,138 +482,6 @@ body.desafio-body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-}
-
-/* Background image — uses <img> tag for html2canvas compatibility */
-.story-bg-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1080px;
-  height: 1920px;
-  object-fit: cover;
-  opacity: 0.35;
-  z-index: 0;
-}
-.story-bg-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1080px;
-  height: 1920px;
-  background: linear-gradient(180deg, rgba(10, 31, 20, 0.3) 0%, rgba(10, 31, 20, 0.7) 40%, rgba(10, 31, 20, 0.95) 100%);
-  z-index: 1;
-}
-
-/* Campaign banner at top */
-.story-campaign-banner {
-  position: relative;
-  width: 1080px;
-  height: 550px;
-  object-fit: cover;
-  object-position: center;
-  z-index: 2;
-  border-bottom: 8px solid #2E7D32;
-}
-
-/* Main content area */
-.story-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 50px 60px 30px 60px;
-  width: 100%;
-  flex: 1;
-}
-
-/* Photo Stack */
-.story-photo-stack {
-  position: relative;
-  width: 620px;
-  height: 560px;
-  margin-bottom: 40px;
-}
-.story-photo-frame {
-  width: 460px;
-  height: 460px;
-  position: absolute;
-  top: 50px;
-  left: 80px;
-  background: #fdfbf7;
-  padding: 14px 14px 60px 14px;
-  border-radius: 4px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  transform-origin: center center;
-}
-.story-photo-frame.stack-2 {
-  z-index: 1;
-  transform: rotate(7deg) translate(30px, 15px);
-}
-.story-photo-frame.stack-1 {
-  z-index: 2;
-  transform: rotate(-5deg) translate(-20px, -10px);
-}
-.story-photo-frame.stack-0 {
-  z-index: 3;
-  transform: rotate(1.5deg);
-}
-.story-photo-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* User name */
-.story-user-name {
-  font-size: 52px;
-  font-weight: 800;
-  margin-bottom: 16px;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-/* Streak badge — no backdrop-filter for html2canvas compat */
-.story-streak-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  padding: 22px 52px;
-  border-radius: 999px;
-  background: rgba(46, 125, 50, 0.35);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  font-size: 40px;
-  font-weight: 800;
-}
-.story-streak-badge .fire { font-size: 52px; }
-
-/* Brand footer */
-.story-brand {
-  position: absolute;
-  bottom: 70px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  opacity: 0.8;
-}
-.story-brand-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-}
-.story-brand-text {
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-.story-brand-handle {
-  font-size: 24px;
-  color: rgba(255, 255, 255, 0.5);
 }
 
 /* --- SHARE BUTTON --- */
