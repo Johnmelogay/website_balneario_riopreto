@@ -28,6 +28,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Register Service Worker for PWA support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[PWA] Service Worker registrado com sucesso:', reg.scope))
+      .catch(err => console.error('[PWA] Falha ao registrar Service Worker:', err));
+  });
+}
+
 // ─── Constants ───
 const CHECKIN_LOCATIONS = [
   { name: "CAIA", lat: -8.749146418212684, lng: -63.893858557669994 },
@@ -72,6 +81,9 @@ const btnFeedback = $('#btn-feedback');
 const btnOpenRules = $('#btn-open-rules');
 const btnCloseRules = $('#btn-close-rules');
 const rulesModal = $('#rules-modal');
+const btnInstallLanding = $('#btn-install-pwa-landing');
+const btnInstallApp = $('#btn-install-pwa-app');
+const pwaInstallModal = $('#pwa-install-modal');
 
 // Onboarding elements
 const onboardingScreen = $('#onboarding-screen');
@@ -411,6 +423,100 @@ if (btnOpenRules && rulesModal) {
 if (btnCloseRules && rulesModal) {
   btnCloseRules.addEventListener('click', () => {
     rulesModal.style.display = 'none';
+  });
+}
+
+// --- PWA Installation Flow ---
+let deferredPrompt = null;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showPwaInstallButtons();
+});
+
+window.addEventListener('appinstalled', () => {
+  hidePwaInstallButtons();
+  deferredPrompt = null;
+});
+
+function showPwaInstallButtons() {
+  if (btnInstallLanding) btnInstallLanding.style.display = 'inline-flex';
+  if (btnInstallApp) btnInstallApp.style.display = 'flex';
+}
+
+function hidePwaInstallButtons() {
+  if (btnInstallLanding) btnInstallLanding.style.display = 'none';
+  if (btnInstallApp) btnInstallApp.style.display = 'none';
+}
+
+// Check on load if not standalone, enable buttons (even without prompt, so they can access the guide modal)
+if (!isStandalone) {
+  showPwaInstallButtons();
+}
+
+const handleInstallClick = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      deferredPrompt = null;
+      hidePwaInstallButtons();
+    }
+  } else {
+    // Show our custom guide modal
+    if (pwaInstallModal) {
+      pwaInstallModal.style.display = 'block';
+      detectAndSelectPwaPlatform();
+    }
+  }
+};
+
+if (btnInstallLanding) btnInstallLanding.addEventListener('click', handleInstallClick);
+if (btnInstallApp) btnInstallApp.addEventListener('click', handleInstallClick);
+
+function detectAndSelectPwaPlatform() {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+    selectPwaPlatform('ios');
+  } else {
+    selectPwaPlatform('android');
+  }
+}
+
+function selectPwaPlatform(platform) {
+  const tabIos = document.getElementById('tab-pwa-ios');
+  const tabAndroid = document.getElementById('tab-pwa-android');
+  const panelIos = document.getElementById('pwa-steps-ios');
+  const panelAndroid = document.getElementById('pwa-steps-android');
+
+  if (!tabIos || !tabAndroid || !panelIos || !panelAndroid) return;
+
+  if (platform === 'ios') {
+    tabIos.classList.add('active');
+    tabAndroid.classList.remove('active');
+    panelIos.style.display = 'block';
+    panelAndroid.style.display = 'none';
+  } else {
+    tabAndroid.classList.add('active');
+    tabIos.classList.remove('active');
+    panelAndroid.style.display = 'block';
+    panelIos.style.display = 'none';
+  }
+}
+
+// Platform tab click handlers inside modal
+const tabIos = document.getElementById('tab-pwa-ios');
+const tabAndroid = document.getElementById('tab-pwa-android');
+if (tabIos) tabIos.addEventListener('click', () => selectPwaPlatform('ios'));
+if (tabAndroid) tabAndroid.addEventListener('click', () => selectPwaPlatform('android'));
+
+// Close handler
+const btnClosePwa = document.getElementById('btn-close-pwa');
+if (btnClosePwa && pwaInstallModal) {
+  btnClosePwa.addEventListener('click', () => {
+    pwaInstallModal.style.display = 'none';
   });
 }
 

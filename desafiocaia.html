@@ -9,6 +9,14 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Faça check-in no Balneário Rio Preto, acumule dias seguidos de pós-treino e concorra a prêmios!">
 
+    <!-- PWA Configurations -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pós Treino">
+    <link rel="apple-touch-icon" href="images/logo_opt.png">
+    <meta name="theme-color" content="#10b981">
+
     <!-- Open Graph -->
     <meta property="og:title" content="Pós Treino — Balneário Rio Preto">
     <meta property="og:description" content="📸 Participe do Pós Treino! Faça check-in, acumule sequência e concorra a prêmios!">
@@ -107,6 +115,50 @@
         </button>
     </div>
 
+    <!-- PWA INSTALL TUTORIAL MODAL -->
+    <div id="pwa-install-modal" class="preview-modal" style="display: none; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto;">
+        <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            📲 Instalar no Celular
+        </h3>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">
+            Adicione o <strong>Pós Treino Balneário Rio Preto</strong> à sua tela inicial para acessar instantaneamente com ícone próprio e carregamento rápido, igual a um aplicativo!
+        </p>
+
+        <!-- Tab selector inside modal: iOS vs Android -->
+        <div class="pwa-platform-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 0.5rem;">
+            <button id="tab-pwa-ios" class="pwa-platform-tab active" style="flex: 1; padding: 0.5rem; border: none; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; background: transparent;">
+                <i class="fa-brands fa-apple" style="font-size: 1rem;"></i> iPhone (iOS)
+            </button>
+            <button id="tab-pwa-android" class="pwa-platform-tab" style="flex: 1; padding: 0.5rem; border: none; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; background: transparent;">
+                <i class="fa-brands fa-android" style="font-size: 1rem;"></i> Android
+            </button>
+        </div>
+
+        <!-- iOS Steps -->
+        <div id="pwa-steps-ios" class="pwa-steps-panel">
+            <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
+                <li>Abra este site no navegador <strong>Safari</strong> (padrão do iPhone).</li>
+                <li>Toque no botão de <strong>Compartilhar</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-arrow-up-from-bracket"></i></span> na barra inferior do Safari.</li>
+                <li>No menu que abrir, role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-square-plus"></i></span>.</li>
+                <li>Altere o nome se desejar e toque em <strong>"Adicionar"</strong> no canto superior direito.</li>
+            </ol>
+        </div>
+
+        <!-- Android Steps -->
+        <div id="pwa-steps-android" class="pwa-steps-panel" style="display: none;">
+            <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
+                <li>Abra este site no navegador <strong>Google Chrome</strong>.</li>
+                <li>Toque nos <strong>três pontinhos</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-ellipsis-vertical"></i></span> no canto superior direito do Chrome.</li>
+                <li>Selecione a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à Tela Inicial"</strong>.</li>
+                <li>Confirme a instalação clicando em <strong>"Instalar"</strong> na janela que aparecer.</li>
+            </ol>
+        </div>
+
+        <button id="btn-close-pwa" class="btn-confirm" style="width: 100%; justify-content: center; margin-top: 1.5rem; margin-bottom: 0;">
+            Entendi
+        </button>
+    </div>
+
     <!-- ═══════════════════════════════════════ -->
     <!-- HIDDEN CAMERA INPUT -->
     <!-- ═══════════════════════════════════════ -->
@@ -152,6 +204,9 @@
                         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                     </svg>
                     Participar com Google
+                </button>
+                <button id="btn-install-pwa-landing" class="btn-install-pwa-landing" style="display: none;">
+                    <i class="fa-solid fa-mobile-screen-button"></i> Instalar Aplicativo
                 </button>
                 <p class="login-footer-text">
                     Ao participar, você concorda com os <a href="termos.html">termos de uso</a>.
@@ -210,9 +265,14 @@
                         <div id="user-streak" class="user-streak">🔥 <span>0</span> dias</div>
                     </div>
                 </div>
-                <button id="btn-logout" class="btn-logout" title="Sair">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button id="btn-install-pwa-app" class="btn-install-pwa-header" style="display: none;" title="Instalar App">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                    <button id="btn-logout" class="btn-logout" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- STREAK STATS -->
