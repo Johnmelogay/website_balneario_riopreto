@@ -410,7 +410,7 @@ btnFeedback.addEventListener('click', () => {
     return;
   }
   
-  const formattedText = `Olá Balneário Rio Preto, meu nome é ${currentName}. Gostaria de enviar o seguinte feedback/report sobre o Desafio CAIA:\n\n"${trimmed}"`;
+  const formattedText = `Olá Balneário Rio Preto, meu nome é ${currentName}. Gostaria de enviar o seguinte feedback/report sobre o Movimento Pós Treino:\n\n"${trimmed}"`;
   const whatsappUrl = `https://wa.me/5569993129559?text=${encodeURIComponent(formattedText)}`;
   window.open(whatsappUrl, '_blank');
 });
@@ -1179,7 +1179,7 @@ btnShareStory.addEventListener('click', async () => {
     ctx.fillStyle = '#ffffff';
     ctx.font = '700 30px Lexend, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Desafio CAIA', W / 2, brandY + 65);
+    ctx.fillText('Movimento Pós Treino', W / 2, brandY + 65);
     ctx.font = '400 24px Lexend, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillText('@balneario_riopreto', W / 2, brandY + 100);
@@ -1194,22 +1194,22 @@ btnShareStory.addEventListener('click', async () => {
       }
 
       console.log('[Story] Card generated:', blob.size, 'bytes');
-      const file = new File([blob], 'desafio-caia-story.png', { type: 'image/png' });
+      const file = new File([blob], 'pos-treino-story.png', { type: 'image/png' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
             files: [file],
-            title: 'Desafio CAIA — Balneário Rio Preto',
-            text: '🔥 Minha sequência no Desafio CAIA! @balneario_riopreto #DesafioCAIA'
+            title: 'Movimento Pós Treino — Balneário Rio Preto',
+            text: '🔥 Minha sequência no Movimento Pós Treino! @balneario_riopreto #PosTreinoRioPreto'
           });
         } catch (shareErr) {
           if (shareErr.name !== 'AbortError') {
-            downloadBlob(blob, 'desafio-caia-story.png');
+            downloadBlob(blob, 'pos-treino-story.png');
           }
         }
       } else {
-        downloadBlob(blob, 'desafio-caia-story.png');
+        downloadBlob(blob, 'pos-treino-story.png');
         showToast('Imagem salva! Compartilhe nos Stories 📱', 'success');
       }
     }, 'image/png');
