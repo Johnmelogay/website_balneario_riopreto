@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Desafio CAIA — Balneário Rio Preto</title>
+    <link rel="icon" type="image/webp" href="images/logo_opt.webp">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Faça check-in no Balneário Rio Preto, acumule dias seguidos e concorra a prêmios!">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Desafio CAIA — Balneário Rio Preto">
+    <meta property="og:description" content="📸 Faça check-in, acumule sequência e concorra a prêmios!">
+    <meta property="og:image" content="https://balnearioriopreto.com.br/images/hero-image.webp">
+    <meta property="og:type" content="website">
+
+    <!-- Tailwind CSS & Theme (Matching main site) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+
+    <!-- Google Fonts: Lexend -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- TensorFlow.js + nsfwjs (for client-side NSFW detection) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/nsfwjs@4.1.0/dist/nsfwjs.min.js" defer></script>
+
+    <!-- html2canvas (for Story Export) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+
+    <!-- Desafio CSS -->
+    <link rel="stylesheet" href="desafiocaia.css">
+</head>
+
+<body class="desafio-body font-sans">
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- TOAST CONTAINER -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- LOADING OVERLAY -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text" class="loading-text">Carregando...</div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- PREVIEW MODAL (Photo confirmation) -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="preview-modal" class="preview-modal">
+        <p style="color: var(--caia-text-muted); font-weight: 600; font-size: 0.9rem;">Sua foto ficou boa?</p>
+        <img id="preview-img" src="" alt="Preview">
+        <div class="preview-actions">
+            <button id="btn-cancel-upload" class="btn-cancel">
+                <i class="fa-solid fa-xmark"></i> Cancelar
+            </button>
+            <button id="btn-confirm-upload" class="btn-confirm">
+                <i class="fa-solid fa-check"></i> Enviar
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- HIDDEN CAMERA INPUT -->
+    <!-- ═══════════════════════════════════════ -->
+    <input type="file" accept="image/*" capture="environment" id="cameraInput" class="hidden">
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- LOGIN SCREEN -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="login-screen">
+        <img src="images/logo_opt.webp" alt="Balneário Rio Preto" class="login-logo">
+
+        <div>
+            <h1 class="login-title">Desafio CAIA</h1>
+            <p style="color: rgba(255,255,255,0.35); font-size: 0.8rem; margin-top: 0.25rem; letter-spacing: 0.1em; text-transform: uppercase;">
+                Balneário Rio Preto
+            </p>
+        </div>
+
+        <p class="login-subtitle">
+            📸 Faça check-in com foto todos os dias e acumule a maior sequência!
+            Concorra a prêmios e compartilhe nos Stories.
+        </p>
+
+        <button id="btn-google-login" class="btn-google">
+            <svg width="22" height="22" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Entrar com Google
+        </button>
+
+        <p style="color: rgba(255,255,255,0.2); font-size: 0.7rem; max-width: 260px; line-height: 1.5;">
+            Ao continuar, você concorda com os
+            <a href="termos.html" style="color: rgba(255,255,255,0.4); text-decoration: underline;">termos de uso</a>.
+        </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- APP SCREEN (Authenticated) -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="app-screen" class="hidden">
+        <div class="screen-container">
+
+            <!-- HEADER -->
+            <div class="desafio-header">
+                <div class="user-info">
+                    <img id="user-avatar" class="user-avatar" src="images/logo_opt.webp" alt="">
+                    <div>
+                        <div id="user-name" class="user-name">Visitante</div>
+                        <div id="user-streak" class="user-streak">🔥 <span>0</span> dias</div>
+                    </div>
+                </div>
+                <button id="btn-logout" class="btn-logout" title="Sair">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+
+            <!-- STREAK STATS -->
+            <div class="streak-banner glass-card">
+                <div class="streak-stat">
+                    <div id="stat-streak" class="stat-value">0</div>
+                    <div class="stat-label">Sequência</div>
+                </div>
+                <div class="streak-stat">
+                    <div id="stat-checkins" class="stat-value">0</div>
+                    <div class="stat-label">Check-ins</div>
+                </div>
+                <div class="streak-stat">
+                    <div id="stat-rank" class="stat-value">—</div>
+                    <div class="stat-label">Ranking</div>
+                </div>
+            </div>
+
+            <!-- CHECK-IN BUTTON -->
+            <button id="btn-checkin" class="btn-checkin">
+                <i class="fa-solid fa-camera"></i>
+                Fazer Check-in
+            </button>
+
+            <!-- SHARE STORY BUTTON -->
+            <button id="btn-share-story" class="btn-share">
+                <i class="fa-brands fa-instagram"></i>
+                Compartilhar nos Stories
+            </button>
+
+            <!-- TAB NAVIGATION -->
+            <div class="nav-tabs" style="margin-top: 1.5rem;">
+                <button class="nav-tab active" data-tab="mural">
+                    <i class="fa-solid fa-images"></i> Mural
+                </button>
+                <button class="nav-tab" data-tab="ranking">
+                    <i class="fa-solid fa-trophy"></i> Ranking
+                </button>
+            </div>
+
+            <!-- TAB: MURAL -->
+            <div id="tab-mural" class="tab-panel active">
+                <div id="feed-container" class="feed-grid">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Carregando mural...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: RANKING -->
+            <div id="tab-ranking" class="tab-panel">
+                <div id="leaderboard-container" class="leaderboard-list">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Carregando ranking...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- STORY EXPORT CARD (Hidden, rendered by html2canvas) -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="story-export-card">
+        <!-- Background Glows -->
+        <div class="story-bg-glow green"></div>
+        <div class="story-bg-glow blue"></div>
+
+        <div class="story-content">
+            <!-- Photo -->
+            <div class="story-photo-frame">
+                <img id="story-photo" src="images/logo_opt.webp" alt="Check-in" crossorigin="anonymous">
+            </div>
+
+            <!-- User Info -->
+            <div id="story-user-name" class="story-user-name">Visitante</div>
+
+            <!-- Streak Badge -->
+            <div class="story-streak-badge">
+                <span class="fire">🔥</span>
+                <span id="story-streak-count">0 dias seguidos</span>
+            </div>
+        </div>
+
+        <!-- Brand Footer -->
+        <div class="story-brand">
+            <img class="story-brand-logo" src="images/logo_opt.webp" alt="Logo">
+            <div class="story-brand-text">Desafio CAIA</div>
+            <div class="story-brand-handle">@balneario_riopreto</div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- MAIN SCRIPT (Module) -->
+    <!-- ═══════════════════════════════════════ -->
+    <script type="module" src="desafiocaia.js"></script>
+
+</body>
+</html>
