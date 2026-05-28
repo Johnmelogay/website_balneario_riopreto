@@ -761,9 +761,8 @@ btnShareStory.addEventListener('click', async () => {
 
   try {
     // 1. Load all static assets in parallel
-    const [bgImg, bannerImg, logoImg] = await Promise.all([
-      loadImg('images/peopleplaying_thumbnail.webp'),
-      loadImg('images/seurefugiodepraiaemrondonia_campainimage.png'),
+    const [bgImg, logoImg] = await Promise.all([
+      loadImg('images/PROMO CAIA.png'),
       loadImg('images/logo_opt.webp')
     ]);
 
@@ -806,33 +805,16 @@ btnShareStory.addEventListener('click', async () => {
 
     // ========== DRAW THE CARD ==========
 
-    // A) Dark green solid background
-    ctx.fillStyle = '#0a1f14';
-    ctx.fillRect(0, 0, W, H);
-
-    // B) Background photo (semi-transparent, darkened)
+    // A) Background photo
     if (bgImg) {
-      ctx.globalAlpha = 0.25;
       drawCover(bgImg, 0, 0, W, H);
-      ctx.globalAlpha = 1.0;
-    }
-
-    // C) Dark gradient overlay
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, 'rgba(10, 31, 20, 0.2)');
-    grad.addColorStop(0.35, 'rgba(10, 31, 20, 0.6)');
-    grad.addColorStop(1, 'rgba(10, 31, 20, 0.95)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-
-    // D) Campaign banner at the top (contain-fit, centered)
-    const bannerH = 500;
-    if (bannerImg) {
-      drawContain(bannerImg, 0, 0, W, bannerH);
+    } else {
+      ctx.fillStyle = '#0a1f14';
+      ctx.fillRect(0, 0, W, H);
     }
 
     // E) Photo stack (polaroids) — center of card
-    const stackCenterY = bannerH + 380;
+    const stackCenterY = H / 2;
     const photoSize = 380;
     if (checkinPhotos.length >= 3) {
       drawPolaroid(checkinPhotos[2], W / 2 + 35, stackCenterY + 20, photoSize, 7);
