@@ -479,7 +479,16 @@ body.desafio-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+}
+.story-campaign-banner {
+  width: 1080px;
+  height: 600px;
+  object-fit: cover;
+  object-position: center;
+  border-bottom: 6px solid var(--caia-green);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 3;
 }
 .story-bg-glow {
   position: absolute;
@@ -491,7 +500,7 @@ body.desafio-body {
 }
 .story-bg-glow.green {
   background: #2E7D32;
-  top: 10%;
+  top: 35%;
   left: -20%;
 }
 .story-bg-glow.blue {
@@ -507,18 +516,18 @@ body.desafio-body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 80px 60px;
+  padding: 50px 60px;
   width: 100%;
 }
 
 .story-photo-frame {
-  width: 640px;
-  height: 640px;
-  border-radius: 48px;
+  width: 580px;
+  height: 580px;
+  border-radius: 40px;
   overflow: hidden;
   border: 6px solid rgba(255,255,255,0.15);
   box-shadow: 0 20px 80px rgba(0,0,0,0.5);
-  margin-bottom: 80px;
+  margin-bottom: 50px;
 }
 .story-photo-frame img {
   width: 100%;
@@ -527,28 +536,28 @@ body.desafio-body {
 }
 
 .story-user-name {
-  font-size: 56px;
+  font-size: 52px;
   font-weight: 800;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .story-streak-badge {
   display: inline-flex;
   align-items: center;
   gap: 16px;
-  padding: 24px 56px;
+  padding: 20px 48px;
   border-radius: 999px;
   background: rgba(255,255,255,0.08);
   border: 2px solid rgba(255,255,255,0.12);
   backdrop-filter: blur(20px);
-  font-size: 42px;
+  font-size: 38px;
   font-weight: 800;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 .story-streak-badge .fire { font-size: 52px; }
 
 .story-brand {
   position: absolute;
-  bottom: 100px;
+  bottom: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
