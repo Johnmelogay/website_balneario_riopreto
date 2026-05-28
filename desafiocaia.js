@@ -726,16 +726,23 @@ btnShareStory.addEventListener('click', async () => {
   storyCard.style.top = '0';
   storyCard.style.position = 'fixed';
   storyCard.style.zIndex = '-1';
+  storyCard.style.opacity = '1';
+
+  // Small delay to ensure DOM is painted before capture
+  await new Promise(r => setTimeout(r, 500));
 
   try {
+    console.log('[Story] Starting html2canvas render...');
     const canvas = await html2canvas(storyCard, {
       width: 1080,
       height: 1920,
       scale: 1,
       useCORS: true,
-      allowTaint: false,
-      backgroundColor: null
+      allowTaint: true,
+      backgroundColor: '#0a1f14',
+      logging: true
     });
+    console.log('[Story] html2canvas render complete. Canvas size:', canvas.width, 'x', canvas.height);
 
     // Reset position
     storyCard.style.left = '-9999px';
@@ -749,6 +756,7 @@ btnShareStory.addEventListener('click', async () => {
         return;
       }
 
+      console.log('[Story] Blob generated:', blob.size, 'bytes');
       const file = new File([blob], 'desafio-caia-story.png', { type: 'image/png' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {

@@ -193,21 +193,16 @@
     <!-- STORY EXPORT CARD (Hidden, rendered by html2canvas) -->
     <!-- ═══════════════════════════════════════ -->
     <div id="story-export-card">
-        <!-- Background Image from bank (hero-image.webp) -->
-        <div class="story-bg-image"></div>
+        <!-- Background Image (actual img tag for html2canvas compatibility) -->
+        <img class="story-bg-image" src="images/hero-image.webp" alt="">
         <div class="story-bg-overlay"></div>
 
         <!-- Campaign Banner at the Top -->
-        <img class="story-campaign-banner" src="images/seurefugiodepraiaemrondonia_campainimage.png" alt="Seu Refúgio de Praia em Rondônia">
-
-        <!-- Background Glows -->
-        <div class="story-bg-glow green"></div>
-        <div class="story-bg-glow blue"></div>
+        <img class="story-campaign-banner" src="images/seurefugiodepraiaemrondonia_campainimage.png" alt="Campanha">
 
         <div class="story-content">
-            <!-- Photo Stack (dynamic) -->
+            <!-- Photo Stack (dynamic — populated by JS) -->
             <div id="story-photo-stack" class="story-photo-stack">
-                <!-- Stacked polaroids will be generated here -->
             </div>
 
             <!-- User Info -->
