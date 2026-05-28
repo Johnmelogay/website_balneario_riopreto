@@ -35,7 +35,7 @@ body.desafio-body::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(15, 25, 18, 0.72); /* Dark tropical glass overlay for contrast */
+  background: rgba(10, 18, 14, 0.92); /* Very dark overlay for strong contrast */
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   z-index: -1;
