@@ -6,7 +6,7 @@
 
 // ─── Firebase SDK Imports (Modular via CDN) ───
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider }
+import { getAuth, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
@@ -80,14 +80,29 @@ let nsfwModel = null;
 // 1. AUTH FLOW
 // ═══════════════════════════════════════════════
 
+// Handle the result of the redirect on page load
+getRedirectResult(auth).then((result) => {
+  if (result) {
+    console.log('[Auth] Login via redirect bem-sucedido');
+  }
+}).catch((err) => {
+  console.error('[Auth] Redirect error:', err);
+  if (err.message && (err.message.includes('missing initial state') || err.message.includes('storage-partitioned'))) {
+     alert('⚠️ Navegador incompatível com o login seguro.\n\nSe você está no iPhone ou navegadores como Instagram/Facebook, por favor toque nos 3 pontinhos e escolha "Abrir no navegador do sistema" (Safari ou Chrome).');
+  } else {
+     showToast('Erro ao processar login.', 'error');
+  }
+});
+
 btnLogin.addEventListener('click', async () => {
   try {
-    await signInWithPopup(auth, googleProvider);
+    showLoading('Redirecionando...');
+    // signInWithRedirect is the recommended approach for mobile browsers to avoid popup blockers
+    await signInWithRedirect(auth, googleProvider);
   } catch (err) {
-    if (err.code !== 'auth/popup-closed-by-user') {
-      showToast('Erro ao fazer login. Tente novamente.', 'error');
-      console.error('Auth error:', err);
-    }
+    hideLoading();
+    showToast('Erro ao iniciar login.', 'error');
+    console.error('[Auth] Start error:', err);
   }
 });
 
@@ -748,15 +763,25 @@ btnShareStory.addEventListener('click', async () => {
     // 2. Load user's check-in photos (up to 3)
     let checkinPhotos = [];
     try {
+      // Avoid orderBy('timestamp', 'desc') to prevent missing composite index errors
       const q = query(
         collection(db, 'checkins'),
-        where('userId', '==', currentUser.uid),
-        orderBy('timestamp', 'desc'),
-        limit(3)
+        where('userId', '==', currentUser.uid)
       );
       const snap = await getDocs(q);
+      
       if (!snap.empty) {
-        const photoPromises = snap.docs.map(d => loadImg(d.data().photoUrl));
+        // Sort descending by timestamp in memory
+        const docs = snap.docs.sort((a, b) => {
+          const tA = a.data().timestamp?.toMillis?.() || 0;
+          const tB = b.data().timestamp?.toMillis?.() || 0;
+          return tB - tA;
+        });
+        
+        // Take top 3 most recent
+        const recentDocs = docs.slice(0, 3);
+        
+        const photoPromises = recentDocs.map(d => loadImg(d.data().photoUrl));
         checkinPhotos = await Promise.all(photoPromises);
         checkinPhotos = checkinPhotos.filter(Boolean);
       }
