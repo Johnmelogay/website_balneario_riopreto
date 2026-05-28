@@ -8,7 +8,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc,
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -530,6 +530,16 @@ async function loadFeed() {
 function renderFeedCard(post) {
   const ts = post.timestamp?.toDate?.() || new Date();
   const timeAgo = formatTimeAgo(ts);
+  const isMine = currentUser && post.userId === currentUser.uid;
+
+  const actionButton = isMine
+    ? `<button class="btn-delete" onclick="deletePost('${post.id}')" title="Excluir">
+         <i class="fa-solid fa-trash-can"></i> Excluir
+       </button>`
+    : `<button class="btn-report" onclick="reportPost('${post.id}')" title="Denunciar">
+         <i class="fa-solid fa-flag"></i> Denunciar
+       </button>`;
+
   return `
     <div class="feed-card glass-card">
       <img class="feed-card-img" src="${escapeHtml(post.photoUrl)}" alt="Check-in" loading="lazy" />
@@ -541,9 +551,7 @@ function renderFeedCard(post) {
             <div class="feed-card-meta">${timeAgo}</div>
           </div>
         </div>
-        <button class="btn-report" onclick="reportPost('${post.id}')" title="Denunciar">
-          <i class="fa-solid fa-flag"></i> Denunciar
-        </button>
+        ${actionButton}
       </div>
     </div>`;
 }
@@ -580,6 +588,22 @@ window.reportPost = async function(postId) {
   } catch (err) {
     showToast('Erro ao denunciar.', 'error');
     console.error('Report error:', err);
+  }
+};
+
+// Delete function (global scope for onclick)
+window.deletePost = async function(postId) {
+  if (!currentUser) return;
+  if (!confirm('Tem certeza que deseja apagar sua foto do check-in?')) return;
+
+  try {
+    const postRef = doc(db, 'checkins', postId);
+    await deleteDoc(postRef);
+    showToast('Publicação apagada com sucesso!', 'success');
+    loadFeed();
+  } catch (err) {
+    showToast('Erro ao apagar a publicação.', 'error');
+    console.error('Delete error:', err);
   }
 };
 

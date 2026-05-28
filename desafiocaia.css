@@ -338,7 +338,7 @@ body.desafio-body {
   color: var(--caia-text-muted);
 }
 
-.btn-report {
+.btn-report, .btn-delete {
   background: none;
   border: 1px solid rgba(255,255,255,0.08);
   color: var(--caia-text-muted);
@@ -353,8 +353,13 @@ body.desafio-body {
   gap: 0.3rem;
 }
 .btn-report:hover {
-  background: rgba(255,60,60,0.1);
-  border-color: rgba(255,60,60,0.3);
+  background: rgba(255,152,0,0.1);
+  border-color: rgba(255,152,0,0.3);
+  color: var(--caia-orange);
+}
+.btn-delete:hover {
+  background: rgba(255,60,60,0.15);
+  border-color: rgba(255,60,60,0.4);
   color: #ff6b6b;
 }
 
