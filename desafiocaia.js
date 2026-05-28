@@ -681,33 +681,44 @@ btnShareStory.addEventListener('click', async () => {
 
   showLoading('Gerando seu card...');
 
-  // Populate story card with latest check-in photo
   const storyCard = $('#story-export-card');
-  const storyPhotoImg = $('#story-photo');
+  const storyPhotoStack = $('#story-photo-stack');
+  storyPhotoStack.innerHTML = '';
 
-  // Fetch latest check-in photo
+  // Fetch up to 3 latest check-in photos to stack them
   try {
     const q = query(
       collection(db, 'checkins'),
       where('userId', '==', currentUser.uid),
       orderBy('timestamp', 'desc'),
-      limit(1)
+      limit(3)
     );
     const snap = await getDocs(q);
     if (!snap.empty) {
-      const latestCheckin = snap.docs[0].data();
-      storyPhotoImg.crossOrigin = 'anonymous';
-      storyPhotoImg.src = latestCheckin.photoUrl;
+      const loadPromises = snap.docs.map((docSnap, i) => {
+        const checkin = docSnap.data();
+        const frame = document.createElement('div');
+        frame.className = `story-photo-frame stack-${i}`;
+        const img = document.createElement('img');
+        img.crossOrigin = 'anonymous';
+        img.src = checkin.photoUrl;
+        frame.appendChild(img);
+        storyPhotoStack.appendChild(frame);
 
-      // Wait for image to load
-      await new Promise((resolve, reject) => {
-        storyPhotoImg.onload = resolve;
-        storyPhotoImg.onerror = reject;
-        if (storyPhotoImg.complete) resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve; // continue even if loading fails
+          if (img.complete) resolve();
+        });
       });
+      await Promise.all(loadPromises);
+    } else {
+      hideLoading();
+      showToast('Nenhum check-in encontrado para compartilhar.', 'warning');
+      return;
     }
   } catch (err) {
-    console.warn('Could not load latest photo for story:', err);
+    console.warn('Could not load photos for story:', err);
   }
 
   // Temporarily position card on-screen for html2canvas

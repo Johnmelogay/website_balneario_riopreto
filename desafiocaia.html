@@ -193,6 +193,10 @@
     <!-- STORY EXPORT CARD (Hidden, rendered by html2canvas) -->
     <!-- ═══════════════════════════════════════ -->
     <div id="story-export-card">
+        <!-- Background Image from bank (hero-image.webp) -->
+        <div class="story-bg-image"></div>
+        <div class="story-bg-overlay"></div>
+
         <!-- Campaign Banner at the Top -->
         <img class="story-campaign-banner" src="images/seurefugiodepraiaemrondonia_campainimage.png" alt="Seu Refúgio de Praia em Rondônia">
 
@@ -201,9 +205,9 @@
         <div class="story-bg-glow blue"></div>
 
         <div class="story-content">
-            <!-- Photo -->
-            <div class="story-photo-frame">
-                <img id="story-photo" src="images/logo_opt.webp" alt="Check-in" crossorigin="anonymous">
+            <!-- Photo Stack (dynamic) -->
+            <div id="story-photo-stack" class="story-photo-stack">
+                <!-- Stacked polaroids will be generated here -->
             </div>
 
             <!-- User Info -->
