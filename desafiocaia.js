@@ -28,6 +28,16 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// ─── Standalone PWA Detection (needed early for auth strategy) ───
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+console.log('[PWA] Standalone mode:', isStandalone);
+
+// ─── Redirect Auth Recovery ───
+// If we previously started a redirect login, show loading immediately
+// so the user doesn't flash-see the login screen on return.
+const REDIRECT_FLAG = 'caia_auth_redirect_pending';
+const isReturningFromRedirect = localStorage.getItem(REDIRECT_FLAG) === 'true';
+
 // Register Service Worker for PWA support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -104,19 +114,35 @@ let nsfwModel = null;
 let currentCheckinType = 'treino';
 
 // ═══════════════════════════════════════════════
-// 1. AUTH FLOW
+// 1. AUTH FLOW (Robust for Standalone PWA)
 // ═══════════════════════════════════════════════
+
+// Show loading overlay immediately if returning from a redirect login,
+// so the user never sees the landing page flash.
+if (isReturningFromRedirect) {
+  console.log('[Auth] Detected return from redirect — showing loading overlay');
+  loadingOverlay.classList.add('active');
+  loadingText.textContent = 'Autenticando...';
+  // Keep login screen hidden during redirect processing
+  loginScreen.classList.add('hidden');
+}
 
 // Handle the result of the redirect on page load
 getRedirectResult(auth).then((result) => {
+  // Clear the redirect flag regardless of result
+  localStorage.removeItem(REDIRECT_FLAG);
   if (result) {
-    console.log('[Auth] Login via redirect bem-sucedido');
+    console.log('[Auth] Login via redirect bem-sucedido:', result.user.displayName);
+    // onAuthStateChanged will handle the rest
   }
 }).catch((err) => {
+  localStorage.removeItem(REDIRECT_FLAG);
   console.error('[Auth] Redirect error:', err);
+  hideLoading();
+  loginScreen.classList.remove('hidden');
   if (err.message && (err.message.includes('missing initial state') || err.message.includes('storage-partitioned'))) {
      alert('⚠️ Navegador incompatível com o login seguro.\n\nSe você está no iPhone ou navegadores como Instagram/Facebook, por favor toque nos 3 pontinhos e escolha "Abrir no navegador do sistema" (Safari ou Chrome).');
-  } else {
+  } else if (err.code !== 'auth/popup-closed-by-user') {
      showToast('Erro ao processar login.', 'error');
   }
 });
@@ -124,12 +150,37 @@ getRedirectResult(auth).then((result) => {
 btnLogin.addEventListener('click', async () => {
   try {
     showLoading('Autenticando...');
-    // Try popup first (best UX on desktop, but might be blocked on mobile/in-app browsers)
+
+    if (isStandalone) {
+      // ━━━ STANDALONE PWA: Always use popup ━━━
+      // Redirect-based auth breaks standalone PWAs because the OAuth redirect
+      // exits the PWA shell and opens in Safari/Chrome, losing the auth context
+      // when the user returns to the PWA.
+      console.log('[Auth] Standalone mode — using popup (no redirect fallback)');
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (popupErr) {
+        hideLoading();
+        if (popupErr.code === 'auth/popup-closed-by-user') {
+          // User cancelled — do nothing
+          return;
+        }
+        console.error('[Auth] Standalone popup error:', popupErr);
+        // Show a helpful message for standalone users
+        showToast('Erro no login. Tente novamente ou abra pelo navegador.', 'warning');
+      }
+      return;
+    }
+
+    // ━━━ BROWSER MODE: Popup first, redirect fallback ━━━
     await signInWithPopup(auth, googleProvider);
   } catch (err) {
-    if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request' || err.message.includes('popup')) {
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request' || (err.message && err.message.includes('popup'))) {
       console.warn('[Auth] Popup blocked, falling back to redirect...');
       showLoading('Redirecionando...');
+      // Set the redirect flag BEFORE initiating the redirect,
+      // so when the page reloads after OAuth we know to show loading.
+      localStorage.setItem(REDIRECT_FLAG, 'true');
       await signInWithRedirect(auth, googleProvider);
     } else if (err.code !== 'auth/popup-closed-by-user') {
       hideLoading();
@@ -468,7 +519,7 @@ closeRulesActions.forEach(btn => {
 
 // --- PWA Installation Flow ---
 let deferredPrompt = null;
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+// isStandalone is already defined at the top of the file for early auth use
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
