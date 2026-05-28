@@ -1179,7 +1179,7 @@ btnShareStory.addEventListener('click', async () => {
     ctx.fillStyle = '#ffffff';
     ctx.font = '700 30px Lexend, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Pós Treino', W / 2, brandY + 65);
+    ctx.fillText('Pós Treino Balneário Rio Preto', W / 2, brandY + 65);
     ctx.font = '400 24px Lexend, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillText('@balneario_riopreto', W / 2, brandY + 100);
