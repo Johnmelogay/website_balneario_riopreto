@@ -69,6 +69,9 @@ const btnEditName = $('#btn-edit-name');
 const optionTreino = $('#option-treino');
 const optionLazer = $('#option-lazer');
 const btnFeedback = $('#btn-feedback');
+const btnOpenRules = $('#btn-open-rules');
+const btnCloseRules = $('#btn-close-rules');
+const rulesModal = $('#rules-modal');
 
 // Onboarding elements
 const onboardingScreen = $('#onboarding-screen');
@@ -398,6 +401,18 @@ btnEditName.addEventListener('click', async () => {
     console.error('[EditName] Error:', err);
   }
 });
+
+// --- Rules Modal triggers ---
+if (btnOpenRules && rulesModal) {
+  btnOpenRules.addEventListener('click', () => {
+    rulesModal.style.display = 'block';
+  });
+}
+if (btnCloseRules && rulesModal) {
+  btnCloseRules.addEventListener('click', () => {
+    rulesModal.style.display = 'none';
+  });
+}
 
 // --- Feedback / Whatsapp integration ---
 btnFeedback.addEventListener('click', () => {

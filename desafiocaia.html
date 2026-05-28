@@ -78,6 +78,35 @@
         </div>
     </div>
 
+    <!-- REGULAMENTO / PRÊMIOS MODAL -->
+    <div id="rules-modal" class="preview-modal" style="display: none; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
+        <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            🏆 Prêmios & Regulamento
+        </h3>
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.2rem;">
+            O <strong>Pós Treino Balneário Rio Preto</strong> é o movimento oficial para quem quer relaxar após treinar pesado.
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid var(--caia-primary); border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🎁 Ranking Mensal</strong>
+                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">O 1º colocado no ranking de fogueiras do mês ganha <strong>5 entradas gratuitas</strong> no Balneário Rio Preto!</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #3b82f6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">⚡ Desafios Semanais</strong>
+                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Desafios são lançados e programados toda semana no app. Para participar, basta continuar postando seus check-ins de academia ou lazer!</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #f59e0b; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🔥 Datas Especiais</strong>
+                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Promoções surpresa valendo <strong>refeições completas no bar</strong>, entradas e até <strong>diárias nos chalés</strong> do Balneário Rio Preto!</span>
+            </div>
+        </div>
+
+        <button id="btn-close-rules" class="btn-confirm" style="width: 100%; justify-content: center; margin: 0;">
+            Entendi
+        </button>
+    </div>
+
     <!-- ═══════════════════════════════════════ -->
     <!-- HIDDEN CAMERA INPUT -->
     <!-- ═══════════════════════════════════════ -->
@@ -97,15 +126,10 @@
                         <strong>Treinou. Recarregou. Viveu.</strong><br>
                         O descanso oficial depois do treino. Faça check-in diariamente de treino na sua academia parceira ou de lazer no Balneário Rio Preto para acumular 🔥 e subir no ranking!
                     </p>
-                    <div style="margin-top: 1.2rem; padding: 0.9rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 0.8rem; font-size: 0.8rem; color: rgba(255,255,255,0.9); line-height: 1.55; text-align: left; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
-                        <div style="margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 0.5rem;">
-                            <span style="font-size: 1.1rem; line-height: 1;">🏆</span>
-                            <span><strong>Prêmio Mensal:</strong> O primeiro colocado no ranking todo mês ganha <strong>5 entradas gratuitas</strong> no Balneário Rio Preto!</span>
-                        </div>
-                        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-                            <span style="font-size: 1.1rem; line-height: 1;">⚡</span>
-                            <span><strong>Desafios Semanais:</strong> Desafios serão lançados durante a semana com prêmios para você relaxar bem após uma intensa semana de treino.</span>
-                        </div>
+                    <div style="text-align: center;">
+                        <button id="btn-open-rules" class="btn-rules-pill">
+                            <i class="fa-solid fa-gift"></i> Ver Prêmios & Como Funciona
+                        </button>
                     </div>
                 </div>
 
@@ -227,6 +251,9 @@
                 <button class="nav-tab" data-tab="ranking">
                     <i class="fa-solid fa-trophy"></i> Ranking
                 </button>
+                <button class="nav-tab" data-tab="desafios">
+                    <i class="fa-solid fa-bullseye"></i> Desafios
+                </button>
             </div>
 
             <!-- TAB: MURAL -->
@@ -245,6 +272,60 @@
                     <div class="empty-state">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                         <p>Carregando ranking...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: DESAFIOS -->
+            <div id="tab-desafios" class="tab-panel">
+                <div class="challenges-section">
+                    <div class="challenge-welcome-card">
+                        <h4>🎯 Como participar?</h4>
+                        <p>Basta continuar postando suas fotos diárias de treino ou lazer! Suas fotos mantêm sua sequência ativa e ajudam a subir no ranking.</p>
+                    </div>
+                    
+                    <div class="challenge-list">
+                        <!-- Monthly Main Challenge -->
+                        <div class="challenge-card active">
+                            <div class="challenge-header">
+                                <span class="badge-active">MENSAL</span>
+                                <span class="challenge-points">🏆 Ranking Principal</span>
+                            </div>
+                            <h5>Super 1º Lugar do Mês</h5>
+                            <p>Termine o mês na liderança do ranking de fogueiras.</p>
+                            <div class="challenge-prize">
+                                <strong>Prêmio:</strong> 5 Entradas Gratuitas no Balneário Rio Preto!
+                            </div>
+                            <div class="challenge-progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Active Challenge -->
+                        <div class="challenge-card">
+                            <div class="challenge-header">
+                                <span class="badge-scheduled">SEMANAL</span>
+                                <span class="challenge-points">+200 XP</span>
+                            </div>
+                            <h5>Foco de Aço</h5>
+                            <p>Faça pelo menos 4 check-ins de treino ou lazer nesta semana.</p>
+                            <div class="challenge-prize">
+                                <strong>Prêmio extra:</strong> 1 Refrescante Suco Natural no Bar do Balneário Rio Preto.
+                            </div>
+                        </div>
+
+                        <!-- Special Dates Promo -->
+                        <div class="challenge-card special">
+                            <div class="challenge-header">
+                                <span class="badge-special">DATA ESPECIAL</span>
+                                <span class="challenge-points">SUPER PROMO</span>
+                            </div>
+                            <h5>Estadia no Paraíso 🌲</h5>
+                            <p>Mantenha uma sequência (streak) ativa de 10 dias seguidos de pós-treino.</p>
+                            <div class="challenge-prize">
+                                <strong>Prêmio Elite:</strong> 1 Diária Grátis nos Chalés do Balneário Rio Preto!
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
