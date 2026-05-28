@@ -10,13 +10,13 @@
   --caia-green-light: #ecfdf5;
   --caia-orange: #f97316; /* Sunset Orange */
   --caia-blue: #3b82f6;
-  --caia-bg: #f8fafc;
-  --caia-card: rgba(255, 255, 255, 0.65); /* Sunny white glass card background */
-  --caia-card-border: rgba(255, 255, 255, 0.85);
-  --caia-text: #0f172a; /* Dark text for readability on light background */
-  --caia-text-muted: #475569;
+  --caia-bg: #0a1510;
+  --caia-card: rgba(255, 255, 255, 0.08); /* Dark glass card background */
+  --caia-card-border: rgba(255, 255, 255, 0.12);
+  --caia-text: #f1f5f9; /* Light text for readability on dark background */
+  --caia-text-muted: rgba(255, 255, 255, 0.6);
   --caia-radius: 1rem;
-  --caia-glow: 0 8px 30px rgba(16,185,129,0.08);
+  --caia-glow: 0 8px 30px rgba(16,185,129,0.15);
 }
 
 /* --- GLOBAL PAGE --- */
@@ -35,7 +35,7 @@ body.desafio-body::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(250, 252, 250, 0.78); /* Sunny light tropical glass overlay */
+  background: rgba(15, 25, 18, 0.72); /* Dark tropical glass overlay for contrast */
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   z-index: -1;
@@ -294,8 +294,8 @@ body.desafio-body::before {
 
 /* --- GLASSMORPHISM CARD --- */
 .glass-card {
-  background: var(--caia-card);
-  border: 1px solid var(--caia-card-border);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--caia-radius);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -303,8 +303,8 @@ body.desafio-body::before {
   transition: all 0.3s ease;
 }
 .glass-card:hover {
-  border-color: rgba(255,255,255,0.18);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
 /* --- HEADER BAR --- */
@@ -341,8 +341,8 @@ body.desafio-body::before {
 }
 
 .btn-logout {
-  background: rgba(0,0,0,0.05);
-  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
   color: var(--caia-text-muted);
   border-radius: 50%;
   width: 34px;
@@ -467,8 +467,8 @@ body.desafio-body::before {
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
-  border: 1px solid var(--caia-card-border);
-  background: var(--caia-card);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
   color: var(--caia-text-muted);
   transition: all 0.25s;
   font-family: inherit;
@@ -480,8 +480,8 @@ body.desafio-body::before {
   box-shadow: 0 2px 12px rgba(46,125,50,0.3);
 }
 .nav-tab:hover:not(.active) {
-  border-color: rgba(255,255,255,0.2);
-  color: var(--caia-text);
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
 }
 
 /* --- TAB PANELS --- */
@@ -635,15 +635,15 @@ body.desafio-body::before {
   color: #fff;
 }
 .leaderboard-rank.normal {
-  background: rgba(0,0,0,0.05);
-  color: var(--caia-text-muted);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6);
 }
 .leaderboard-avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(0,0,0,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
 }
 .leaderboard-name {
   flex: 1;
