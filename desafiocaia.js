@@ -410,7 +410,7 @@ btnFeedback.addEventListener('click', () => {
     return;
   }
   
-  const formattedText = `Olá Balneário Rio Preto, meu nome é ${currentName}. Gostaria de enviar o seguinte feedback/report sobre o Movimento Pós Treino:\n\n"${trimmed}"`;
+  const formattedText = `Olá Balneário Rio Preto, meu nome é ${currentName}. Gostaria de enviar o seguinte feedback/report sobre o Pós Treino:\n\n"${trimmed}"`;
   const whatsappUrl = `https://wa.me/5569993129559?text=${encodeURIComponent(formattedText)}`;
   window.open(whatsappUrl, '_blank');
 });
@@ -1179,7 +1179,7 @@ btnShareStory.addEventListener('click', async () => {
     ctx.fillStyle = '#ffffff';
     ctx.font = '700 30px Lexend, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Movimento Pós Treino', W / 2, brandY + 65);
+    ctx.fillText('Pós Treino', W / 2, brandY + 65);
     ctx.font = '400 24px Lexend, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillText('@balneario_riopreto', W / 2, brandY + 100);
@@ -1200,8 +1200,8 @@ btnShareStory.addEventListener('click', async () => {
         try {
           await navigator.share({
             files: [file],
-            title: 'Movimento Pós Treino — Balneário Rio Preto',
-            text: '🔥 Minha sequência no Movimento Pós Treino! @balneario_riopreto #PosTreinoRioPreto'
+            title: 'Pós Treino — Balneário Rio Preto',
+            text: '🔥 Minha sequência no Pós Treino! @balneario_riopreto #PosTreinoRioPreto'
           });
         } catch (shareErr) {
           if (shareErr.name !== 'AbortError') {
