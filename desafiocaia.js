@@ -6,7 +6,7 @@
 
 // ─── Firebase SDK Imports (Modular via CDN) ───
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider }
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
@@ -66,6 +66,13 @@ const statCheckins = $('#stat-checkins');
 const statRank = $('#stat-rank');
 const btnShareStory = $('#btn-share-story');
 
+// Onboarding elements
+const onboardingScreen = $('#onboarding-screen');
+const onboardingForm = $('#onboarding-form');
+const inputWhatsapp = $('#input-whatsapp');
+const inputInstagram = $('#input-instagram');
+const btnSaveOnboarding = $('#btn-save-onboarding');
+
 // Tab elements
 const navTabs = document.querySelectorAll('.nav-tab');
 const tabPanels = document.querySelectorAll('.tab-panel');
@@ -96,13 +103,21 @@ getRedirectResult(auth).then((result) => {
 
 btnLogin.addEventListener('click', async () => {
   try {
-    showLoading('Redirecionando...');
-    // signInWithRedirect is the recommended approach for mobile browsers to avoid popup blockers
-    await signInWithRedirect(auth, googleProvider);
+    showLoading('Autenticando...');
+    // Try popup first (best UX on desktop, but might be blocked on mobile/in-app browsers)
+    await signInWithPopup(auth, googleProvider);
   } catch (err) {
-    hideLoading();
-    showToast('Erro ao iniciar login.', 'error');
-    console.error('[Auth] Start error:', err);
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request' || err.message.includes('popup')) {
+      console.warn('[Auth] Popup blocked, falling back to redirect...');
+      showLoading('Redirecionando...');
+      await signInWithRedirect(auth, googleProvider);
+    } else if (err.code !== 'auth/popup-closed-by-user') {
+      hideLoading();
+      showToast('Erro ao fazer login.', 'error');
+      console.error('[Auth] Start error:', err);
+    } else {
+      hideLoading();
+    }
   }
 });
 
@@ -113,18 +128,74 @@ btnLogout.addEventListener('click', async () => {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
-    loginScreen.classList.add('hidden');
-    appScreen.classList.remove('hidden');
-    updateUserUI(user);
-    await ensureUserDoc(user);
-    await loadUserData();
-    loadFeed();
-    loadLeaderboard();
+    await ensureUserDoc(user); // creates doc if it doesn't exist
+    await loadUserData(); // populates currentUserData
+
+    if (!currentUserData.onboardingCompleted) {
+      // Show onboarding screen
+      hideLoading();
+      loginScreen.classList.add('hidden');
+      appScreen.classList.add('hidden');
+      onboardingScreen.classList.remove('hidden');
+    } else {
+      // Standard flow
+      hideLoading();
+      loginScreen.classList.add('hidden');
+      onboardingScreen.classList.add('hidden');
+      appScreen.classList.remove('hidden');
+      updateUserUI(user);
+      loadFeed();
+      loadLeaderboard();
+    }
   } else {
+    hideLoading();
     currentUser = null;
     currentUserData = null;
     loginScreen.classList.remove('hidden');
+    onboardingScreen.classList.add('hidden');
     appScreen.classList.add('hidden');
+  }
+});
+
+// ═══════════════════════════════════════════════
+// 1.5. ONBOARDING
+// ═══════════════════════════════════════════════
+
+btnSaveOnboarding.addEventListener('click', async () => {
+  if (!inputWhatsapp.value || inputWhatsapp.value.trim().length < 8) {
+    showToast('Por favor, informe um WhatsApp válido.', 'warning');
+    return;
+  }
+  
+  showLoading('Salvando...');
+  
+  const whatsapp = inputWhatsapp.value.trim();
+  let instagram = inputInstagram.value.trim();
+  if (instagram && instagram.startsWith('@')) {
+    instagram = instagram.substring(1);
+  }
+
+  try {
+    const userRef = doc(db, 'users', currentUser.uid);
+    await updateDoc(userRef, {
+      whatsapp: whatsapp,
+      instagram: instagram,
+      onboardingCompleted: true
+    });
+    
+    // Refresh local state and enter app
+    await loadUserData();
+    hideLoading();
+    onboardingScreen.classList.add('hidden');
+    appScreen.classList.remove('hidden');
+    updateUserUI(currentUser);
+    loadFeed();
+    loadLeaderboard();
+    showToast('Cadastro concluído! Bem-vindo ao Desafio.', 'success');
+  } catch (err) {
+    hideLoading();
+    showToast('Erro ao salvar dados.', 'error');
+    console.error('[Onboarding] Error:', err);
   }
 });
 

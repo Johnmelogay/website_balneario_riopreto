@@ -38,25 +38,63 @@ body.desafio-body {
   padding-bottom: 6rem;
 }
 
-/* --- LOGIN SCREEN --- */
+/* --- LOGIN SCREEN (LANDING PAGE) --- */
 #login-screen {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-image: url('images/PROMO CAIA.png');
+  background-size: cover;
+  background-position: top center;
+  overflow: hidden;
+}
+
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(10,31,20,0) 0%, rgba(10,31,20,0.6) 50%, rgba(10,31,20,0.95) 100%);
+  pointer-events: none;
+}
+
+.login-content-wrapper {
+  position: relative;
+  z-index: 10;
+  padding: 2rem 1.5rem 3rem 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.login-glass-card {
+  background: rgba(10, 31, 20, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100dvh;
   text-align: center;
-  gap: 2rem;
-  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 
 .login-logo {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(46,125,50,0.4);
-  box-shadow: var(--caia-glow);
+  border: 2px solid rgba(255,255,255,0.2);
+  margin-top: -4rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  background: #0a1f14;
+}
+
+.login-header {
+  margin-bottom: 1.5rem;
 }
 
 .login-title {
@@ -70,18 +108,57 @@ body.desafio-body {
 }
 
 .login-subtitle {
-  color: var(--caia-text-muted);
+  color: rgba(255,255,255,0.8);
   font-size: 0.95rem;
-  max-width: 320px;
   line-height: 1.5;
+  margin-top: 0.5rem;
+}
+
+.login-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255,255,255,0.05);
+  padding: 0.8rem 1rem;
+  border-radius: 1rem;
+}
+
+.feature-icon {
+  color: var(--caia-orange);
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.feature-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.login-footer-text {
+  color: rgba(255,255,255,0.3);
+  font-size: 0.7rem;
+  margin-top: 1rem;
 }
 
 /* --- GOOGLE LOGIN BUTTON --- */
 .btn-google {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
-  padding: 0.9rem 2rem;
+  width: 100%;
+  padding: 1rem;
   background: white;
   color: #333;
   border: none;
@@ -98,7 +175,109 @@ body.desafio-body {
   box-shadow: 0 8px 30px rgba(0,0,0,0.4);
 }
 .btn-google:active { transform: scale(0.97); }
-.btn-google img { width: 22px; height: 22px; }
+.btn-google svg { flex-shrink: 0; }
+
+/* --- ONBOARDING SCREEN --- */
+#onboarding-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 1.5rem;
+  background: var(--caia-bg);
+}
+
+.onboarding-card {
+  background: var(--caia-card);
+  border: 1px solid var(--caia-card-border);
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.onboarding-card h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.onboarding-card p {
+  font-size: 0.9rem;
+  color: var(--caia-text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  margin-bottom: 1.25rem;
+}
+
+.input-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 1rem;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.75rem;
+  color: white;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--caia-green);
+  background: rgba(255,255,255,0.05);
+}
+
+.input-prefix {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.input-prefix:focus-within {
+  border-color: var(--caia-green);
+}
+
+.input-prefix span {
+  padding: 1rem;
+  color: var(--caia-text-muted);
+  font-weight: 600;
+  background: rgba(255,255,255,0.02);
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.input-prefix input {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.input-group small {
+  font-size: 0.75rem;
+  color: var(--caia-text-muted);
+}
 
 /* --- GLASSMORPHISM CARD --- */
 .glass-card {
