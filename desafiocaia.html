@@ -314,6 +314,20 @@
                 <button class="nav-tab" data-tab="desafios">
                     <i class="fa-solid fa-bullseye"></i> Desafios
                 </button>
+                <button class="nav-tab" data-tab="admin" id="nav-tab-admin" style="display: none;">
+                    <i class="fa-solid fa-user-shield"></i> Admin
+                </button>
+            </div>
+
+            <!-- Announcement Banner Container -->
+            <div id="announcement-banner" class="announcement-banner" style="display: none; background: linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.1)); border: 1px solid rgba(16,185,129,0.4); border-radius: 0.8rem; padding: 1rem; margin-bottom: 1rem; color: #fff; position: relative;">
+                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                    <span style="font-size: 1.5rem;">📢</span>
+                    <div>
+                        <strong style="color: var(--caia-primary); font-size: 0.9rem; display: block; margin-bottom: 0.25rem;">COMUNICADO OFICIAL</strong>
+                        <p id="announcement-text" style="font-size: 0.85rem; line-height: 1.4; margin: 0; color: rgba(255,255,255,0.95); white-space: pre-wrap;"></p>
+                    </div>
+                </div>
             </div>
 
             <!-- TAB: MURAL -->
@@ -345,45 +359,74 @@
                     </div>
                     
                     <div class="challenge-list">
-                        <!-- Monthly Main Challenge -->
-                        <div class="challenge-card active">
-                            <div class="challenge-header">
-                                <span class="badge-active">MENSAL</span>
-                                <span class="challenge-points">🏆 Ranking Principal</span>
-                            </div>
-                            <h5>Super 1º Lugar do Mês</h5>
-                            <p>Termine o mês na liderança do ranking de fogueiras.</p>
-                            <div class="challenge-prize">
-                                <strong>Prêmio:</strong> 5 Entradas Gratuitas no Balneário Rio Preto!
-                            </div>
-                            <div class="challenge-progress-bar">
-                                <div class="progress-fill" style="width: 100%;"></div>
+                        <div class="empty-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Carregando desafios...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: ADMIN -->
+            <div id="tab-admin" class="tab-panel">
+                <div class="admin-section">
+                    <div class="admin-welcome">
+                        <h4>🛡️ Painel do Administrador</h4>
+                        <p>Gerencie desafios, publique comunicados/ganhadores e modere check-ins.</p>
+                    </div>
+                    
+                    <div class="admin-tools">
+                        <!-- Tool 1: Comunicado / Ganhadores -->
+                        <div class="admin-card">
+                            <h5>📢 Fixar Comunicado / Ganhadores</h5>
+                            <p class="admin-help">Escreva uma mensagem que aparecerá no topo do mural para todos os participantes.</p>
+                            <textarea id="admin-announcement-text" placeholder="Ex: 🎉 Parabéns para o João Silva, vencedor do ranking de Maio com 2500 XP! Entre em contato para retirar suas 5 entradas." rows="3" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.6rem; font-size:0.85rem; resize:vertical; margin-bottom: 0.8rem; font-family:inherit; outline:none;"></textarea>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button id="btn-save-announcement" class="btn-rules-pill" style="margin: 0; background: var(--caia-primary); color: #000; font-weight: 700; flex: 1;">Salvar & Publicar</button>
+                                <button id="btn-clear-announcement" class="btn-rules-pill" style="margin: 0; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; flex: 1;">Remover Fixado</button>
                             </div>
                         </div>
 
-                        <!-- Weekly Active Challenge -->
-                        <div class="challenge-card">
-                            <div class="challenge-header">
-                                <span class="badge-scheduled">SEMANAL</span>
-                                <span class="challenge-points">+200 XP</span>
-                            </div>
-                            <h5>Foco de Aço</h5>
-                            <p>Faça pelo menos 4 check-ins de treino ou lazer nesta semana.</p>
-                            <div class="challenge-prize">
-                                <strong>Prêmio extra:</strong> 1 Refrescante Suco Natural no Bar do Balneário Rio Preto.
+                        <!-- Tool 2: Novo Desafio -->
+                        <div class="admin-card" style="margin-top: 1.2rem;">
+                            <h5>🎯 Criar Novo Desafio</h5>
+                            <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.8rem;">
+                                <div>
+                                    <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.2rem;">Título do Desafio</label>
+                                    <input type="text" id="admin-challenge-title" placeholder="Ex: Força Total" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.2rem;">Descrição / Regras</label>
+                                    <input type="text" id="admin-challenge-desc" placeholder="Ex: Faça 5 check-ins nesta semana." style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.2rem;">Prêmio</label>
+                                    <input type="text" id="admin-challenge-prize" placeholder="Ex: 1 Refeição Grátis no Bar" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <div style="flex: 1;">
+                                        <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.2rem;">Tipo</label>
+                                        <select id="admin-challenge-type" style="width:100%; background: #18181b; border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                            <option value="semanal">SEMANAL</option>
+                                            <option value="mensal">MENSAL</option>
+                                            <option value="especial">DATA ESPECIAL</option>
+                                        </select>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.2rem;">Pontos / XP</label>
+                                        <input type="text" id="admin-challenge-points" placeholder="Ex: +300 XP" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                    </div>
+                                </div>
+                                <button id="btn-create-challenge" class="btn-rules-pill" style="margin-top: 0.5rem; background: var(--caia-primary); color: #000; font-weight: 700; width: 100%;">Criar Desafio</button>
                             </div>
                         </div>
 
-                        <!-- Special Dates Promo -->
-                        <div class="challenge-card special">
-                            <div class="challenge-header">
-                                <span class="badge-special">DATA ESPECIAL</span>
-                                <span class="challenge-points">SUPER PROMO</span>
-                            </div>
-                            <h5>Estadia no Paraíso 🌲</h5>
-                            <p>Mantenha uma sequência (streak) ativa de 10 dias seguidos de pós-treino.</p>
-                            <div class="challenge-prize">
-                                <strong>Prêmio Elite:</strong> 1 Diária Grátis nos Chalés do Balneário Rio Preto!
+                        <!-- Tool 3: Moderar Check-ins -->
+                        <div class="admin-card" style="margin-top: 1.2rem;">
+                            <h5>🗑️ Moderação de Check-ins</h5>
+                            <p class="admin-help">Remova check-ins falsos, duplicados ou inapropriados do mural.</p>
+                            <div id="admin-moderation-list" style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 300px; overflow-y: auto; margin-top: 0.8rem; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 0.5rem;">
+                                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-align: center; margin: 1rem 0;">Carregando check-ins...</p>
                             </div>
                         </div>
                     </div>

@@ -146,10 +146,24 @@ btnLogout.addEventListener('click', async () => {
 });
 
 onAuthStateChanged(auth, async (user) => {
+  const isAdmin = user && user.email === 'johnmelocontato@gmail.com';
+  const adminTab = document.getElementById('nav-tab-admin');
+  
+  if (adminTab) {
+    adminTab.style.display = isAdmin ? 'block' : 'none';
+  }
+
+  loadChallenges();
+  loadAnnouncement();
+
   if (user) {
     currentUser = user;
     await ensureUserDoc(user); // creates doc if it doesn't exist
     await loadUserData(); // populates currentUserData
+
+    if (isAdmin) {
+      loadModerationFeed();
+    }
 
     if (!currentUserData.onboardingCompleted) {
       // Show onboarding screen
@@ -296,6 +310,10 @@ navTabs.forEach(tab => {
     tabPanels.forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(`tab-${target}`).classList.add('active');
+
+    if (target === 'admin') {
+      loadModerationFeed();
+    }
   });
 });
 
@@ -1408,4 +1426,263 @@ if (navigator.geolocation) {
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
+}
+
+// ─── ADMIN PANEL & DYNAMIC CHALLENGES ───
+const ADMIN_EMAILS = ['johnmelocontato@gmail.com'];
+
+async function loadChallenges() {
+  const chalContainer = document.querySelector('.challenge-list');
+  if (!chalContainer) return;
+
+  try {
+    const snap = await getDocs(query(collection(db, 'challenges'), orderBy('createdAt', 'desc')));
+    
+    // Seed default challenges if empty
+    if (snap.empty) {
+      const defaults = [
+        {
+          title: "Super 1º Lugar do Mês",
+          description: "Termine o mês na liderança do ranking de fogueiras.",
+          prize: "5 Entradas Gratuitas no Balneário Rio Preto!",
+          badge: "MENSAL",
+          type: "mensal",
+          points: "🏆 Ranking Principal",
+          createdAt: Timestamp.now()
+        },
+        {
+          title: "Foco de Aço",
+          description: "Faça pelo menos 4 check-ins de treino ou lazer nesta semana.",
+          prize: "1 Refrescante Suco Natural no Bar do Balneário Rio Preto.",
+          badge: "SEMANAL",
+          type: "semanal",
+          points: "+200 XP",
+          createdAt: Timestamp.now()
+        },
+        {
+          title: "Estadia no Paraíso 🌲",
+          description: "Mantenha uma sequência (streak) ativa de 10 dias seguidos de pós-treino.",
+          prize: "1 Diária Grátis nos Chalés do Balneário Rio Preto!",
+          badge: "DATA ESPECIAL",
+          type: "especial",
+          points: "SUPER PROMO",
+          createdAt: Timestamp.now()
+        }
+      ];
+
+      for (const d of defaults) {
+        await addDoc(collection(db, 'challenges'), d);
+      }
+      loadChallenges();
+      return;
+    }
+
+    let html = '';
+    snap.forEach(docSnap => {
+      const ch = docSnap.data();
+      const id = docSnap.id;
+      
+      let badgeClass = 'badge-scheduled';
+      if (ch.type === 'mensal') badgeClass = 'badge-active';
+      if (ch.type === 'especial') badgeClass = 'badge-special';
+
+      const isSpecial = ch.type === 'especial' ? 'special' : '';
+      
+      const deleteBtn = (currentUser && ADMIN_EMAILS.includes(currentUser.email)) 
+        ? `<button onclick="window.deleteChallenge('${id}')" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color:#ef4444; font-size:0.7rem; font-weight:700; padding:0.25rem 0.5rem; border-radius:0.3rem; cursor:pointer; margin-top:0.6rem; display:block; width:fit-content; border-radius: 0.375rem;">Excluir Desafio</button>`
+        : '';
+
+      html += `
+        <div class="challenge-card ${isSpecial}">
+            <div class="challenge-header">
+                <span class="${badgeClass}">${ch.badge || ch.type.toUpperCase()}</span>
+                <span class="challenge-points">${ch.points || ''}</span>
+            </div>
+            <h5>${ch.title}</h5>
+            <p>${ch.description}</p>
+            <div class="challenge-prize">
+                <strong>Prêmio:</strong> ${ch.prize}
+            </div>
+            ${deleteBtn}
+        </div>
+      `;
+    });
+
+    chalContainer.innerHTML = html;
+  } catch (err) {
+    console.error('Error loading challenges:', err);
+  }
+}
+
+window.deleteChallenge = async (id) => {
+  if (!confirm('Deseja realmente excluir este desafio?')) return;
+  try {
+    await deleteDoc(doc(db, 'challenges', id));
+    showToast('Desafio excluído!', 'success');
+    loadChallenges();
+  } catch (err) {
+    showToast('Erro ao excluir desafio.', 'error');
+    console.error(err);
+  }
+};
+
+async function loadAnnouncement() {
+  const banner = document.getElementById('announcement-banner');
+  const txt = document.getElementById('announcement-text');
+  if (!banner || !txt) return;
+
+  try {
+    const docSnap = await getDoc(doc(db, 'announcements', 'active'));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.isActive && data.text) {
+        txt.textContent = data.text;
+        banner.style.display = 'block';
+        
+        const adminInput = document.getElementById('admin-announcement-text');
+        if (adminInput && !adminInput.value) adminInput.value = data.text;
+        return;
+      }
+    }
+    banner.style.display = 'none';
+  } catch (err) {
+    console.error('Error loading announcement:', err);
+  }
+}
+
+async function loadModerationFeed() {
+  const modContainer = document.getElementById('admin-moderation-list');
+  if (!modContainer) return;
+
+  try {
+    const snap = await getDocs(query(collection(db, 'checkins'), orderBy('timestamp', 'desc')));
+    if (snap.empty) {
+      modContainer.innerHTML = '<p style="font-size:0.8rem; color:rgba(255,255,255,0.5); text-align:center; margin:1rem 0;">Nenhum check-in publicado.</p>';
+      return;
+    }
+
+    let html = '';
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = docSnap.id;
+      const date = data.timestamp ? new Date(data.timestamp.toMillis()).toLocaleString('pt-BR') : data.dateStr;
+      
+      html += `
+        <div class="moderation-item" id="mod-item-${id}" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:0.5rem 0.8rem; border-radius:0.5rem; border:1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem;">
+            <div class="moderation-info" style="display:flex; flex-direction:column; gap:0.1rem;">
+                <span class="moderation-name" style="font-size:0.8rem; font-weight:700; color:#fff;">${escapeHtml(data.userName)} (${data.type.toUpperCase()})</span>
+                <span class="moderation-date" style="font-size:0.7rem; color:rgba(255,255,255,0.40);">${date}</span>
+            </div>
+            <button class="btn-delete-checkin" onclick="window.deleteCheckinFromMod('${id}')">Deletar</button>
+        </div>
+      `;
+    });
+    modContainer.innerHTML = html;
+  } catch (err) {
+    console.error('Error loading moderation feed:', err);
+  }
+}
+
+window.deleteCheckinFromMod = async (id) => {
+  if (!confirm('Deseja realmente deletar este check-in permanentemente?')) return;
+  try {
+    await deleteDoc(doc(db, 'checkins', id));
+    showToast('Check-in deletado!', 'success');
+    loadModerationFeed();
+    loadFeed();
+  } catch (err) {
+    showToast('Erro ao deletar check-in.', 'error');
+    console.error(err);
+  }
+};
+
+// Bind Admin Actions
+const btnSaveAnnouncement = document.getElementById('btn-save-announcement');
+const btnClearAnnouncement = document.getElementById('btn-clear-announcement');
+const btnCreateChallenge = document.getElementById('btn-create-challenge');
+
+if (btnSaveAnnouncement) {
+  btnSaveAnnouncement.addEventListener('click', async () => {
+    const text = document.getElementById('admin-announcement-text').value.trim();
+    if (!text) {
+      showToast('O comunicado não pode estar vazio.', 'warning');
+      return;
+    }
+    try {
+      showLoading('Publicando comunicado...');
+      await setDoc(doc(db, 'announcements', 'active'), {
+        text,
+        isActive: true,
+        updatedAt: serverTimestamp()
+      });
+      hideLoading();
+      showToast('Comunicado publicado!', 'success');
+      loadAnnouncement();
+    } catch (err) {
+      hideLoading();
+      showToast('Erro ao publicar comunicado.', 'error');
+      console.error(err);
+    }
+  });
+}
+
+if (btnClearAnnouncement) {
+  btnClearAnnouncement.addEventListener('click', async () => {
+    try {
+      showLoading('Removendo comunicado...');
+      await setDoc(doc(db, 'announcements', 'active'), {
+        text: '',
+        isActive: false,
+        updatedAt: serverTimestamp()
+      });
+      document.getElementById('admin-announcement-text').value = '';
+      hideLoading();
+      showToast('Comunicado removido!', 'success');
+      loadAnnouncement();
+    } catch (err) {
+      hideLoading();
+      showToast('Erro ao remover comunicado.', 'error');
+      console.error(err);
+    }
+  });
+}
+
+if (btnCreateChallenge) {
+  btnCreateChallenge.addEventListener('click', async () => {
+    const title = document.getElementById('admin-challenge-title').value.trim();
+    const desc = document.getElementById('admin-challenge-desc').value.trim();
+    const prize = document.getElementById('admin-challenge-prize').value.trim();
+    const type = document.getElementById('admin-challenge-type').value;
+    const points = document.getElementById('admin-challenge-points').value.trim();
+
+    if (!title || !desc || !prize) {
+      showToast('Preencha título, regras e prêmio.', 'warning');
+      return;
+    }
+
+    try {
+      showLoading('Criando desafio...');
+      await addDoc(collection(db, 'challenges'), {
+        title,
+        description: desc,
+        prize,
+        type,
+        badge: type.toUpperCase(),
+        points,
+        createdAt: serverTimestamp()
+      });
+      document.getElementById('admin-challenge-title').value = '';
+      document.getElementById('admin-challenge-desc').value = '';
+      document.getElementById('admin-challenge-prize').value = '';
+      document.getElementById('admin-challenge-points').value = '';
+
+      hideLoading();
+      showToast('Desafio criado!', 'success');
+      loadChallenges();
+    } catch (err) {
+      hideLoading();
+      showToast('Erro ao criar desafio.', 'error');
+      console.error(err);
+    }
+  });
 }
