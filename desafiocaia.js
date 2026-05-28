@@ -6,7 +6,7 @@
 
 // ─── Firebase SDK Imports (Modular via CDN) ───
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider }
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
@@ -65,6 +65,10 @@ const statStreak = $('#stat-streak');
 const statCheckins = $('#stat-checkins');
 const statRank = $('#stat-rank');
 const btnShareStory = $('#btn-share-story');
+const btnEditName = $('#btn-edit-name');
+const optionTreino = $('#option-treino');
+const optionLazer = $('#option-lazer');
+const btnFeedback = $('#btn-feedback');
 
 // Onboarding elements
 const onboardingScreen = $('#onboarding-screen');
@@ -82,6 +86,7 @@ let currentUser = null;
 let currentUserData = null;
 let selectedFile = null;
 let nsfwModel = null;
+let currentCheckinType = 'treino';
 
 // ═══════════════════════════════════════════════
 // 1. AUTH FLOW
@@ -154,6 +159,7 @@ onAuthStateChanged(auth, async (user) => {
     loginScreen.classList.remove('hidden');
     onboardingScreen.classList.add('hidden');
     appScreen.classList.add('hidden');
+    loadFeed();
   }
 });
 
@@ -201,7 +207,7 @@ btnSaveOnboarding.addEventListener('click', async () => {
 
 function updateUserUI(user) {
   userAvatar.src = user.photoURL || 'images/logo_opt.webp';
-  userName.textContent = user.displayName || 'Visitante';
+  userName.textContent = currentUserData?.displayName || user.displayName || 'Visitante';
 }
 
 async function ensureUserDoc(user) {
@@ -213,6 +219,7 @@ async function ensureUserDoc(user) {
       photoURL: user.photoURL || '',
       email: user.email || '',
       streakCount: 0,
+      recoverPoints: 0,
       totalCheckins: 0,
       lastCheckinDate: null,
       createdAt: serverTimestamp()
@@ -227,7 +234,7 @@ async function loadUserData() {
   if (snap.exists()) {
     currentUserData = snap.data();
     statStreak.textContent = currentUserData.streakCount || 0;
-    statCheckins.textContent = currentUserData.totalCheckins || 0;
+    statCheckins.textContent = currentUserData.recoverPoints || 0;
     userStreakDisplay.innerHTML = `🔥 <span>${currentUserData.streakCount || 0}</span> dias`;
 
     // Calculate rank
@@ -236,21 +243,30 @@ async function loadUserData() {
 }
 
 async function updateRank() {
-  const usersQuery = query(
-    collection(db, 'users'),
-    orderBy('streakCount', 'desc')
-  );
-  const snap = await getDocs(usersQuery);
-  let rank = 1;
-  let found = false;
-  snap.forEach((d) => {
-    if (d.id === currentUser.uid) { found = true; return; }
-    if (!found && !employeeUIDs.includes(d.id)) rank++;
-  });
-  if (employeeUIDs.includes(currentUser.uid)) {
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const list = [];
+    snap.forEach((d) => {
+      const data = d.data();
+      if (!employeeUIDs.includes(d.id) && (data.streakCount || 0) > 0) {
+        const streak = data.streakCount || 0;
+        const recover = data.recoverPoints || 0;
+        const xp = (streak * 100) + (recover * 10);
+        list.push({ id: d.id, xp });
+      }
+    });
+
+    list.sort((a, b) => b.xp - a.xp);
+
+    const myIndex = list.findIndex(u => u.id === currentUser.uid);
+    if (myIndex !== -1 && !employeeUIDs.includes(currentUser.uid)) {
+      statRank.textContent = `#${myIndex + 1}`;
+    } else {
+      statRank.textContent = '—';
+    }
+  } catch (err) {
+    console.error('updateRank error:', err);
     statRank.textContent = '—';
-  } else {
-    statRank.textContent = `#${rank}`;
   }
 }
 
@@ -328,6 +344,77 @@ function checkGeolocation() {
 // 4. CHECK-IN FLOW
 // ═══════════════════════════════════════════════
 
+// --- Check-in Type Selector events ---
+optionTreino.addEventListener('click', () => {
+  optionTreino.classList.add('active');
+  optionLazer.classList.remove('active');
+  const inp = optionTreino.querySelector('input');
+  if (inp) inp.checked = true;
+  currentCheckinType = 'treino';
+});
+
+optionLazer.addEventListener('click', () => {
+  optionLazer.classList.add('active');
+  optionTreino.classList.remove('active');
+  const inp = optionLazer.querySelector('input');
+  if (inp) inp.checked = true;
+  currentCheckinType = 'lazer';
+});
+
+function resetCheckinTypeSelection() {
+  currentCheckinType = 'treino';
+  optionTreino.classList.add('active');
+  optionLazer.classList.remove('active');
+  const inp = optionTreino.querySelector('input');
+  if (inp) inp.checked = true;
+}
+
+// --- Edit Display Name ---
+btnEditName.addEventListener('click', async () => {
+  const currentName = currentUserData?.displayName || currentUser.displayName || '';
+  const newName = prompt('Como você quer ser chamado(a) no desafio?', currentName);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed) {
+    showToast('O nome não pode ficar em branco.', 'warning');
+    return;
+  }
+  showLoading('Salvando novo nome...');
+  try {
+    const userRef = doc(db, 'users', currentUser.uid);
+    await updateDoc(userRef, { displayName: trimmed });
+    await updateProfile(currentUser, { displayName: trimmed });
+    
+    await loadUserData();
+    updateUserUI(currentUser);
+    loadFeed();
+    loadLeaderboard();
+    
+    hideLoading();
+    showToast('Nome atualizado com sucesso!', 'success');
+  } catch (err) {
+    hideLoading();
+    showToast('Erro ao atualizar nome.', 'error');
+    console.error('[EditName] Error:', err);
+  }
+});
+
+// --- Feedback / Whatsapp integration ---
+btnFeedback.addEventListener('click', () => {
+  const currentName = currentUserData?.displayName || currentUser?.displayName || 'Participante';
+  const message = prompt('Digite sua sugestão, feedback ou relato de bug:');
+  if (message === null) return;
+  const trimmed = message.trim();
+  if (!trimmed) {
+    showToast('A mensagem não pode ser vazia.', 'warning');
+    return;
+  }
+  
+  const formattedText = `Olá Balneário Rio Preto, meu nome é ${currentName}. Gostaria de enviar o seguinte feedback/report sobre o Desafio CAIA:\n\n"${trimmed}"`;
+  const whatsappUrl = `https://wa.me/5569993129559?text=${encodeURIComponent(formattedText)}`;
+  window.open(whatsappUrl, '_blank');
+});
+
 btnCheckin.addEventListener('click', () => {
   if (!currentUser) return;
 
@@ -341,6 +428,7 @@ cameraInput.addEventListener('change', async (e) => {
 
   // Show preview
   selectedFile = file;
+  resetCheckinTypeSelection();
   const reader = new FileReader();
   reader.onload = (ev) => {
     previewImg.src = ev.target.result;
@@ -354,6 +442,7 @@ btnCancelUpload.addEventListener('click', () => {
   previewModal.classList.remove('active');
   selectedFile = null;
   previewImg.src = '';
+  resetCheckinTypeSelection();
 });
 
 btnConfirmUpload.addEventListener('click', async () => {
@@ -410,7 +499,8 @@ btnConfirmUpload.addEventListener('click', async () => {
 
     // 5. Save check-in + update streak
     setLoadingText('Registrando check-in...');
-    await saveCheckin(photoUrl);
+    const savedType = currentCheckinType;
+    await saveCheckin(photoUrl, savedType);
     await updateStreak();
     await loadUserData();
 
@@ -427,6 +517,7 @@ btnConfirmUpload.addEventListener('click', async () => {
   }
 
   selectedFile = null;
+  resetCheckinTypeSelection();
 });
 
 // ═══════════════════════════════════════════════
@@ -534,16 +625,24 @@ async function hasCheckedInToday() {
   return !snap.empty;
 }
 
-async function saveCheckin(photoUrl) {
+async function saveCheckin(photoUrl, type = 'treino') {
   await addDoc(collection(db, 'checkins'), {
     userId: currentUser.uid,
-    userName: currentUser.displayName || 'Visitante',
+    userName: currentUserData?.displayName || currentUser.displayName || 'Visitante',
     userPhoto: currentUser.photoURL || '',
     photoUrl: photoUrl,
     dateStr: getTodayDateStr(),
     timestamp: serverTimestamp(),
-    reportsCount: 0
+    reportsCount: 0,
+    type: type
   });
+
+  if (type === 'lazer') {
+    const userRef = doc(db, 'users', currentUser.uid);
+    await updateDoc(userRef, {
+      recoverPoints: increment(1)
+    });
+  }
 }
 
 async function updateStreak() {
@@ -579,7 +678,58 @@ async function updateStreak() {
 // 8. MURAL / FEED
 // ═══════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════
+// 8. MURAL / FEED
+// ═══════════════════════════════════════════════
+
+const MOCK_CHECKINS = [
+  {
+    id: 'mock1',
+    userName: 'Carlos Silva',
+    photoUrl: 'images/IMG_0829.webp',
+    type: 'treino',
+    timestamp: { toDate: () => new Date(Date.now() - 3600000 * 2) },
+    userStreak: 12,
+    userRank: 1
+  },
+  {
+    id: 'mock2',
+    userName: 'Mariana Costa',
+    photoUrl: 'images/peopleplaying_thumbnail.webp',
+    type: 'lazer',
+    timestamp: { toDate: () => new Date(Date.now() - 3600000 * 5) },
+    userStreak: 8,
+    userRank: 3
+  },
+  {
+    id: 'mock3',
+    userName: 'Felipe Santos',
+    photoUrl: 'images/IMG_0906.webp',
+    type: 'treino',
+    timestamp: { toDate: () => new Date(Date.now() - 3600000 * 12) },
+    userStreak: 5,
+    userRank: 7
+  },
+  {
+    id: 'mock4',
+    userName: 'Aline Souza',
+    photoUrl: 'images/piscina.webp',
+    type: 'lazer',
+    timestamp: { toDate: () => new Date(Date.now() - 3600000 * 18) },
+    userStreak: 15,
+    userRank: 2
+  }
+];
+
 async function loadFeed() {
+  const landingPreview = document.getElementById('landing-mural-preview');
+  
+  const renderFallbackPreview = () => {
+    if (landingPreview) {
+      landingPreview.innerHTML = MOCK_CHECKINS.map(post => renderFeedCard(post)).join('');
+    }
+  };
+
   const q = query(
     collection(db, 'checkins'),
     orderBy('timestamp', 'desc'),
@@ -602,10 +752,15 @@ async function loadFeed() {
           <i class="fa-solid fa-camera-retro"></i>
           <p>Nenhum check-in ainda. Seja o primeiro! 📸</p>
         </div>`;
+      renderFallbackPreview();
       return;
     }
 
     feedContainer.innerHTML = posts.map(post => renderFeedCard(post)).join('');
+    
+    if (landingPreview) {
+      landingPreview.innerHTML = posts.slice(0, 10).map(post => renderFeedCard(post)).join('');
+    }
   } catch (err) {
     console.error('Feed error:', err);
     feedContainer.innerHTML = `
@@ -613,6 +768,7 @@ async function loadFeed() {
         <i class="fa-solid fa-triangle-exclamation"></i>
         <p>Erro ao carregar o mural.</p>
       </div>`;
+    renderFallbackPreview();
   }
 }
 
@@ -621,7 +777,13 @@ function renderFeedCard(post) {
   const timeAgo = formatTimeAgo(ts);
   const isMine = currentUser && String(post.userId).trim() === String(currentUser.uid).trim();
   
-  console.log(`[Feed Debug] post.id: ${post.id} | post.userId: ${post.userId} | currentUser.uid: ${currentUser ? currentUser.uid : 'null'} | isMine: ${isMine}`);
+  let streak = post.userStreak || 0;
+  let rank = post.userRank || null;
+
+  if (post.userId && window.usersCache && window.usersCache[post.userId]) {
+    streak = window.usersCache[post.userId].streak;
+    rank = window.usersCache[post.userId].rank;
+  }
 
   const actionButton = isMine
     ? `<button class="btn-feed-action delete" onclick="deletePost('${post.id}')" title="Excluir">
@@ -631,9 +793,33 @@ function renderFeedCard(post) {
          <i class="fa-solid fa-flag"></i>
        </button>`;
 
+  const type = post.type || 'treino';
+  const typeBadge = type === 'lazer' 
+    ? `<span class="badge-type lazer">🍹 Lazer</span>`
+    : `<span class="badge-type treino">🏋️ Treino</span>`;
+
+  const streakBadgeHtml = streak > 0 
+    ? `<span class="badge-streak"><i class="fa-solid fa-fire"></i> ${streak}</span>`
+    : '';
+
+  let rankBadgeHtml = '';
+  if (rank) {
+    let rankLabelClass = '';
+    if (rank === 1) rankLabelClass = 'rank-1';
+    else if (rank === 2) rankLabelClass = 'rank-2';
+    else if (rank === 3) rankLabelClass = 'rank-3';
+    
+    rankBadgeHtml = `<span class="badge-rank ${rankLabelClass}"><i class="fa-solid fa-trophy"></i> #${rank}</span>`;
+  }
+
   return `
     <div class="feed-card">
       ${actionButton}
+      ${typeBadge}
+      <div class="feed-card-badges-right">
+        ${streakBadgeHtml}
+        ${rankBadgeHtml}
+      </div>
       <img class="feed-card-img" src="${escapeHtml(post.photoUrl)}" alt="Check-in" loading="lazy" />
       <div class="feed-card-body">
         <div class="feed-card-name">${escapeHtml(post.userName)}</div>
@@ -698,20 +884,16 @@ window.deletePost = async function(postId) {
 // ═══════════════════════════════════════════════
 
 async function loadLeaderboard() {
-  const q = query(
-    collection(db, 'users'),
-    orderBy('streakCount', 'desc'),
-    limit(50)
-  );
-
   try {
-    const snap = await getDocs(q);
-    const users = [];
+    const snap = await getDocs(collection(db, 'users'));
+    let users = [];
     snap.forEach(d => {
       const data = d.data();
-      // Filter out employees
       if (!employeeUIDs.includes(d.id) && (data.streakCount || 0) > 0) {
-        users.push({ id: d.id, ...data });
+        const streak = data.streakCount || 0;
+        const recover = data.recoverPoints || 0;
+        const xp = (streak * 100) + (recover * 10);
+        users.push({ id: d.id, xp, ...data });
       }
     });
 
@@ -724,28 +906,53 @@ async function loadLeaderboard() {
       return;
     }
 
-    leaderboardContainer.innerHTML = users.slice(0, 20).map((u, i) => renderLeaderboardItem(u, i)).join('');
+    // Sort by XP descending to get global rankings
+    users.sort((a, b) => b.xp - a.xp);
+
+    // Assign global ranks (1-indexed)
+    users.forEach((u, i) => {
+      u.globalRank = i + 1;
+    });
+
+    // Determine final list to show
+    let listToShow = [];
+    const myIndex = users.findIndex(u => u.id === (currentUser ? currentUser.uid : null));
+
+    if (myIndex !== -1) {
+      const myGlobalRank = users[myIndex].globalRank;
+      // Sort by proximity to my rank
+      const proximityList = [...users].sort((a, b) => {
+        return Math.abs(a.globalRank - myGlobalRank) - Math.abs(b.globalRank - myGlobalRank);
+      });
+      listToShow = proximityList.slice(0, 20);
+    } else {
+      // Fallback: standard top 20
+      listToShow = users.slice(0, 20);
+    }
+
+    leaderboardContainer.innerHTML = listToShow.map(u => renderLeaderboardItem(u)).join('');
   } catch (err) {
     console.error('Leaderboard error:', err);
   }
 }
 
-function renderLeaderboardItem(user, index) {
-  const rank = index + 1;
+function renderLeaderboardItem(user) {
+  const rank = user.globalRank;
   let rankClass = 'normal';
   if (rank === 1) rankClass = 'gold';
   else if (rank === 2) rankClass = 'silver';
   else if (rank === 3) rankClass = 'bronze';
 
-  const medal = rank === 1 ? '👑' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+  const medal = rank === 1 ? '👑' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
   const isMe = currentUser && user.id === currentUser.uid;
+  const firstName = (user.displayName || 'Visitante').split(' ')[0];
 
   return `
     <div class="leaderboard-item glass-card" style="${isMe ? 'border-color: rgba(46,125,50,0.4); background: rgba(46,125,50,0.08);' : ''}">
       <div class="leaderboard-rank ${rankClass}">${medal}</div>
       <img class="leaderboard-avatar" src="${escapeHtml(user.photoURL || 'images/logo_opt.webp')}" alt="" />
-      <div class="leaderboard-name">${escapeHtml(user.displayName || 'Visitante')}${isMe ? ' (você)' : ''}</div>
-      <div class="leaderboard-streak">🔥 ${user.streakCount || 0}</div>
+      <div class="leaderboard-name">${escapeHtml(firstName)}${isMe ? ' (você)' : ''}</div>
+      <div class="leaderboard-streak">🔥 ${user.streakCount || 0} foguinhos</div>
     </div>`;
 }
 
@@ -813,8 +1020,10 @@ btnShareStory.addEventListener('click', async () => {
   }
 
   // --- Helper: draw rotated polaroid ---
-  function drawPolaroid(img, cx, cy, size, angle) {
-    if (!img) return;
+  function drawPolaroid(photoObj, cx, cy, size, angle) {
+    if (!photoObj || !photoObj.img) return;
+    const img = photoObj.img;
+    const type = photoObj.type || 'treino';
     const pad = 14;
     const bottomPad = 56;
     const totalW = size + pad * 2;
@@ -832,6 +1041,16 @@ btnShareStory.addEventListener('click', async () => {
     ctx.shadowColor = 'transparent';
     // Photo
     drawCover(img, -totalW / 2 + pad, -totalH / 2 + pad, size, size);
+
+    // Subtle colored badge dot inside photo
+    ctx.fillStyle = type === 'lazer' ? '#e65100' : '#2e7d32'; // orange or green
+    ctx.beginPath();
+    ctx.arc(-totalW / 2 + pad + 24, -totalH / 2 + pad + 24, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
     ctx.restore();
   }
 
@@ -863,9 +1082,12 @@ btnShareStory.addEventListener('click', async () => {
         // Take top 3 most recent
         const recentDocs = docs.slice(0, 3);
         
-        const photoPromises = recentDocs.map(d => loadImg(d.data().photoUrl));
+        const photoPromises = recentDocs.map(async d => {
+          const img = await loadImg(d.data().photoUrl);
+          return { img, type: d.data().type || 'treino' };
+        });
         checkinPhotos = await Promise.all(photoPromises);
-        checkinPhotos = checkinPhotos.filter(Boolean);
+        checkinPhotos = checkinPhotos.filter(p => p.img);
       }
     } catch (err) {
       console.warn('[Story] Error fetching checkins:', err);

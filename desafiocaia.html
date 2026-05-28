@@ -52,11 +52,22 @@
     </div>
 
     <!-- ═══════════════════════════════════════ -->
-    <!-- PREVIEW MODAL (Photo confirmation) -->
-    <!-- ═══════════════════════════════════════ -->
     <div id="preview-modal" class="preview-modal">
         <p style="color: var(--caia-text-muted); font-weight: 600; font-size: 0.9rem;">Sua foto ficou boa?</p>
         <img id="preview-img" src="" alt="Preview">
+        
+        <!-- Selection of photo type (Treino vs Lazer) -->
+        <div class="checkin-type-selector">
+            <label class="type-option active" id="option-treino">
+                <input type="radio" name="checkin-type" value="treino" checked>
+                <i class="fa-solid fa-dumbbell"></i> Treino (CAIA)
+            </label>
+            <label class="type-option" id="option-lazer">
+                <input type="radio" name="checkin-type" value="lazer">
+                <i class="fa-solid fa-umbrella-beach"></i> Lazer (Balneário)
+            </label>
+        </div>
+
         <div class="preview-actions">
             <button id="btn-cancel-upload" class="btn-cancel">
                 <i class="fa-solid fa-xmark"></i> Cancelar
@@ -86,6 +97,17 @@
                     <p class="login-subtitle">
                         Faça check-in todos os dias, mantenha sua sequência de 🔥 e concorra a prêmios exclusivos!
                     </p>
+                </div>
+
+                <!-- Mural scrollable preview -->
+                <div class="login-mural-preview">
+                    <p class="mural-preview-title">Quem já está no Desafio 👇</p>
+                    <div class="mural-preview-scroll" id="landing-mural-preview">
+                        <div class="empty-state-preview">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Carregando mural...</p>
+                        </div>
+                    </div>
                 </div>
 
                 <button id="btn-google-login" class="btn-google">
@@ -145,7 +167,12 @@
                 <div class="user-info">
                     <img id="user-avatar" class="user-avatar" src="images/logo_opt.webp" alt="">
                     <div>
-                        <div id="user-name" class="user-name">Visitante</div>
+                        <div class="username-container">
+                            <span id="user-name" class="user-name">Visitante</span>
+                            <button id="btn-edit-name" class="btn-edit-name" title="Editar nome">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </div>
                         <div id="user-streak" class="user-streak">🔥 <span>0</span> dias</div>
                     </div>
                 </div>
@@ -162,7 +189,7 @@
                 </div>
                 <div class="streak-stat">
                     <div id="stat-checkins" class="stat-value">0</div>
-                    <div class="stat-label">Check-ins</div>
+                    <div class="stat-label">Recover (XP)</div>
                 </div>
                 <div class="streak-stat">
                     <div id="stat-rank" class="stat-value">—</div>
@@ -170,20 +197,20 @@
                 </div>
             </div>
 
-            <!-- CHECK-IN BUTTON -->
-            <button id="btn-checkin" class="btn-checkin">
-                <i class="fa-solid fa-camera"></i>
-                Fazer Check-in
-            </button>
-
-            <!-- SHARE STORY BUTTON -->
-            <button id="btn-share-story" class="btn-share">
-                <i class="fa-brands fa-instagram"></i>
-                Compartilhar nos Stories
-            </button>
+            <!-- ACTION BUTTONS ROW -->
+            <div class="action-buttons-row">
+                <button id="btn-checkin" class="btn-checkin">
+                    <i class="fa-solid fa-camera"></i>
+                    Check-in
+                </button>
+                <button id="btn-share-story" class="btn-share">
+                    <i class="fa-brands fa-instagram"></i>
+                    Stories
+                </button>
+            </div>
 
             <!-- TAB NAVIGATION -->
-            <div class="nav-tabs" style="margin-top: 1.5rem;">
+            <div class="nav-tabs">
                 <button class="nav-tab active" data-tab="mural">
                     <i class="fa-solid fa-images"></i> Mural
                 </button>
@@ -210,6 +237,13 @@
                         <p>Carregando ranking...</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- FEEDBACK / FALE CONOSCO -->
+            <div class="feedback-container">
+                <button id="btn-feedback" class="btn-feedback">
+                    <i class="fa-solid fa-comments"></i> Fale Conosco / Feedback
+                </button>
             </div>
 
         </div>
