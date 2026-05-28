@@ -530,28 +530,25 @@ async function loadFeed() {
 function renderFeedCard(post) {
   const ts = post.timestamp?.toDate?.() || new Date();
   const timeAgo = formatTimeAgo(ts);
-  const isMine = currentUser && post.userId === currentUser.uid;
+  const isMine = currentUser && String(post.userId).trim() === String(currentUser.uid).trim();
+  
+  console.log(`[Feed Debug] post.id: ${post.id} | post.userId: ${post.userId} | currentUser.uid: ${currentUser ? currentUser.uid : 'null'} | isMine: ${isMine}`);
 
   const actionButton = isMine
-    ? `<button class="btn-delete" onclick="deletePost('${post.id}')" title="Excluir">
-         <i class="fa-solid fa-trash-can"></i> Excluir
+    ? `<button class="btn-feed-action delete" onclick="deletePost('${post.id}')" title="Excluir">
+         <i class="fa-solid fa-trash-can"></i>
        </button>`
-    : `<button class="btn-report" onclick="reportPost('${post.id}')" title="Denunciar">
-         <i class="fa-solid fa-flag"></i> Denunciar
+    : `<button class="btn-feed-action report" onclick="reportPost('${post.id}')" title="Denunciar">
+         <i class="fa-solid fa-flag"></i>
        </button>`;
 
   return `
-    <div class="feed-card glass-card">
+    <div class="feed-card">
+      ${actionButton}
       <img class="feed-card-img" src="${escapeHtml(post.photoUrl)}" alt="Check-in" loading="lazy" />
       <div class="feed-card-body">
-        <div class="feed-card-user">
-          <img class="feed-card-avatar" src="${escapeHtml(post.userPhoto || 'images/logo_opt.webp')}" alt="" />
-          <div>
-            <div class="feed-card-name">${escapeHtml(post.userName)}</div>
-            <div class="feed-card-meta">${timeAgo}</div>
-          </div>
-        </div>
-        ${actionButton}
+        <div class="feed-card-name">${escapeHtml(post.userName)}</div>
+        <div class="feed-card-meta">${timeAgo}</div>
       </div>
     </div>`;
 }
