@@ -699,10 +699,17 @@ btnShareStory.addEventListener('click', async () => {
   // --- Helper: load image ---
   function loadImg(src) {
     return new Promise((resolve, reject) => {
+      if (!src) { resolve(null); return; }
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // Only set crossOrigin for external URLs, setting it on data: URIs breaks Safari
+      if (!src.startsWith('data:')) {
+        img.crossOrigin = 'anonymous';
+      }
       img.onload = () => resolve(img);
-      img.onerror = () => { console.warn('[Story] Failed to load:', src); resolve(null); };
+      img.onerror = (err) => { 
+        console.warn('[Story] Failed to load image:', src.substring(0, 30) + '...', err); 
+        resolve(null); 
+      };
       img.src = src;
     });
   }
