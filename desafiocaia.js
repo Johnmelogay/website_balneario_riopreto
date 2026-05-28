@@ -715,13 +715,18 @@ btnShareStory.addEventListener('click', async () => {
   }
 
   // --- Helper: draw image with "cover" behaviour ---
-  function drawCover(img, x, y, w, h) {
+  function drawCover(img, x, y, w, h, alignTop = false) {
     if (!img) return;
     const iR = img.width / img.height;
     const bR = w / h;
     let sx = 0, sy = 0, sw = img.width, sh = img.height;
-    if (iR > bR) { sw = img.height * bR; sx = (img.width - sw) / 2; }
-    else { sh = img.width / bR; sy = (img.height - sh) / 2; }
+    if (iR > bR) { 
+      sw = img.height * bR; 
+      sx = (img.width - sw) / 2; 
+    } else { 
+      sh = img.width / bR; 
+      sy = alignTop ? 0 : (img.height - sh) / 2; 
+    }
     ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
   }
 
@@ -805,13 +810,20 @@ btnShareStory.addEventListener('click', async () => {
 
     // ========== DRAW THE CARD ==========
 
-    // A) Background photo
+    // A) Background photo (aligned to top)
     if (bgImg) {
-      drawCover(bgImg, 0, 0, W, H);
+      drawCover(bgImg, 0, 0, W, H, true);
     } else {
       ctx.fillStyle = '#0a1f14';
       ctx.fillRect(0, 0, W, H);
     }
+
+    // B) Subtle gradient at the bottom for text legibility
+    const grad = ctx.createLinearGradient(0, H - 700, 0, H);
+    grad.addColorStop(0, 'rgba(10, 31, 20, 0)');
+    grad.addColorStop(1, 'rgba(10, 31, 20, 0.95)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, H - 700, W, 700);
 
     // E) Photo stack (polaroids) — center of card
     const stackCenterY = H / 2;
