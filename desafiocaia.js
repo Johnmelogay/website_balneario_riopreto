@@ -180,6 +180,7 @@ onAuthStateChanged(auth, async (user) => {
       updateUserUI(user);
       loadFeed();
       loadLeaderboard();
+      if (typeof autoShowPwaPrompt === 'function') autoShowPwaPrompt();
     }
   } else {
     hideLoading();
@@ -227,6 +228,7 @@ btnSaveOnboarding.addEventListener('click', async () => {
     loadFeed();
     loadLeaderboard();
     showToast('Cadastro concluído! Bem-vindo ao Desafio.', 'success');
+    if (typeof autoShowPwaPrompt === 'function') autoShowPwaPrompt();
   } catch (err) {
     hideLoading();
     showToast('Erro ao salvar dados.', 'error');
@@ -432,17 +434,37 @@ btnEditName.addEventListener('click', async () => {
   }
 });
 
+// ─── Helper: open / close modal overlays ───
+function openModal(modalEl) {
+  if (!modalEl) return;
+  modalEl.style.display = 'flex';
+  requestAnimationFrame(() => modalEl.classList.add('active'));
+}
+function closeModal(modalEl) {
+  if (!modalEl) return;
+  modalEl.classList.remove('active');
+  setTimeout(() => { modalEl.style.display = 'none'; }, 300);
+}
+
+// Backdrop-click closes any overlay
+[rulesModal, pwaInstallModal].forEach(modal => {
+  if (!modal) return;
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal(modal);
+  });
+});
+
 // --- Rules Modal triggers ---
 if (btnOpenRules && rulesModal) {
-  btnOpenRules.addEventListener('click', () => {
-    rulesModal.style.display = 'block';
-  });
+  btnOpenRules.addEventListener('click', () => openModal(rulesModal));
 }
-if (btnCloseRules && rulesModal) {
-  btnCloseRules.addEventListener('click', () => {
-    rulesModal.style.display = 'none';
-  });
-}
+const closeRulesActions = [
+  document.getElementById('btn-close-rules'),
+  document.getElementById('btn-close-rules-x')
+];
+closeRulesActions.forEach(btn => {
+  if (btn && rulesModal) btn.addEventListener('click', () => closeModal(rulesModal));
+});
 
 // --- PWA Installation Flow ---
 let deferredPrompt = null;
@@ -485,7 +507,7 @@ const handleInstallClick = async () => {
   } else {
     // Show our custom guide modal
     if (pwaInstallModal) {
-      pwaInstallModal.style.display = 'block';
+      openModal(pwaInstallModal);
       detectAndSelectPwaPlatform();
     }
   }
@@ -531,11 +553,28 @@ if (tabIos) tabIos.addEventListener('click', () => selectPwaPlatform('ios'));
 if (tabAndroid) tabAndroid.addEventListener('click', () => selectPwaPlatform('android'));
 
 // Close handler
-const btnClosePwa = document.getElementById('btn-close-pwa');
-if (btnClosePwa && pwaInstallModal) {
-  btnClosePwa.addEventListener('click', () => {
-    pwaInstallModal.style.display = 'none';
-  });
+const closePwaActions = [
+  document.getElementById('btn-close-pwa'),
+  document.getElementById('btn-close-pwa-x')
+];
+closePwaActions.forEach(btn => {
+  if (btn && pwaInstallModal) {
+    btn.addEventListener('click', () => closeModal(pwaInstallModal));
+  }
+});
+
+// Auto-show PWA prompt strategically
+function autoShowPwaPrompt() {
+  if (isStandalone) return;
+  if (sessionStorage.getItem('pwa_prompt_shown') === 'true') return;
+  
+  setTimeout(() => {
+    if (pwaInstallModal) {
+      openModal(pwaInstallModal);
+      detectAndSelectPwaPlatform();
+      sessionStorage.setItem('pwa_prompt_shown', 'true');
+    }
+  }, 1500);
 }
 
 // --- Feedback / Whatsapp integration ---

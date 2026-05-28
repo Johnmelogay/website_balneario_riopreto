@@ -13,7 +13,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Pós Treino">
+    <meta name="apple-mobile-web-app-title" content="Pós Treino Balneário Rio Preto">
     <link rel="apple-touch-icon" href="images/logo_opt.png">
     <meta name="theme-color" content="#10b981">
 
@@ -87,76 +87,83 @@
     </div>
 
     <!-- REGULAMENTO / PRÊMIOS MODAL -->
-    <div id="rules-modal" class="preview-modal" style="display: none; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 80vh; overflow-y: auto;">
-        <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            🏆 Prêmios & Regulamento
-        </h3>
-        <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.2rem;">
-            O <strong>Pós Treino Balneário Rio Preto</strong> é o movimento oficial para quem quer relaxar após treinar pesado.
-        </p>
-        
-        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
-            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid var(--caia-primary); border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🎁 Ranking Mensal</strong>
-                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">O 1º colocado no ranking de fogueiras do mês ganha <strong>5 entradas gratuitas</strong> no Balneário Rio Preto!</span>
+    <!-- REGULAMENTO / PRÊMIOS MODAL -->
+    <div id="rules-modal" class="preview-modal" style="display: none;">
+        <div class="glass-card" style="width: 100%; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative;">
+            <button id="btn-close-rules-x" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer; padding: 0.2rem; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                🏆 Prêmios & Regulamento
+            </h3>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                O <strong>Pós Treino Balneário Rio Preto</strong> é o movimento oficial para quem quer relaxar após treinar pesado.
+            </p>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0.5rem;">
+                <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid var(--caia-primary); border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🎁 Ranking Mensal</strong>
+                    <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">O 1º colocado no ranking de fogueiras do mês ganha <strong>5 entradas gratuitas</strong> no Balneário Rio Preto!</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #3b82f6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">⚡ Desafios Semanais</strong>
+                    <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Desafios são lançados e programados toda semana no app. Para participar, basta continuar postando seus check-ins de academia ou lazer!</span>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #f59e0b; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🔥 Datas Especiais</strong>
+                    <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Promoções surpresa valendo <strong>refeições completas no bar</strong>, entradas e até <strong>diárias nos chalés</strong> do Balneário Rio Preto!</span>
+                </div>
             </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #3b82f6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">⚡ Desafios Semanais</strong>
-                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Desafios são lançados e programados toda semana no app. Para participar, basta continuar postando seus check-ins de academia ou lazer!</span>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #f59e0b; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🔥 Datas Especiais</strong>
-                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Promoções surpresa valendo <strong>refeições completas no bar</strong>, entradas e até <strong>diárias nos chalés</strong> do Balneário Rio Preto!</span>
-            </div>
-        </div>
 
-        <button id="btn-close-rules" class="btn-confirm" style="width: 100%; justify-content: center; margin: 0;">
-            Entendi
-        </button>
+            <button id="btn-close-rules" class="btn-confirm" style="width: 100%; justify-content: center; margin: 0;">
+                Entendi
+            </button>
+        </div>
     </div>
 
     <!-- PWA INSTALL TUTORIAL MODAL -->
-    <div id="pwa-install-modal" class="preview-modal" style="display: none; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto;">
-        <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            📲 Instalar no Celular
-        </h3>
-        <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.5rem;">
-            Adicione o <strong>Pós Treino Balneário Rio Preto</strong> à sua tela inicial para acessar instantaneamente com ícone próprio e carregamento rápido, igual a um aplicativo!
-        </p>
+    <div id="pwa-install-modal" class="preview-modal" style="display: none;">
+        <div class="glass-card" style="width: 100%; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative;">
+            <button id="btn-close-pwa-x" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer; padding: 0.2rem; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                📲 Instalar no Celular
+            </h3>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                Adicione o <strong>Pós Treino Balneário Rio Preto</strong> à sua tela inicial para acessar instantaneamente com ícone próprio e carregamento rápido, igual a um aplicativo!
+            </p>
 
-        <!-- Tab selector inside modal: iOS vs Android -->
-        <div class="pwa-platform-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.2rem; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 0.5rem;">
-            <button id="tab-pwa-ios" class="pwa-platform-tab active" style="flex: 1; padding: 0.5rem; border: none; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; background: transparent;">
-                <i class="fa-brands fa-apple" style="font-size: 1rem;"></i> iPhone (iOS)
+            <!-- Tab selector inside modal: iOS vs Android -->
+            <div class="pwa-platform-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 0.2rem; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 0.5rem;">
+                <button id="tab-pwa-ios" class="pwa-platform-tab active" style="flex: 1; padding: 0.5rem; border: none; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; background: transparent;">
+                    <i class="fa-brands fa-apple" style="font-size: 1rem;"></i> iPhone (iOS)
+                </button>
+                <button id="tab-pwa-android" class="pwa-platform-tab" style="flex: 1; padding: 0.5rem; border: none; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; background: transparent;">
+                    <i class="fa-brands fa-android" style="font-size: 1rem;"></i> Android
+                </button>
+            </div>
+
+            <!-- iOS Steps -->
+            <div id="pwa-steps-ios" class="pwa-steps-panel">
+                <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
+                    <li>Abra este site no navegador <strong>Safari</strong> (padrão do iPhone).</li>
+                    <li>Toque no botão de <strong>Compartilhar</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-arrow-up-from-bracket"></i></span> na barra inferior do Safari.</li>
+                    <li>No menu que abrir, role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-square-plus"></i></span>.</li>
+                    <li>Altere o nome se desejar e toque em <strong>"Adicionar"</strong> no canto superior direito.</li>
+                </ol>
+            </div>
+
+            <!-- Android Steps -->
+            <div id="pwa-steps-android" class="pwa-steps-panel" style="display: none;">
+                <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
+                    <li>Abra este site no navegador <strong>Google Chrome</strong>.</li>
+                    <li>Toque nos <strong>três pontinhos</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-ellipsis-vertical"></i></span> no canto superior direito do Chrome.</li>
+                    <li>Selecione a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à Tela Inicial"</strong>.</li>
+                    <li>Confirme a instalação clicando em <strong>"Instalar"</strong> na janela que aparecer.</li>
+                </ol>
+            </div>
+
+            <button id="btn-close-pwa" class="btn-confirm" style="width: 100%; justify-content: center; margin-top: 0.5rem; margin-bottom: 0;">
+                Entendi
             </button>
-            <button id="tab-pwa-android" class="pwa-platform-tab" style="flex: 1; padding: 0.5rem; border: none; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; background: transparent;">
-                <i class="fa-brands fa-android" style="font-size: 1rem;"></i> Android
-            </button>
         </div>
-
-        <!-- iOS Steps -->
-        <div id="pwa-steps-ios" class="pwa-steps-panel">
-            <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
-                <li>Abra este site no navegador <strong>Safari</strong> (padrão do iPhone).</li>
-                <li>Toque no botão de <strong>Compartilhar</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-arrow-up-from-bracket"></i></span> na barra inferior do Safari.</li>
-                <li>No menu que abrir, role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-square-plus"></i></span>.</li>
-                <li>Altere o nome se desejar e toque em <strong>"Adicionar"</strong> no canto superior direito.</li>
-            </ol>
-        </div>
-
-        <!-- Android Steps -->
-        <div id="pwa-steps-android" class="pwa-steps-panel" style="display: none;">
-            <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
-                <li>Abra este site no navegador <strong>Google Chrome</strong>.</li>
-                <li>Toque nos <strong>três pontinhos</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-ellipsis-vertical"></i></span> no canto superior direito do Chrome.</li>
-                <li>Selecione a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à Tela Inicial"</strong>.</li>
-                <li>Confirme a instalação clicando em <strong>"Instalar"</strong> na janela que aparecer.</li>
-            </ol>
-        </div>
-
-        <button id="btn-close-pwa" class="btn-confirm" style="width: 100%; justify-content: center; margin-top: 1.5rem; margin-bottom: 0;">
-            Entendi
-        </button>
     </div>
 
     <!-- ═══════════════════════════════════════ -->
