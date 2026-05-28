@@ -248,28 +248,10 @@ function checkGeolocation() {
 // 4. CHECK-IN FLOW
 // ═══════════════════════════════════════════════
 
-btnCheckin.addEventListener('click', async () => {
+btnCheckin.addEventListener('click', () => {
   if (!currentUser) return;
 
-  // 1. Check if already checked in today
-  const alreadyChecked = await hasCheckedInToday();
-  if (alreadyChecked) {
-    showToast('Você já fez check-in hoje! Volte amanhã 🌟', 'warning');
-    return;
-  }
-
-  // 2. Geofence check
-  showLoading('Verificando localização...');
-  try {
-    await checkGeolocation();
-    hideLoading();
-  } catch (err) {
-    hideLoading();
-    showToast(err.message, 'error');
-    return;
-  }
-
-  // 3. Open camera
+  // Open camera input synchronously to bypass iOS WebKit user-gesture restrictions
   cameraInput.click();
 });
 
@@ -298,9 +280,36 @@ btnConfirmUpload.addEventListener('click', async () => {
   previewModal.classList.remove('active');
   if (!selectedFile) return;
 
-  showLoading('Analisando imagem...');
+  // 1. Geofence check
+  showLoading('Verificando localização...');
+  try {
+    await checkGeolocation();
+  } catch (err) {
+    hideLoading();
+    showToast(err.message, 'error');
+    selectedFile = null;
+    return;
+  }
 
-  // 4. NSFW Check
+  // 2. Check if already checked in today
+  setLoadingText('Verificando check-in diário...');
+  try {
+    const alreadyChecked = await hasCheckedInToday();
+    if (alreadyChecked) {
+      hideLoading();
+      showToast('Você já fez check-in hoje! Volte amanhã 🌟', 'warning');
+      selectedFile = null;
+      return;
+    }
+  } catch (err) {
+    hideLoading();
+    showToast('Erro ao validar check-in diário.', 'error');
+    selectedFile = null;
+    return;
+  }
+
+  // 3. NSFW Check
+  setLoadingText('Analisando imagem...');
   try {
     const isClean = await checkNSFW(previewImg);
     if (!isClean) {
@@ -314,12 +323,12 @@ btnConfirmUpload.addEventListener('click', async () => {
     // If NSFW model fails to load, allow the upload (graceful degradation)
   }
 
-  // 5. Upload to Firebase Storage
+  // 4. Compress & Convert to Base64 WebP
   setLoadingText('Enviando foto...');
   try {
     const photoUrl = await uploadPhoto(selectedFile);
 
-    // 6. Save check-in + update streak
+    // 5. Save check-in + update streak
     setLoadingText('Registrando check-in...');
     await saveCheckin(photoUrl);
     await updateStreak();
@@ -328,7 +337,7 @@ btnConfirmUpload.addEventListener('click', async () => {
     hideLoading();
     showToast('Check-in registrado com sucesso! 🎉', 'success');
 
-    // Refresh feed
+    // Refresh feed & leaderboard
     loadFeed();
     loadLeaderboard();
   } catch (err) {
