@@ -22,7 +22,7 @@
 /* --- GLOBAL PAGE --- */
 body.desafio-body {
   background-color: var(--caia-bg);
-  background-image: url('images/PROMO CAIA.png');
+  background-image: url('images/PROMO CAIA.webp');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -56,7 +56,7 @@ body.desafio-body::before {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background-image: url('images/PROMO CAIA.png');
+  background-image: url('images/PROMO CAIA.webp');
   background-size: cover;
   background-position: top center;
   overflow: hidden;
