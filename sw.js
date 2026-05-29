@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pos-treino-v4';
+const CACHE_NAME = 'pos-treino-v5';
 const ASSETS = [
   './desafiocaia.html',
   './desafiocaia.css',

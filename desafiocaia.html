@@ -173,6 +173,33 @@
             </button>
         </div>
     </div>
+    <!-- POPUP BLOCKED INSTRUCTIONS MODAL -->
+    <div id="popup-blocked-modal" class="preview-modal" style="display: none;">
+        <div class="glass-card" style="width: 100%; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative;">
+            <button id="btn-close-popup-blocked-x" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer; padding: 0.2rem; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                🔓 Permitir Pop-ups no Safari
+            </h3>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                O login com Google precisa abrir uma janela pop-up, mas o seu navegador está bloqueando. Siga os passos abaixo para liberar:
+            </p>
+
+            <ol style="margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; line-height: 1.5;">
+                <li>Abra o app <strong>Ajustes</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-gear"></i></span> do seu iPhone.</li>
+                <li>Role para baixo e toque em <strong>Safari</strong> (ou <strong>Apps > Safari</strong>).</li>
+                <li>Procure a opção <strong>"Bloquear Pop-ups"</strong> e <strong>desative</strong> <span style="display: inline-flex; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;"><i class="fa-solid fa-toggle-off"></i></span>.</li>
+                <li>Volte para este app e toque em <strong>"Participar com Google"</strong> novamente.</li>
+            </ol>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #3b82f6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">💡 <strong>Dica:</strong> Após fazer login, você pode reativar o bloqueio de pop-ups novamente se preferir.</span>
+            </div>
+
+            <button id="btn-close-popup-blocked" class="btn-confirm" style="width: 100%; justify-content: center; margin: 0;">
+                Entendi
+            </button>
+        </div>
+    </div>
 
     <!-- ═══════════════════════════════════════ -->
     <!-- HIDDEN CAMERA INPUT -->

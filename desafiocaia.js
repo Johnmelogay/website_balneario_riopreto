@@ -6,7 +6,7 @@
 
 // ─── Firebase SDK Imports (Modular via CDN) ───
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile }
+import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
@@ -31,12 +31,6 @@ const googleProvider = new GoogleAuthProvider();
 // ─── Standalone PWA Detection (needed early for auth strategy) ───
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 console.log('[PWA] Standalone mode:', isStandalone);
-
-// ─── Redirect Auth Recovery ───
-// If we previously started a redirect login, show loading immediately
-// so the user doesn't flash-see the login screen on return.
-const REDIRECT_FLAG = 'caia_auth_redirect_pending';
-const isReturningFromRedirect = localStorage.getItem(REDIRECT_FLAG) === 'true';
 
 // Register Service Worker for PWA support
 if ('serviceWorker' in navigator) {
@@ -94,6 +88,9 @@ const rulesModal = $('#rules-modal');
 const btnInstallLanding = $('#btn-install-pwa-landing');
 const btnInstallApp = $('#btn-install-pwa-app');
 const pwaInstallModal = $('#pwa-install-modal');
+const popupBlockedModal = $('#popup-blocked-modal');
+const btnClosePopupBlocked = $('#btn-close-popup-blocked');
+const btnClosePopupBlockedX = $('#btn-close-popup-blocked-x');
 
 // Onboarding elements
 const onboardingScreen = $('#onboarding-screen');
@@ -114,82 +111,63 @@ let nsfwModel = null;
 let currentCheckinType = 'treino';
 
 // ═══════════════════════════════════════════════
-// 1. AUTH FLOW (Robust for Standalone PWA)
+// 1. AUTH FLOW (Popup-Only — iOS Safari Compatible)
 // ═══════════════════════════════════════════════
+// signInWithRedirect is broken on iOS Safari due to ITP (Intelligent Tracking
+// Prevention) blocking cross-origin storage when authDomain differs from the
+// app domain. We use popup-only auth and show instructions if blocked.
 
-// Show loading overlay immediately if returning from a redirect login,
-// so the user never sees the landing page flash.
-if (isReturningFromRedirect) {
-  console.log('[Auth] Detected return from redirect — showing loading overlay');
-  loadingOverlay.classList.add('active');
-  loadingText.textContent = 'Autenticando...';
-  // Keep login screen hidden during redirect processing
-  loginScreen.classList.add('hidden');
+// Helper: show the popup-blocked instructions modal
+function showPopupBlockedModal() {
+  if (popupBlockedModal) {
+    popupBlockedModal.style.display = '';
+    requestAnimationFrame(() => popupBlockedModal.classList.add('active'));
+  }
+}
+function hidePopupBlockedModal() {
+  if (popupBlockedModal) {
+    popupBlockedModal.classList.remove('active');
+    setTimeout(() => { popupBlockedModal.style.display = 'none'; }, 300);
+  }
 }
 
-// Handle the result of the redirect on page load
-getRedirectResult(auth).then((result) => {
-  // Clear the redirect flag regardless of result
-  localStorage.removeItem(REDIRECT_FLAG);
-  if (result) {
-    console.log('[Auth] Login via redirect bem-sucedido:', result.user.displayName);
-    // onAuthStateChanged will handle the rest
-  }
-}).catch((err) => {
-  localStorage.removeItem(REDIRECT_FLAG);
-  console.error('[Auth] Redirect error:', err);
-  hideLoading();
-  loginScreen.classList.remove('hidden');
-  if (err.message && (err.message.includes('missing initial state') || err.message.includes('storage-partitioned'))) {
-     alert('⚠️ Navegador incompatível com o login seguro.\n\nSe você está no iPhone ou navegadores como Instagram/Facebook, por favor toque nos 3 pontinhos e escolha "Abrir no navegador do sistema" (Safari ou Chrome).');
-  } else if (err.code !== 'auth/popup-closed-by-user') {
-     showToast('Erro ao processar login.', 'error');
-  }
-});
+// Close popup-blocked modal handlers
+if (btnClosePopupBlocked) btnClosePopupBlocked.addEventListener('click', hidePopupBlockedModal);
+if (btnClosePopupBlockedX) btnClosePopupBlockedX.addEventListener('click', hidePopupBlockedModal);
 
-btnLogin.addEventListener('click', async () => {
-  try {
-    showLoading('Autenticando...');
-
-    if (isStandalone) {
-      // ━━━ STANDALONE PWA: Always use popup ━━━
-      // Redirect-based auth breaks standalone PWAs because the OAuth redirect
-      // exits the PWA shell and opens in Safari/Chrome, losing the auth context
-      // when the user returns to the PWA.
-      console.log('[Auth] Standalone mode — using popup (no redirect fallback)');
-      try {
-        await signInWithPopup(auth, googleProvider);
-      } catch (popupErr) {
-        hideLoading();
-        if (popupErr.code === 'auth/popup-closed-by-user') {
-          // User cancelled — do nothing
-          return;
-        }
-        console.error('[Auth] Standalone popup error:', popupErr);
-        // Show a helpful message for standalone users
-        showToast('Erro no login. Tente novamente ou abra pelo navegador.', 'warning');
+// ━━━ LOGIN BUTTON ━━━
+// CRITICAL: signInWithPopup MUST be the very first call inside the click handler
+// (synchronous context) to satisfy Safari's strict user-gesture popup policy.
+// Any async work (showLoading, DOM changes) BEFORE the popup call will cause
+// Safari to block the popup window.
+btnLogin.addEventListener('click', () => {
+  console.log('[Auth] Login button clicked — opening popup immediately');
+  signInWithPopup(auth, googleProvider)
+    .then(() => {
+      console.log('[Auth] Popup login successful');
+      // onAuthStateChanged handles the rest
+    })
+    .catch((err) => {
+      hideLoading();
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        // User cancelled — do nothing
+        console.log('[Auth] User cancelled popup');
+        return;
       }
-      return;
-    }
-
-    // ━━━ BROWSER MODE: Popup first, redirect fallback ━━━
-    await signInWithPopup(auth, googleProvider);
-  } catch (err) {
-    if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request' || (err.message && err.message.includes('popup'))) {
-      console.warn('[Auth] Popup blocked, falling back to redirect...');
-      showLoading('Redirecionando...');
-      // Set the redirect flag BEFORE initiating the redirect,
-      // so when the page reloads after OAuth we know to show loading.
-      localStorage.setItem(REDIRECT_FLAG, 'true');
-      await signInWithRedirect(auth, googleProvider);
-    } else if (err.code !== 'auth/popup-closed-by-user') {
-      hideLoading();
-      showToast('Erro ao fazer login.', 'error');
-      console.error('[Auth] Start error:', err);
-    } else {
-      hideLoading();
-    }
-  }
+      if (err.code === 'auth/popup-blocked') {
+        console.warn('[Auth] Popup blocked by browser — showing instructions');
+        showPopupBlockedModal();
+        return;
+      }
+      // For in-app browsers (Instagram, Facebook, etc.)
+      if (err.message && (err.message.includes('popup') || err.message.includes('cross-origin'))) {
+        console.warn('[Auth] Popup error (likely in-app browser):', err.message);
+        alert('⚠️ Este navegador não suporta login seguro.\n\nPor favor, abra no Safari ou Chrome:\n• No Instagram/Facebook: toque nos 3 pontinhos (⋯) e escolha "Abrir no navegador".');
+        return;
+      }
+      console.error('[Auth] Unexpected login error:', err);
+      showToast('Erro ao fazer login. Tente novamente.', 'error');
+    });
 });
 
 btnLogout.addEventListener('click', async () => {
