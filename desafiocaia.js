@@ -6,7 +6,7 @@
 
 // ─── Firebase SDK Imports (Modular via CDN) ───
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile, setPersistence, browserLocalPersistence }
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
@@ -25,13 +25,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-// Explicitly set persistence behavior to local (IndexedDB fallback to LocalStorage)
-// This ensures that the user's session remains active across PWA and browser restarts.
-setPersistence(auth, browserLocalPersistence)
-  .then(() => console.log('[Auth] Persistência configurada com sucesso para LocalStorage/IndexedDB'))
-  .catch((err) => console.error('[Auth] Erro ao configurar persistência:', err));
-
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
