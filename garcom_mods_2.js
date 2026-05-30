@@ -60,9 +60,13 @@ window.filterResumo = async (status) => {
         .from('orders')
         .select('*')
         .eq('payment_status', status)
-        .gte('created_at', startOfDay)
-        .neq('status', 'cancelado')
-        .order('created_at', { ascending: false });
+        .neq('status', 'cancelado');
+
+    if (status === 'pago') {
+        query = query.gte('updated_at', startOfDay).order('updated_at', { ascending: false });
+    } else {
+        query = query.gte('created_at', startOfDay).order('created_at', { ascending: false });
+    }
         
     // Optionally filter by this garcom if staffId is true
     if (staffId) {

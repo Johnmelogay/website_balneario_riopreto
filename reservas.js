@@ -98,7 +98,8 @@ function calcular() {
     // Mas aqui o cálculo deve considerar a quantidade de noites.
     // Para evitar issues de fuso horário, usar setHours no cálculo de diff apenas.
     // Mas preciso do Dia da Semana.
-    const d1Day = new Date(checkin + 'T00:00:00'); // Força a data local para pegar dia da semana correto
+    const [y1, m1, d_1] = checkin.split('-').map(Number);
+    const d1Day = new Date(y1, m1 - 1, d_1); // Força a data local para pegar dia da semana correto
     const d2 = new Date(checkout);
 
     d1.setHours(0, 0, 0, 0);
@@ -131,7 +132,8 @@ function calcular() {
 
     // Sunday Checkout Message
     // Se checkout cai no domingo
-    const d2Day = new Date(checkout + 'T00:00:00');
+    const [y2, m2, d_2] = checkout.split('-').map(Number);
+    const d2Day = new Date(y2, m2 - 1, d_2);
     if (d2Day.getDay() === 0) { // 0 = Domingo
         // Poderia injetar uma msg na UI, mas por enquanto só cálculo
         // Se tiver local para msg:

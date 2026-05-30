@@ -59,12 +59,13 @@ async function loadComandas() {
         if (currentTab === 'abertas') {
             query = query.eq('payment_status', 'aberto').neq('status', 'cancelado');
         } else {
-            // Histórico (Fechadas)
-            const startOfDay = new Date(filterDate + "T00:00:00").toISOString();
-            const endOfDay = new Date(filterDate + "T23:59:59").toISOString();
+            // Histórico (Fechadas) - Filter by updated_at to show when comandas were closed
+            const [year, month, day] = filterDate.split('-').map(Number);
+            const startOfDay = new Date(year, month - 1, day, 0, 0, 0).toISOString();
+            const endOfDay = new Date(year, month - 1, day, 23, 59, 59).toISOString();
             query = query.eq('payment_status', 'pago')
-                         .gte('created_at', startOfDay)
-                         .lte('created_at', endOfDay);
+                         .gte('updated_at', startOfDay)
+                         .lte('updated_at', endOfDay);
         }
 
         // Garçom visualizando no sistema -> filtra pelos pedidos dele
@@ -199,9 +200,10 @@ window.cmdViewDetails = async (type, id) => {
     let query = supabase.from('orders').select('*, order_items(*)').eq('location_type', type).eq('location_id', id);
     if(currentTab === 'abertas') query = query.eq('payment_status', 'aberto').neq('status','cancelado');
     else {
-        const startOfDay = new Date(filterDate + "T00:00:00").toISOString();
-        const endOfDay = new Date(filterDate + "T23:59:59").toISOString();
-        query = query.eq('payment_status', 'pago').gte('created_at', startOfDay).lte('created_at', endOfDay);
+        const [year, month, day] = filterDate.split('-').map(Number);
+        const startOfDay = new Date(year, month - 1, day, 0, 0, 0).toISOString();
+        const endOfDay = new Date(year, month - 1, day, 23, 59, 59).toISOString();
+        query = query.eq('payment_status', 'pago').gte('updated_at', startOfDay).lte('updated_at', endOfDay);
     }
     
     // Garçom filter
@@ -253,8 +255,13 @@ window.cmdPromptClose = async (type, id) => {
     if(!confirm(`Confirmar recebimento do pagamento para ${type} ${id}? Todos os pedidos abertos serão marcados como PAGOS e movidos para o Histórico.`)) return;
     
     try {
+        const staff = getCurrentStaff();
         const { error } = await supabase.from('orders')
-            .update({ payment_status: 'pago' })
+            .update({ 
+                payment_status: 'pago',
+                updated_at: new Date().toISOString(),
+                staff_id: staff?.id
+            })
             .eq('location_type', type)
             .eq('location_id', id)
             .eq('payment_status', 'aberto');

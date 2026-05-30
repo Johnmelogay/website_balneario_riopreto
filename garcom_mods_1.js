@@ -324,6 +324,7 @@ window.confirmPaymentGarcom = async () => {
     const payMethod = methodsUsed.length === 1 ? methodsUsed[0] : 'SPLIT';
     
     // Distribute paid values and service fee among the open orders proportionally based on order total
+    const staff = window.currentStaff;
     const updates = garcomOpenOrders.map(o => {
         const ratio = Number(o.total) / garcomBaseTotal;
         return {
@@ -335,7 +336,9 @@ window.confirmPaymentGarcom = async () => {
             split_pix: parseFloat((pPIX * ratio).toFixed(2)),
             split_dinheiro: parseFloat((pDIN * ratio).toFixed(2)),
             split_credito: parseFloat((pCRE * ratio).toFixed(2)),
-            split_debito: parseFloat((pDEB * ratio).toFixed(2))
+            split_debito: parseFloat((pDEB * ratio).toFixed(2)),
+            updated_at: new Date().toISOString(),
+            staff_id: staff?.id || o.staff_id
         };
     });
 
@@ -384,10 +387,11 @@ window.cancelarPedido = async (orderId, orderNumber) => {
         if (orderErr) throw orderErr;
 
         // 3. Update order_items status to 'cancelado'
-        await supabase
+        const { error: itemsUpdateErr } = await supabase
             .from('order_items')
             .update({ status: 'cancelado' })
             .eq('order_id', orderId);
+        if (itemsUpdateErr) throw itemsUpdateErr;
 
         // 4. Restore stock
         const staff = window.currentStaff || { id: null };
@@ -396,8 +400,10 @@ window.cancelarPedido = async (orderId, orderNumber) => {
                 const prod = item.products;
                 if (prod && prod.is_stock_controlled) {
                     const newQty = Number(prod.stock_qty) + Number(item.quantity);
-                    await supabase.from('products').update({ stock_qty: newQty }).eq('id', prod.id);
-                    await supabase.from('stock_movements').insert({
+                    const { error: prodUpdateErr } = await supabase.from('products').update({ stock_qty: newQty }).eq('id', prod.id);
+                    if (prodUpdateErr) throw prodUpdateErr;
+                    
+                    const { error: movementErr } = await supabase.from('stock_movements').insert({
                         product_id: prod.id,
                         type: 'entrada',
                         quantity: item.quantity,
@@ -407,6 +413,7 @@ window.cancelarPedido = async (orderId, orderNumber) => {
                         order_id: orderId,
                         staff_id: staff.id
                     });
+                    if (movementErr) throw movementErr;
                 }
             }
         }
