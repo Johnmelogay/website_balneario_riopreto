@@ -42,6 +42,15 @@ window.openExtrato = async () => {
         else if(o.status === 'pronto') statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded font-black uppercase">Pronto</span>';
         else if(o.status === 'entregue') statusBadge = '<span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-black uppercase">Entregue</span>';
         
+        let cancelBtn = '';
+        if (o.payment_status !== 'pago' && o.status !== 'cancelado') {
+            cancelBtn = `
+                <button onclick="cancelarPedido('${o.id}', '${o.order_number}')" class="text-[10px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-lg transition flex items-center gap-1 active:scale-95 border border-red-200">
+                    <i class="fa-solid fa-ban"></i> Cancelar
+                </button>
+            `;
+        }
+
         const itemsHtml = o.order_items.map(i => `
             <div class="flex justify-between items-start py-2 border-b border-gray-50 last:border-0">
                 <div>
@@ -62,7 +71,10 @@ window.openExtrato = async () => {
                         <span class="text-gray-300">|</span>
                         <span class="text-xs font-black text-gray-500">#${o.order_number}</span>
                     </div>
-                    ${statusBadge}
+                    <div class="flex items-center gap-2">
+                        ${cancelBtn}
+                        ${statusBadge}
+                    </div>
                 </div>
                 
                 <div class="mb-3">${itemsHtml}</div>
@@ -172,12 +184,12 @@ window.openPaymentModalGarcom = async () => {
         .select('*')
         .eq('location_type', window.currentLocationType)
         .eq('location_id', window.currentLocationId)
-        .eq('status', 'entregue')
-        .eq('payment_status', 'aberto');
+        .eq('payment_status', 'aberto')
+        .neq('status', 'cancelado');
 
     garcomOpenOrders = openOrders || [];
     if (garcomOpenOrders.length === 0) {
-        alert('Nenhuma comanda entregue e em aberto para faturar.');
+        alert('Nenhuma comanda em aberto para faturar.');
         return;
     }
 
@@ -348,4 +360,62 @@ window.confirmPaymentGarcom = async () => {
     
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-lock"></i> CONFIRMAR E FECHAR';
+};
+
+// ====== CANCEL ORDER ======
+window.cancelarPedido = async (orderId, orderNumber) => {
+    if (!confirm(`Tem certeza que deseja cancelar o pedido #${orderNumber}?`)) return;
+
+    try {
+        // 1. Get the order items to restore stock if necessary
+        const { data: items, error: itemsErr } = await supabase
+            .from('order_items')
+            .select('*, products(*)')
+            .eq('order_id', orderId);
+
+        if (itemsErr) throw itemsErr;
+
+        // 2. Update order status to 'cancelado'
+        const { error: orderErr } = await supabase
+            .from('orders')
+            .update({ status: 'cancelado', updated_at: new Date().toISOString() })
+            .eq('id', orderId);
+
+        if (orderErr) throw orderErr;
+
+        // 3. Update order_items status to 'cancelado'
+        await supabase
+            .from('order_items')
+            .update({ status: 'cancelado' })
+            .eq('order_id', orderId);
+
+        // 4. Restore stock
+        const staff = window.currentStaff || { id: null };
+        if (items) {
+            for (const item of items) {
+                const prod = item.products;
+                if (prod && prod.is_stock_controlled) {
+                    const newQty = Number(prod.stock_qty) + Number(item.quantity);
+                    await supabase.from('products').update({ stock_qty: newQty }).eq('id', prod.id);
+                    await supabase.from('stock_movements').insert({
+                        product_id: prod.id,
+                        type: 'entrada',
+                        quantity: item.quantity,
+                        previous_qty: prod.stock_qty,
+                        new_qty: newQty,
+                        reason: `Cancelamento - Pedido #${orderNumber}`,
+                        order_id: orderId,
+                        staff_id: staff.id
+                    });
+                }
+            }
+        }
+
+        alert('Pedido cancelado com sucesso!');
+        // Refresh extrato
+        window.openExtrato();
+    } catch (err) {
+        console.error('Error cancelling order:', err);
+        alert('Erro ao cancelar pedido: ' + err.message);
+    }
 };

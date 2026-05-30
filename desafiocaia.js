@@ -92,6 +92,17 @@ const popupBlockedModal = $('#popup-blocked-modal');
 const btnClosePopupBlocked = $('#btn-close-popup-blocked');
 const btnClosePopupBlockedX = $('#btn-close-popup-blocked-x');
 
+// Story prompt modal elements
+const storyPromptModal = $('#story-prompt-modal');
+const btnCloseStoryPromptX = $('#btn-close-story-prompt-x');
+const btnStoryPromptShare = $('#btn-story-prompt-share');
+const btnStoryPromptLater = $('#btn-story-prompt-later');
+const storyPromptEmoji = $('#story-prompt-emoji');
+const storyPromptTitle = $('#story-prompt-title');
+const storyPromptSubtitle = $('#story-prompt-subtitle');
+const storyPromptStreakCount = $('#story-prompt-streak-count');
+const storyPromptUserName = $('#story-prompt-user-name');
+
 // Onboarding elements
 const onboardingScreen = $('#onboarding-screen');
 const onboardingForm = $('#onboarding-form');
@@ -606,6 +617,132 @@ function autoShowPwaPrompt() {
   }, 1500);
 }
 
+// ═══════════════════════════════════════════════
+// STORY SHARE PROMPT MODAL
+// ═══════════════════════════════════════════════
+
+/**
+ * Opens the story share prompt modal.
+ * @param {'first'|'milestone'|'daily'} reason - Why the prompt is showing.
+ * @param {number} streak - Current streak count.
+ */
+async function showStoryPrompt(reason, streak) {
+  if (!storyPromptModal) return;
+
+  // Populate dynamic content
+  const name = currentUserData?.displayName || currentUser?.displayName || '';
+  if (storyPromptUserName) storyPromptUserName.textContent = name;
+  if (storyPromptStreakCount) {
+    storyPromptStreakCount.textContent = streak;
+    const streakBadge = $('#story-prompt-streak-badge');
+    if (streakBadge) {
+      streakBadge.innerHTML = streak === 1
+        ? `🔥 <span id="story-prompt-streak-count">${streak}</span> dia seguido`
+        : `🔥 <span id="story-prompt-streak-count">${streak}</span> dias seguidos`;
+    }
+  }
+
+  // Set messaging based on reason
+  if (reason === 'first') {
+    if (storyPromptEmoji) storyPromptEmoji.textContent = '🎉';
+    if (storyPromptTitle) storyPromptTitle.textContent = 'Seu primeiro check-in!';
+    if (storyPromptSubtitle) storyPromptSubtitle.textContent =
+      'Compartilhe seu card personalizado nos Stories e o Balneário Rio Preto pode te repostar! Não esqueça de nos seguir.';
+  } else if (reason === 'milestone') {
+    const milestoneEmoji = streak >= 21 ? '🏆' : streak >= 14 ? '💎' : '🔥';
+    if (storyPromptEmoji) storyPromptEmoji.textContent = milestoneEmoji;
+    if (storyPromptTitle) storyPromptTitle.textContent = `${streak} ${streak === 1 ? 'dia seguido' : 'dias seguidos'}!`;
+    if (storyPromptSubtitle) storyPromptSubtitle.textContent =
+      'Você está arrasando! Compartilhe esse marco nos Stories — o Balneário Rio Preto adoraria te repostar!';
+  } else if (reason === 'daily') {
+    if (storyPromptEmoji) storyPromptEmoji.textContent = '⚡';
+    if (storyPromptTitle) storyPromptTitle.textContent = `${streak} ${streak === 1 ? 'dia seguido' : 'dias seguidos'}!`;
+    if (storyPromptSubtitle) storyPromptSubtitle.textContent =
+      'Mais um dia garantido! Compartilhe seu card personalizado nos Stories e marque @balneario_riopreto para ser repostado.';
+  }
+
+  // Populate the mini polaroid preview stack
+  const stackContainer = $('#story-prompt-preview-stack');
+  if (stackContainer) {
+    stackContainer.innerHTML = ''; // Clear previous preview
+    try {
+      const q = query(
+        collection(db, 'checkins'),
+        where('userId', '==', currentUser.uid)
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        // Sort descending in memory (latest checkins first)
+        const docs = snap.docs.sort((a, b) => {
+          const tA = a.data().timestamp?.toMillis?.() || 0;
+          const tB = b.data().timestamp?.toMillis?.() || 0;
+          return tB - tA;
+        });
+
+        // Limit to top 3 check-ins
+        const recentDocs = docs.slice(0, 3);
+
+        // Render from bottom to top (index 2, 1, then 0)
+        // so that the most recent (index 0) naturally overlaps others.
+        for (let i = recentDocs.length - 1; i >= 0; i--) {
+          const d = recentDocs[i].data();
+          const photoUrl = d.photoUrl;
+          const type = d.type || 'treino';
+          const typeEmoji = type === 'lazer' ? '🌊' : '🏋️';
+
+          const polaroidDiv = document.createElement('div');
+          polaroidDiv.className = `preview-polaroid preview-polaroid-${i}`;
+          polaroidDiv.innerHTML = `
+            <div class="preview-polaroid-photo" style="background-image: url('${photoUrl}')">
+              <span class="preview-polaroid-badge ${type === 'lazer' ? 'badge-lazer' : 'badge-treino'}">${typeEmoji}</span>
+            </div>
+          `;
+          stackContainer.appendChild(polaroidDiv);
+        }
+      } else {
+        // Fallback: If no checkins returned, show logo
+        const logoUrl = 'images/logo_opt.webp';
+        const polaroidDiv = document.createElement('div');
+        polaroidDiv.className = 'preview-polaroid preview-polaroid-0';
+        polaroidDiv.innerHTML = `
+          <div class="preview-polaroid-photo" style="background-image: url('${logoUrl}'); background-size: contain; background-repeat: no-repeat;">
+            <span class="preview-polaroid-badge badge-treino">🏋️</span>
+          </div>
+        `;
+        stackContainer.appendChild(polaroidDiv);
+      }
+    } catch (err) {
+      console.warn('[Preview] Failed to generate preview polaroid stack:', err);
+    }
+  }
+
+  openModal(storyPromptModal);
+}
+
+function closeStoryPrompt() {
+  closeModal(storyPromptModal);
+}
+
+// Story prompt close handlers
+if (btnCloseStoryPromptX) btnCloseStoryPromptX.addEventListener('click', closeStoryPrompt);
+if (btnStoryPromptLater) btnStoryPromptLater.addEventListener('click', closeStoryPrompt);
+if (storyPromptModal) {
+  storyPromptModal.addEventListener('click', (e) => {
+    if (e.target === storyPromptModal) closeStoryPrompt();
+  });
+}
+
+// Story prompt share button — closes modal then triggers the story generator
+if (btnStoryPromptShare) {
+  btnStoryPromptShare.addEventListener('click', () => {
+    closeStoryPrompt();
+    // Small delay so modal close animation finishes before story generation starts
+    setTimeout(() => {
+      if (btnShareStory) btnShareStory.click();
+    }, 350);
+  });
+}
+
 // --- Feedback / Whatsapp integration ---
 btnFeedback.addEventListener('click', () => {
   const currentName = currentUserData?.displayName || currentUser?.displayName || 'Participante';
@@ -713,6 +850,24 @@ btnConfirmUpload.addEventListener('click', async () => {
 
     hideLoading();
     showToast('Check-in registrado com sucesso! 🎉', 'success');
+
+    // Story share prompt — fire after toast so user sees success first
+    const totalCheckins = currentUserData?.totalCheckins || 0;
+    const currentStreak = currentUserData?.streakCount || 0;
+    const MILESTONE_STREAKS = [7, 14, 21, 30, 60, 90];
+
+    setTimeout(() => {
+      if (totalCheckins === 1) {
+        // Very first check-in ever — strongest moment to encourage sharing
+        showStoryPrompt('first', currentStreak);
+      } else if (MILESTONE_STREAKS.includes(currentStreak)) {
+        // Streak milestone — another high-emotion moment
+        showStoryPrompt('milestone', currentStreak);
+      } else {
+        // Every other check-in shows the modal too
+        showStoryPrompt('daily', currentStreak);
+      }
+    }, 1200);
 
     // Refresh feed & leaderboard
     loadFeed();
@@ -1249,14 +1404,41 @@ btnShareStory.addEventListener('click', async () => {
     // Photo
     drawCover(img, -totalW / 2 + pad, -totalH / 2 + pad, size, size);
 
-    // Subtle colored badge dot inside photo
-    ctx.fillStyle = type === 'lazer' ? '#e65100' : '#2e7d32'; // orange or green
+    // Type emoji pill badge (top-left corner of photo, clearly readable)
+    const typeEmoji = type === 'lazer' ? '🌊' : '🏋️';
+    const typeLabel = type === 'lazer' ? ' Lazer' : ' Treino';
+    const badgePadX = 16;
+    const badgePadY = 10;
+    const badgeFontSize = 22;
+    ctx.font = `700 ${badgeFontSize}px Lexend, Apple Color Emoji, Segoe UI Emoji, sans-serif`;
+    const labelWidth = ctx.measureText(typeLabel).width;
+    const emojiFontSize = 26;
+    // Measure emoji separately with emoji font
+    ctx.font = `${emojiFontSize}px Apple Color Emoji, Segoe UI Emoji, sans-serif`;
+    const emojiWidth = ctx.measureText(typeEmoji).width;
+    const badgeW = emojiWidth + labelWidth + badgePadX * 2 + 6;
+    const badgeH = badgeFontSize + badgePadY * 2;
+    const badgeX = -totalW / 2 + pad + 10;
+    const badgeY = -totalH / 2 + pad + 10;
+
+    // Pill background
+    ctx.fillStyle = type === 'lazer' ? 'rgba(230,81,0,0.82)' : 'rgba(46,125,50,0.82)';
     ctx.beginPath();
-    ctx.arc(-totalW / 2 + pad + 24, -totalH / 2 + pad + 24, 14, 0, Math.PI * 2);
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 999);
     ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+
+    // Emoji
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `${emojiFontSize}px Apple Color Emoji, Segoe UI Emoji, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.shadowColor = 'transparent';
+    ctx.fillText(typeEmoji, badgeX + badgePadX, badgeY + badgeH - badgePadY - 2);
+
+    // Label text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `700 ${badgeFontSize}px Lexend, sans-serif`;
+    ctx.fillText(typeLabel, badgeX + badgePadX + emojiWidth + 4, badgeY + badgeH - badgePadY - 1);
+    ctx.textAlign = 'center';
 
     ctx.restore();
   }
@@ -1353,7 +1535,7 @@ btnShareStory.addEventListener('click', async () => {
 
     // G) Streak badge
     const streakCount = currentUserData.streakCount || 0;
-    const streakText = `🔥 ${streakCount} dias seguidos`;
+    const streakText = `🔥 ${streakCount} ${streakCount === 1 ? 'dia seguido' : 'dias seguidos'}`;
     ctx.font = '800 38px Lexend, sans-serif';
     const tm = ctx.measureText(streakText);
     const badgeW = tm.width + 100;

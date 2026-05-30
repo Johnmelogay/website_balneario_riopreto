@@ -127,9 +127,6 @@ function updateClock() {
 
 // ====== LOAD ORDERS ======
 async function loadOrders() {
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-
     const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -137,7 +134,6 @@ async function loadOrders() {
             order_items(*),
             staff_users(name)
         `)
-        .gte('created_at', startOfDay)
         .in('status', ['pendente', 'preparando', 'pronto'])
         .order('created_at', { ascending: true });
 

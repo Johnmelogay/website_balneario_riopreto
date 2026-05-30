@@ -173,6 +173,56 @@
             </button>
         </div>
     </div>
+    <!-- ═══════════════════════════════════════ -->
+    <!-- STORY SHARE PROMPT MODAL              -->
+    <!-- Shown after first check-in / milestone -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="story-prompt-modal" class="preview-modal" style="display: none;">
+        <div class="glass-card story-prompt-card">
+            <button id="btn-close-story-prompt-x" class="story-prompt-close-x">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Celebration header -->
+            <div class="story-prompt-header">
+                <div class="story-prompt-fireworks" id="story-prompt-emoji">🎉</div>
+                <h3 id="story-prompt-title" class="story-prompt-title">Seu check-in está no mural!</h3>
+                <p id="story-prompt-subtitle" class="story-prompt-subtitle">Agora compartilhe seu card personalizado nos Stories e o Balneário Rio Preto pode te repostar!</p>
+            </div>
+
+            <!-- Instagram follow reminder -->
+            <a href="https://instagram.com/balneario_riopreto" target="_blank" rel="noopener noreferrer" class="story-prompt-follow-box">
+                <div class="story-prompt-follow-icon">
+                    <i class="fa-brands fa-instagram"></i>
+                </div>
+                <div>
+                    <p class="story-prompt-follow-label">Siga para ser repostado</p>
+                    <p class="story-prompt-follow-handle">@balneario_riopreto</p>
+                </div>
+            </a>
+
+            <!-- Preview of what the story looks like -->
+            <p class="story-prompt-preview-label">Seu card personalizado:</p>
+            <div class="story-prompt-preview-card">
+                <div class="story-prompt-preview-stack" id="story-prompt-preview-stack"></div>
+                <div class="story-prompt-preview-inner">
+                    <div class="story-prompt-preview-badge" id="story-prompt-streak-badge">🔥 <span id="story-prompt-streak-count">1</span> dia seguido</div>
+                    <div class="story-prompt-preview-name" id="story-prompt-user-name"></div>
+                    <div class="story-prompt-preview-brand">Pós Treino Balneário Rio Preto</div>
+                </div>
+            </div>
+
+            <!-- CTAs -->
+            <button id="btn-story-prompt-share" class="btn-checkin story-prompt-share-btn">
+                <i class="fa-brands fa-instagram"></i>
+                Gerar e Compartilhar Story
+            </button>
+            <button id="btn-story-prompt-later" class="story-prompt-later-btn">
+                Depois
+            </button>
+        </div>
+    </div>
+
     <!-- POPUP BLOCKED INSTRUCTIONS MODAL -->
     <div id="popup-blocked-modal" class="preview-modal" style="display: none;">
         <div class="glass-card" style="width: 100%; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative;">
