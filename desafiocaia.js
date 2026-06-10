@@ -6,7 +6,8 @@
 
 // ─── Firebase SDK Imports (Modular via CDN) ───
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile }
+import { getAuth, signInWithPopup, signInWithCredential,
+  signOut, onAuthStateChanged, GoogleAuthProvider, updateProfile }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
   query, where, orderBy, limit, getDocs, increment, serverTimestamp, Timestamp }
@@ -30,7 +31,9 @@ const googleProvider = new GoogleAuthProvider();
 
 // ─── Standalone PWA Detection (needed early for auth strategy) ───
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-console.log('[PWA] Standalone mode:', isStandalone);
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const useRedirectAuth = isStandalone && isIOS;
+console.log('[PWA] Standalone mode:', isStandalone, '| iOS:', isIOS, '| Using redirect auth:', useRedirectAuth);
 
 // Register Service Worker for PWA support
 if ('serviceWorker' in navigator) {
@@ -122,11 +125,24 @@ let nsfwModel = null;
 let currentCheckinType = 'treino';
 
 // ═══════════════════════════════════════════════
-// 1. AUTH FLOW (Popup-Only — iOS Safari Compatible)
+// 1. AUTH FLOW (Adaptive: Manual OAuth for iOS PWA, Popup for browsers)
 // ═══════════════════════════════════════════════
-// signInWithRedirect is broken on iOS Safari due to ITP (Intelligent Tracking
-// Prevention) blocking cross-origin storage when authDomain differs from the
-// app domain. We use popup-only auth and show instructions if blocked.
+// iOS standalone PWA (Home Screen app) uses a WKWebView that CANNOT
+// communicate with Safari popups (signInWithPopup opens Safari, auth state
+// never returns to the PWA webview). Additionally, signInWithRedirect fails
+// because this project doesn't have Firebase Hosting — the required
+// __/auth/handler page at firebaseapp.com doesn't exist.
+//
+// DEFINITIVE FIX: In iOS standalone mode, we perform a manual Google OAuth
+// redirect (directly to accounts.google.com). Google redirects back to our
+// page with an access_token in the URL hash. We then use
+// GoogleAuthProvider.credential() + signInWithCredential() to sign into
+// Firebase. This completely bypasses all popup/redirect/ITP issues.
+//
+// For regular browser contexts, we keep signInWithPopup for smoother UX.
+
+// Google OAuth Web Client ID (from Google Cloud Console > APIs & Services > Credentials)
+const GOOGLE_CLIENT_ID = '45962724956-91g2h6f7asjablftie34fgv48q027mag.apps.googleusercontent.com';
 
 // Helper: show the popup-blocked instructions modal
 function showPopupBlockedModal() {
@@ -146,13 +162,101 @@ function hidePopupBlockedModal() {
 if (btnClosePopupBlocked) btnClosePopupBlocked.addEventListener('click', hidePopupBlockedModal);
 if (btnClosePopupBlockedX) btnClosePopupBlockedX.addEventListener('click', hidePopupBlockedModal);
 
+// ━━━ iOS PWA: Manual Google OAuth Flow ━━━
+// We redirect directly to Google's OAuth endpoint (no Firebase intermediary).
+// Google redirects back with an access_token in the URL hash fragment.
+// We use that token to sign into Firebase with signInWithCredential.
+
+function buildGoogleOAuthURL() {
+  const redirectUri = window.location.origin + window.location.pathname;
+  // Generate a random state for CSRF protection
+  const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  sessionStorage.setItem('google_oauth_state', state);
+
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: redirectUri,
+    response_type: 'token',
+    scope: 'openid email profile',
+    state: state,
+    prompt: 'select_account',
+    include_granted_scopes: 'true'
+  });
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+// Parse the OAuth access_token from the URL hash on page load
+// Google redirects back with: #access_token=...&token_type=Bearer&state=...
+function extractOAuthTokenFromHash() {
+  const hash = window.location.hash;
+  if (!hash || hash.length < 2) return null;
+
+  const params = new URLSearchParams(hash.substring(1));
+  const accessToken = params.get('access_token');
+  const returnedState = params.get('state');
+
+  if (!accessToken) return null;
+
+  // Verify state to prevent CSRF attacks
+  const savedState = sessionStorage.getItem('google_oauth_state');
+  if (savedState && returnedState !== savedState) {
+    console.warn('[Auth] OAuth state mismatch — ignoring token (possible CSRF)');
+    return null;
+  }
+
+  // Clean up state
+  sessionStorage.removeItem('google_oauth_state');
+
+  return accessToken;
+}
+
+// ━━━ HANDLE OAUTH RETURN (runs on every page load in iOS PWA mode) ━━━
+// If returning from Google OAuth, the URL hash contains the access_token.
+// We extract it, clean the URL, and sign into Firebase.
+if (useRedirectAuth) {
+  const oauthAccessToken = extractOAuthTokenFromHash();
+
+  if (oauthAccessToken) {
+    console.log('[Auth] iOS PWA — OAuth token found in URL, signing into Firebase...');
+    showLoading('Finalizando login...');
+
+    // Clean the hash from the URL immediately so it doesn't persist on refresh
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    // Create Firebase credential from the Google access token and sign in
+    const credential = GoogleAuthProvider.credential(null, oauthAccessToken);
+    signInWithCredential(auth, credential)
+      .then((result) => {
+        console.log('[Auth] Firebase sign-in successful:', result.user.email);
+        // onAuthStateChanged will handle the rest (show app, load data, etc.)
+      })
+      .catch((err) => {
+        console.error('[Auth] Firebase sign-in with credential failed:', err);
+        hideLoading();
+        showToast('Erro ao finalizar login. Tente novamente.', 'error');
+      });
+  } else {
+    console.log('[Auth] iOS PWA — no OAuth token in URL (normal page load)');
+  }
+}
+
 // ━━━ LOGIN BUTTON ━━━
-// CRITICAL: signInWithPopup MUST be the very first call inside the click handler
-// (synchronous context) to satisfy Safari's strict user-gesture popup policy.
-// Any async work (showLoading, DOM changes) BEFORE the popup call will cause
-// Safari to block the popup window.
 btnLogin.addEventListener('click', () => {
-  console.log('[Auth] Login button clicked — opening popup immediately');
+  if (useRedirectAuth) {
+    // iOS PWA Standalone: redirect directly to Google OAuth
+    // This stays entirely in the PWA's WKWebView — no popups, no Firebase
+    // intermediary, no cross-origin cookie issues.
+    console.log('[Auth] iOS PWA — redirecting to Google OAuth');
+    showLoading('Redirecionando para o Google...');
+    window.location.href = buildGoogleOAuthURL();
+    return;
+  }
+
+  // Regular browser: use popup flow
+  // CRITICAL: signInWithPopup MUST be the very first call inside the click handler
+  // (synchronous context) to satisfy Safari's strict user-gesture popup policy.
+  console.log('[Auth] Browser mode — opening popup immediately');
   signInWithPopup(auth, googleProvider)
     .then(() => {
       console.log('[Auth] Popup login successful');
@@ -161,7 +265,6 @@ btnLogin.addEventListener('click', () => {
     .catch((err) => {
       hideLoading();
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-        // User cancelled — do nothing
         console.log('[Auth] User cancelled popup');
         return;
       }

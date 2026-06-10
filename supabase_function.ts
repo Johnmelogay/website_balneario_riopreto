@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     `;
 
         // CALL GEMINI
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${googleApiKey}`;
         const geminiResp = await fetch(geminiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -69,6 +69,15 @@ Deno.serve(async (req) => {
         const geminiData = await geminiResp.json();
         console.log("Gemini status:", geminiResp.status);
         console.log("Gemini data:", JSON.stringify(geminiData));
+
+        if (geminiData.error) {
+            return new Response(JSON.stringify({
+                success: false,
+                message: `Erro na API do Gemini: [${geminiData.error.code}] ${geminiData.error.message}`
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
 
         // PARSE AI
         const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
