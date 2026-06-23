@@ -43,6 +43,9 @@
     <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <!-- TensorFlow.js + nsfwjs (for client-side NSFW detection) -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@4.1.0/dist/nsfwjs.min.js" defer></script>
@@ -84,6 +87,14 @@
             </label>
         </div>
 
+        <!-- Selection of emoji based on type -->
+        <div class="emoji-selector-section" style="margin-top: 1rem; width: 100%; text-align: center;">
+            <p style="color: var(--caia-text-muted); font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem;">Como foi a experiência? Escolha um emoji:</p>
+            <div id="emoji-options-container" class="emoji-options-list" style="display: flex; justify-content: center; gap: 0.75rem;">
+                <!-- Emojis will be populated dynamically by JS based on selection -->
+            </div>
+        </div>
+
         <div class="preview-actions">
             <button id="btn-cancel-upload" class="btn-cancel">
                 <i class="fa-solid fa-xmark"></i> Cancelar
@@ -95,31 +106,35 @@
     </div>
 
     <!-- REGULAMENTO / PRÊMIOS MODAL -->
-    <!-- REGULAMENTO / PRÊMIOS MODAL -->
     <div id="rules-modal" class="preview-modal" style="display: none;">
         <div class="glass-card" style="width: 100%; max-width: 420px; text-align: left; padding: 1.5rem; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; position: relative;">
             <button id="btn-close-rules-x" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer; padding: 0.2rem; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fa-solid fa-xmark"></i></button>
             <h3 style="color: var(--caia-primary); font-size: 1.25rem; font-weight: 800; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                🏆 Prêmios & Regulamento
+                🏆 Prêmios & Regras
             </h3>
-            <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.5; margin: 0;">
-                O <strong>Pós Treino Balneário Rio Preto</strong> é o movimento oficial para quem quer relaxar após treinar pesado.
+            <p style="color: rgba(255,255,255,0.75); font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                Participe do <strong>Pós Treino Balneário Rio Preto</strong>, acumule pontos e ganhe prêmios reais!
             </p>
             
-            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 0.5rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 0.25rem;">
                 <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid var(--caia-primary); border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🎁 Ranking Mensal</strong>
-                    <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">O 1º colocado no ranking de fogueiras do mês ganha <strong>5 entradas gratuitas</strong> no Balneário Rio Preto!</span>
+                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.15rem;">🎁 1º do Ranking Mensal</strong>
+                    <span style="color: rgba(255,255,255,0.85); font-size: 0.8rem;">Ganha <strong>5 Entradas Gratuitas</strong> no Balneário Rio Preto!</span>
                 </div>
                 <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #3b82f6; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">⚡ Desafios Semanais</strong>
-                    <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Desafios são lançados e programados toda semana no app. Para participar, basta continuar postando seus check-ins de academia ou lazer!</span>
+                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.15rem;">⚡ Desafios Semanais</strong>
+                    <span style="color: rgba(255,255,255,0.85); font-size: 0.8rem;">Prêmios e surpresas no bar liberados semanalmente no app.</span>
                 </div>
                 <div style="background: rgba(255,255,255,0.03); padding: 0.8rem; border-radius: 0.6rem; border-left: 4px solid #f59e0b; border-top: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">🔥 Datas Especiais</strong>
-                    <span style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Promoções surpresa valendo <strong>refeições completas no bar</strong>, entradas e até <strong>diárias nos chalés</strong> do Balneário Rio Preto!</span>
+                    <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.15rem;">🌲 Diárias nos Chalés</strong>
+                    <span style="color: rgba(255,255,255,0.85); font-size: 0.8rem;">Datas especiais valendo diárias completas no Balneário!</span>
                 </div>
             </div>
+
+            <a href="https://instagram.com/balneario_riopreto" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 0.75rem; background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); padding: 0.75rem; border-radius: 0.6rem; color: #fff; text-decoration: none; font-weight: 700; font-size: 0.85rem; justify-content: center; box-shadow: 0 4px 15px rgba(214, 36, 159, 0.25); transition: transform 0.2s ease; margin-bottom: 0.25rem;">
+                <i class="fa-brands fa-instagram" style="font-size: 1.15rem;"></i>
+                Siga @balneario_riopreto
+            </a>
 
             <button id="btn-close-rules" class="btn-confirm" style="width: 100%; justify-content: center; margin: 0;">
                 Entendi
@@ -217,6 +232,9 @@
                 <i class="fa-brands fa-instagram"></i>
                 Gerar e Compartilhar Story
             </button>
+            <button id="btn-story-prompt-invite" class="btn-invite-friends" style="margin-bottom: 0;">
+                <i class="fa-solid fa-user-plus"></i> Convidar Amigos (+50 pts)
+            </button>
             <button id="btn-story-prompt-later" class="story-prompt-later-btn">
                 Depois
             </button>
@@ -263,27 +281,48 @@
         <div class="login-overlay"></div>
         <div class="login-content-wrapper">
             <div class="login-glass-card">
-                <img src="images/logo_opt.webp" alt="Logo" class="login-logo">
-                <div class="login-header">
-                    <h1 class="login-title" style="font-size: 2.2rem; line-height: 1.1;">Pós Treino<br><span style="font-size: 1.1rem; font-weight: 700; color: #ffffff; display: block; margin-top: 0.2rem; letter-spacing: 0.05em; text-transform: uppercase; background: none; -webkit-text-fill-color: initial;">Balneário Rio Preto</span></h1>
-                    <p class="login-subtitle">
-                        <strong>Treinou. Recarregou. Viveu.</strong><br>
-                        O descanso oficial depois do treino. Faça check-in diariamente de treino na sua academia parceira ou de lazer no Balneário Rio Preto para acumular 🔥 e subir no ranking!
-                    </p>
-                    <div style="text-align: center;">
-                        <button id="btn-open-rules" class="btn-rules-pill">
-                            <i class="fa-solid fa-gift"></i> Ver Prêmios & Como Funciona
-                        </button>
+                <img src="images/logo_opt.webp" alt="Logo Balneário Rio Preto" class="login-logo">
+
+                <h1 class="login-title-new">Pós Treino</h1>
+                <p class="login-brand-name">BALNEÁRIO RIO PRETO</p>
+
+                <!-- 3 Clear Steps -->
+                <div class="landing-steps">
+                    <div class="landing-step">
+                        <div class="landing-step-icon-wrapper">
+                            <i class="fa-solid fa-dumbbell"></i>
+                        </div>
+                        <span>1. Treino / Lazer</span>
+                    </div>
+                    <div class="landing-step">
+                        <div class="landing-step-icon-wrapper">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <span>2. Foto</span>
+                    </div>
+                    <div class="landing-step">
+                        <div class="landing-step-icon-wrapper">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <span>3. Prêmios</span>
                     </div>
                 </div>
 
+                <p class="login-subtitle-new">
+                    Faça check-in na academia ou no Balneário, acumule pontos e concorra a prêmios reais!
+                </p>
+
+                <button id="btn-open-rules" class="btn-rules-pill">
+                    <i class="fa-solid fa-gift"></i> Ver Prêmios & Regras
+                </button>
+
                 <!-- Mural scrollable preview -->
                 <div class="login-mural-preview">
-                    <p class="mural-preview-title">Quem já está no Pós Treino Balneário Rio Preto 👇</p>
+                    <p class="mural-preview-title">Quem já tá participando 👇</p>
                     <div class="mural-preview-scroll" id="landing-mural-preview">
                         <div class="empty-state-preview">
                             <i class="fa-solid fa-spinner fa-spin"></i>
-                            <p>Carregando mural...</p>
+                            <p>Carregando...</p>
                         </div>
                     </div>
                 </div>
@@ -295,10 +334,10 @@
                         <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                     </svg>
-                    Participar com Google
+                    Entrar com Google
                 </button>
                 <button id="btn-install-pwa-landing" class="btn-install-pwa-landing" style="display: none;">
-                    <i class="fa-solid fa-mobile-screen-button"></i> Instalar Aplicativo
+                    <i class="fa-solid fa-mobile-screen-button"></i> Instalar App
                 </button>
                 <p class="login-footer-text">
                     Ao participar, você concorda com os <a href="termos.html">termos de uso</a>.
@@ -354,7 +393,10 @@
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                         </div>
-                        <div id="user-streak" class="user-streak">🔥 <span>0</span> dias</div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.15rem;">
+                            <div id="user-streak" class="user-streak">🔥 <span>0</span> dias</div>
+                            <div id="user-monthly-score" class="user-monthly-score">🎖️ <span>0</span> pts</div>
+                        </div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -367,17 +409,33 @@
                 </div>
             </div>
 
-            <!-- STREAK STATS -->
+            <!-- STREAK STATS (4 columns) -->
             <div class="streak-banner glass-card">
                 <div class="streak-stat">
+                    <div class="stat-icon-wrapper text-orange-400">
+                        <i class="fa-solid fa-fire-flame-curved"></i>
+                    </div>
                     <div id="stat-streak" class="stat-value">0</div>
                     <div class="stat-label">Sequência</div>
                 </div>
                 <div class="streak-stat">
-                    <div id="stat-checkins" class="stat-value">0</div>
-                    <div class="stat-label">Recover (XP)</div>
+                    <div class="stat-icon-wrapper text-emerald-400">
+                        <i class="fa-solid fa-dumbbell"></i>
+                    </div>
+                    <div id="stat-xp" class="stat-value">0</div>
+                    <div class="stat-label">XP</div>
                 </div>
                 <div class="streak-stat">
+                    <div class="stat-icon-wrapper text-cyan-400">
+                        <i class="fa-solid fa-umbrella-beach"></i>
+                    </div>
+                    <div id="stat-recover" class="stat-value">0</div>
+                    <div class="stat-label">Recover</div>
+                </div>
+                <div class="streak-stat">
+                    <div class="stat-icon-wrapper text-amber-400">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
                     <div id="stat-rank" class="stat-value">—</div>
                     <div class="stat-label">Ranking</div>
                 </div>
@@ -394,6 +452,10 @@
                     Stories
                 </button>
             </div>
+            <!-- Invite Friends Button -->
+            <button id="btn-invite-friends" class="btn-invite-friends">
+                <i class="fa-solid fa-user-plus"></i> Convidar Amigos (+50 pts)
+            </button>
 
             <!-- TAB NAVIGATION -->
             <div class="nav-tabs">
@@ -509,11 +571,65 @@
                                         <input type="text" id="admin-challenge-points" placeholder="Ex: +300 XP" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
                                     </div>
                                 </div>
+                                <div>
+                                    <label style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.2rem;">Métrica / Foco</label>
+                                    <select id="admin-challenge-metric" style="width:100%; background: #18181b; border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                        <option value="geral">🏆 Geral (Soma de tudo)</option>
+                                        <option value="lazer">🌊 Recovery (Apenas Balneário)</option>
+                                        <option value="treino">🏋️ Treino (Apenas Academia)</option>
+                                        <option value="streak">🔥 Sequência (Dias Seguidos)</option>
+                                    </select>
+                                </div>
                                 <button id="btn-create-challenge" class="btn-rules-pill" style="margin-top: 0.5rem; background: var(--caia-primary); color: #000; font-weight: 700; width: 100%;">Criar Desafio</button>
                             </div>
                         </div>
 
-                        <!-- Tool 3: Moderar Check-ins -->
+                        <!-- Tool 3: Reset de Mês -->
+                        <div class="admin-card" style="margin-top: 1.2rem;">
+                            <h5>🔄 Virada de Mês / Reset de Ranking</h5>
+                            <p class="admin-help">Zere todos os pontos acumulados do mês atual e as sequências de fogueiras dos usuários para iniciar um novo ciclo de premiação.</p>
+                            <button id="btn-reset-monthly-ranking" class="btn-rules-pill" style="margin-top: 0.5rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; width: 100%; font-weight: 700;">Zerar Ranking e Fogueiras</button>
+                        </div>
+
+                        <!-- Tool 4: Gerenciamento de Geolocalizações -->
+                        <div class="admin-card" style="margin-top: 1.2rem;">
+                            <h5>📍 Gerenciamento de Geolocalizações</h5>
+                            <p class="admin-help">Visualize os raios autorizados, clique no mapa para capturar coordenadas ou utilize seu GPS para cadastrar novos locais de check-in.</p>
+                            
+                            <div id="admin-map" style="height: 250px; border-radius: 0.5rem; margin-top: 0.8rem; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.15); z-index: 10;"></div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                                <div>
+                                    <label style="font-size: 0.75rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.15rem;">Nome do Local</label>
+                                    <input type="text" id="admin-loc-name" placeholder="Ex: CAIA Centro" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <div style="flex: 1;">
+                                        <label style="font-size: 0.75rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.15rem;">Latitude</label>
+                                        <input type="number" step="any" id="admin-loc-lat" placeholder="Clique no mapa" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <label style="font-size: 0.75rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.15rem;">Longitude</label>
+                                        <input type="number" step="any" id="admin-loc-lng" placeholder="Clique no mapa" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                                    <div style="flex: 1;">
+                                        <label style="font-size: 0.75rem; color: rgba(255,255,255,0.7); display:block; margin-bottom:0.15rem;">Raio Autorizado (metros)</label>
+                                        <input type="number" id="admin-loc-radius" value="150" style="width:100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; color:#fff; padding:0.5rem; font-size:0.85rem; outline:none;">
+                                    </div>
+                                    <button id="btn-get-current-loc" class="btn-rules-pill" style="margin: 0; height: 35px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0 0.8rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.3rem;"><i class="fa-solid fa-location-crosshairs"></i> GPS</button>
+                                </div>
+                                <button id="btn-save-location" class="btn-rules-pill" style="margin-top: 0.4rem; background: var(--caia-primary); color: #000; font-weight: 700; width: 100%;">Salvar Nova Localização</button>
+                            </div>
+                            
+                            <label style="font-size: 0.8rem; color: rgba(255,255,255,0.8); display:block; margin-top: 1rem; margin-bottom: 0.3rem;">Localidades Ativas:</label>
+                            <div id="admin-locations-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 0.5rem;">
+                                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-align: center; margin: 0.5rem 0;">Nenhuma localização cadastrada.</p>
+                            </div>
+                        </div>
+
+                        <!-- Tool 5: Moderar Check-ins -->
                         <div class="admin-card" style="margin-top: 1.2rem;">
                             <h5>🗑️ Moderação de Check-ins</h5>
                             <p class="admin-help">Remova check-ins falsos, duplicados ou inapropriados do mural.</p>
@@ -536,9 +652,48 @@
     </div>
 
     <!-- ═══════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════ -->
+    <!-- LIGHTBOX MODAL (Highlight post) -->
+    <!-- ═══════════════════════════════════════ -->
+    <div id="lightbox-modal" class="lightbox-modal">
+        <button id="btn-lightbox-close" class="lightbox-close">&times;</button>
+        <div class="lightbox-content">
+            <div id="lightbox-card-container">
+                <!-- Content will be rendered dynamically in JS -->
+            </div>
+            
+            <div class="lightbox-actions">
+                <button id="btn-lightbox-like" class="lightbox-btn-action">
+                    <i class="fa-regular fa-heart"></i> <span id="lightbox-like-count">0</span> Curtidas
+                </button>
+                <button id="btn-lightbox-share" class="lightbox-btn-action">
+                    <i class="fa-solid fa-share-nodes"></i> Compartilhar
+                </button>
+            </div>
+            
+            <!-- Frame colors selection container (Only shown for post owner / admin) -->
+            <div id="lightbox-frame-panel" class="lightbox-frame-panel">
+                <p>Mudar Cor do Frame:</p>
+                <div class="frame-color-options">
+                    <button class="color-option active" data-color="#fdfbf7" style="background: #fdfbf7;" title="Original"></button>
+                    <button class="color-option" data-color="#fbeef2" style="background: #fbeef2;" title="Rosa"></button>
+                    <button class="color-option" data-color="#eefbe2" style="background: #eefbe2;" title="Mental"></button>
+                    <button class="color-option" data-color="#e2f2fb" style="background: #e2f2fb;" title="Celeste"></button>
+                    <button class="color-option" data-color="#fbf8e2" style="background: #fbf8e2;" title="Sol"></button>
+                    <button class="color-option" data-color="#f2eefb" style="background: #f2eefb;" title="Violeta"></button>
+                    <button class="color-option" data-color="#1e293b" style="background: #1e293b;" title="Grafite"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
     <!-- STORY EXPORT CARD (Hidden, rendered by html2canvas) -->
     <!-- ═══════════════════════════════════════ -->
     <div id="story-export-card"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <!-- ═══════════════════════════════════════ -->
     <!-- MAIN SCRIPT (Module) -->
