@@ -1602,10 +1602,10 @@ function renderFeedCard(post) {
     </span>
   `;
 
-  const frameColor = post.frameColor || '#fdfbf7';
-  const isDarkFrame = frameColor === '#1e293b';
-  const textColor = isDarkFrame ? '#ffffff' : '#1e293b';
-  const metaColor = isDarkFrame ? 'rgba(255,255,255,0.7)' : '#64748b';
+  const frameColor = post.frameColor || '#ffffff';
+  const isWhite = frameColor === '#ffffff' || frameColor === '#fdfbf7';
+  const textColor = isWhite ? '#1e293b' : '#ffffff';
+  const metaColor = isWhite ? '#64748b' : 'rgba(255,255,255,0.85)';
 
   return `
     <div class="feed-card" id="post-card-${post.id}" style="background: ${frameColor};">

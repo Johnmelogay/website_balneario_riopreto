@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pos-treino-v6';
+const CACHE_NAME = 'pos-treino-v7';
 const ASSETS = [
   './desafiocaia.html',
   './desafiocaia.css',
@@ -6,6 +6,8 @@ const ASSETS = [
   './manifest.json',
   './images/logo_opt.webp',
   './images/logo_opt.png',
+  './images/app_icon_192.png',
+  './images/app_icon_512.png',
   './images/PROMO CAIA.webp'
 ];
 

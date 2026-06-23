@@ -13,7 +13,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pós Treino — Balneário Rio Preto</title>
-    <link rel="icon" type="image/webp" href="images/logo_opt.webp">
+    <link rel="icon" type="image/png" href="images/app_icon_192.png">
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Faça check-in no Balneário Rio Preto, acumule dias seguidos de pós-treino e concorra a prêmios!">
 
@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Pós Treino Balneário Rio Preto">
-    <link rel="apple-touch-icon" href="images/logo_opt.png">
+    <link rel="apple-touch-icon" href="images/app_icon_512.png">
     <meta name="theme-color" content="#10b981">
 
     <!-- Open Graph -->
@@ -675,13 +675,18 @@
             <div id="lightbox-frame-panel" class="lightbox-frame-panel">
                 <p>Mudar Cor do Frame:</p>
                 <div class="frame-color-options">
-                    <button class="color-option active" data-color="#fdfbf7" style="background: #fdfbf7;" title="Original"></button>
-                    <button class="color-option" data-color="#fbeef2" style="background: #fbeef2;" title="Rosa"></button>
-                    <button class="color-option" data-color="#eefbe2" style="background: #eefbe2;" title="Mental"></button>
-                    <button class="color-option" data-color="#e2f2fb" style="background: #e2f2fb;" title="Celeste"></button>
-                    <button class="color-option" data-color="#fbf8e2" style="background: #fbf8e2;" title="Sol"></button>
-                    <button class="color-option" data-color="#f2eefb" style="background: #f2eefb;" title="Violeta"></button>
-                    <button class="color-option" data-color="#1e293b" style="background: #1e293b;" title="Grafite"></button>
+                    <button class="color-option active" data-color="#ffffff" style="background: #ffffff;" title="Branco"></button>
+                    <button class="color-option" data-color="#ff7a00" style="background: #ff7a00;" title="Laranja"></button>
+                    <button class="color-option" data-color="#e5a900" style="background: #e5a900;" title="Mostarda"></button>
+                    <button class="color-option" data-color="#2b4c7e" style="background: #2b4c7e;" title="Azul Marinho Claro"></button>
+                    <button class="color-option" data-color="#84cc16" style="background: #84cc16;" title="Verde Limão"></button>
+                    <button class="color-option" data-color="linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);" title="Instagram"></button>
+                    
+                    <!-- Seletor de cor personalizada -->
+                    <button class="color-option color-picker-btn" id="btn-custom-color" title="Cor Personalizada">
+                        <i class="fa-solid fa-palette"></i>
+                    </button>
+                    <input type="color" id="frame-color-picker" style="display: none;" />
                 </div>
             </div>
         </div>
