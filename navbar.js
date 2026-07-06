@@ -23,9 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return classes + "nav-item hover:text-primary-green font-medium";
   }
 
+  // Check if we are on the landing page specifically
+  const isIndex = page === "" || page === "index.html";
+
   // --- RENDER HTML ---
   navbarContainer.innerHTML = `
-    <header id="main-header" class="w-full transition-all duration-300 ${isTransparentPage ? 'bg-transparent py-4' : 'bg-white/95 backdrop-blur-md shadow-sm py-2'}">
+    <header id="main-header" class="w-full transition-all duration-500 ${isIndex ? 'opacity-0 pointer-events-none -translate-y-full bg-transparent py-4' : (isTransparentPage ? 'bg-transparent py-4' : 'bg-white/95 backdrop-blur-md shadow-sm py-2')}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 
@@ -98,11 +101,26 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleScroll() {
     // Robust scroll check
     const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-    const isScrolled = scrollTop > 10; // Lower threshold
+    const isScrolled = scrollTop > 50; // Higher threshold so they have to scroll a little
+
+    const heroContent = document.getElementById('hero-content');
+    const heroGradient = document.getElementById('hero-gradient');
 
     if (isTransparentPage) {
       if (isScrolled) {
-        // Scrolled: Solid White
+        // Scrolled: Show Everything and make Header Solid White
+        if (isIndex) {
+            header.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-full');
+            if (heroContent) {
+                heroContent.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                heroContent.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+            }
+            if (heroGradient) {
+                heroGradient.classList.remove('opacity-0', 'pointer-events-none');
+                heroGradient.classList.add('opacity-100', 'pointer-events-auto');
+            }
+        }
+
         header.classList.remove('bg-transparent', 'py-4');
         header.classList.add('bg-white/95', 'backdrop-blur-md', 'shadow-sm', 'py-2');
 
@@ -111,7 +129,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateColors('dark');
       } else {
-        // Top: Transparent
+        // Top: Hide Header and Hero Content on index.html
+        if (isIndex) {
+            header.classList.add('opacity-0', 'pointer-events-none', '-translate-y-full');
+            if (heroContent) {
+                heroContent.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                heroContent.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+            }
+            if (heroGradient) {
+                heroGradient.classList.add('opacity-0', 'pointer-events-none');
+                heroGradient.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+        } else {
+            header.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-full');
+        }
+
         header.classList.add('bg-transparent', 'py-4');
         header.classList.remove('bg-white/95', 'backdrop-blur-md', 'shadow-sm', 'py-2');
 
