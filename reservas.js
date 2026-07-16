@@ -311,17 +311,36 @@ async function verificarDisponibilidade() {
             return;
         }
 
-        // QUERY: Find bookings that OVERLAP with [start, end] (inclusive)
-        // Using lte/gte to also block chalets that have a booking starting on the checkout day
-        // This prevents same-day check-out/check-in conflicts
+        // QUERY 1: Find bookings with STRICT overlap (allows same-day turnover)
+        // overlap: (book_start < query_end) AND (book_end > query_start)
         const { data: bookingsData, error: bookingsError } = await supabase
             .from('bookings')
             .select('chalet_id')
             .in('status', ['confirmed', 'pending'])
-            .lte('checkin_date', end)
-            .gte('checkout_date', start);
+            .lt('checkin_date', end)
+            .gt('checkout_date', start);
 
         if (bookingsError) throw bookingsError;
+
+        // QUERY 2: Sunday exception - check if check-in date is a Sunday
+        // On Sundays, the previous guest has late checkout until 17:30 (courtesy),
+        // so we cannot allow a new check-in on that day.
+        const [sY, sM, sD] = start.split('-').map(Number);
+        const checkinDayOfWeek = new Date(sY, sM - 1, sD).getDay(); // 0=Sunday
+
+        let sundayBlockedIds = [];
+        if (checkinDayOfWeek === 0) {
+            // Find bookings checking OUT on this Sunday
+            const { data: sundayData, error: sundayError } = await supabase
+                .from('bookings')
+                .select('chalet_id')
+                .in('status', ['confirmed', 'pending'])
+                .eq('checkout_date', start);
+
+            if (!sundayError && sundayData) {
+                sundayBlockedIds = sundayData.map(b => parseInt(b.chalet_id));
+            }
+        }
 
         const { data: blocksData, error: blocksError } = await supabase
             .from('blocked_chalets')
@@ -329,11 +348,12 @@ async function verificarDisponibilidade() {
 
         if (blocksError) throw blocksError;
 
-        // Extract blocked IDs
-        const blockedIds = [
+        // Merge all blocked IDs (deduplicated via Set)
+        const blockedIds = [...new Set([
             ...bookingsData.map(b => parseInt(b.chalet_id)),
+            ...sundayBlockedIds,
             ...blocksData.map(b => parseInt(b.chalet_id))
-        ];
+        ])];
 
         renderOpcoesChale(blockedIds);
 
