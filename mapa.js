@@ -1,7 +1,10 @@
 import { supabase } from './scripts.js';
+import { getCurrentStaff } from './sistema_auth.js';
 
-let selectedDate = new Date();
 let bookingsCache = [];
+let selectedDate = new Date();
+window.blockedCache = [];
+window.selectedBookings = new Set(); 
 
 document.addEventListener("DOMContentLoaded", () => {
     // Init Date Picker with Today
@@ -20,7 +23,122 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('prevDay').addEventListener('click', () => changeDay(-1));
     document.getElementById('nextDay').addEventListener('click', () => changeDay(1));
 
+    // Multi-Selection Logic
+    window.toggleSelection = function(bookingId) {
+        if (window.selectedBookings.has(bookingId)) {
+            window.selectedBookings.delete(bookingId);
+        } else {
+            window.selectedBookings.add(bookingId);
+        }
+        window.updateActionBar();
+    };
+
+    window.updateActionBar = function() {
+        const bar = document.getElementById('bulkActionBar');
+        const count = document.getElementById('bulkCountBadge');
+        if (!bar || !count) return;
+
+        // Visual update for cards
+        const allBoxes = document.querySelectorAll('[id^="sel-box-"]');
+        allBoxes.forEach(box => {
+            const id = box.id.replace('sel-box-', '');
+            const icon = document.getElementById(`sel-icon-${id}`);
+            if (window.selectedBookings.has(id)) {
+                box.classList.remove('bg-black/10', 'border-white/50');
+                box.classList.add('bg-white', 'border-white');
+                if (icon) {
+                    icon.classList.remove('opacity-0', 'text-white');
+                    icon.classList.add('opacity-100', 'text-green-600');
+                }
+            } else {
+                box.classList.remove('bg-white', 'border-white');
+                box.classList.add('bg-black/10', 'border-white/50');
+                if (icon) {
+                    icon.classList.remove('opacity-100', 'text-green-600');
+                    icon.classList.add('opacity-0', 'text-white');
+                }
+            }
+        });
+
+        if (window.selectedBookings.size > 0) {
+            count.innerText = window.selectedBookings.size;
+            bar.classList.remove('translate-y-full');
+        } else {
+            bar.classList.add('translate-y-full');
+        }
+    };
+
+    window.clearSelection = function() {
+        window.selectedBookings.clear();
+        window.updateActionBar();
+    };
+
+    window.bulkConfirm = async function() {
+        if (window.selectedBookings.size === 0) return;
+        if (!confirm(`Tem certeza que deseja CONFIRMAR as ${window.selectedBookings.size} reservas selecionadas?`)) return;
+
+        const ids = Array.from(window.selectedBookings);
+        
+        try {
+            const btn = document.querySelector('#bulkActionBar button:nth-child(2)');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Salvando...`;
+            btn.disabled = true;
+
+            const { error } = await supabase
+                .from('bookings')
+                .update({ status: 'confirmed' })
+                .in('id', ids);
+
+            if (error) throw error;
+            
+            // Sucesso
+            window.clearSelection();
+            await loadDataAndRender();
+        } catch (err) {
+            console.error("Bulk confirm erro:", err);
+            alert("Erro ao confirmar reservas. Tente novamente.");
+        } finally {
+            const btn = document.querySelector('#bulkActionBar button:nth-child(2)');
+            btn.innerHTML = `<i class="fa-solid fa-check-double"></i> <span class="hidden md:inline">Confirmar</span>`;
+            btn.disabled = false;
+        }
+    };
+
+    window.bulkDelete = async function() {
+        if (window.selectedBookings.size === 0) return;
+        if (!confirm(`ATENÇÃO: Você tem certeza que deseja EXCLUIR PERMANENTEMENTE as ${window.selectedBookings.size} reservas selecionadas?`)) return;
+
+        const ids = Array.from(window.selectedBookings);
+        
+        try {
+            const btn = document.querySelector('#bulkActionBar button:nth-child(1)');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+            btn.disabled = true;
+
+            const { error } = await supabase
+                .from('bookings')
+                .delete()
+                .in('id', ids);
+
+            if (error) throw error;
+            
+            // Sucesso
+            window.clearSelection();
+            await loadDataAndRender();
+        } catch (err) {
+            console.error("Bulk delete erro:", err);
+            alert("Erro ao excluir reservas. Tente novamente.");
+        } finally {
+            const btn = document.querySelector('#bulkActionBar button:nth-child(1)');
+            btn.innerHTML = `<i class="fa-solid fa-trash-can"></i>`;
+            btn.disabled = false;
+        }
+    };
+
     // Initial Load
+    window.loadDataAndRender = loadDataAndRender;
     loadDataAndRender();
 });
 
@@ -232,6 +350,12 @@ function renderGrid() {
                  ${detailsHtml}
             </div>
             
+            ${status.type !== 'free' && status.type !== 'maintenance' && status.type !== 'conflict' && status.booking ? 
+                `<div class="absolute top-4 right-4 z-10 w-6 h-6 rounded-md border-2 border-white/50 bg-black/10 hover:bg-black/20 flex items-center justify-center cursor-pointer transition-colors shadow-sm" onclick="event.stopPropagation(); window.toggleSelection('${status.booking.id}')" id="sel-box-${status.booking.id}">
+                    <i class="fa-solid fa-check text-white opacity-0 transition-opacity" id="sel-icon-${status.booking.id}"></i>
+                </div>` : ''
+            }
+
             ${status.type === 'free' ?
                 `<div class="mt-auto pt-4 flex justify-center opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
                     <span class="bg-white text-green-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm">Reservar</span>
@@ -247,6 +371,9 @@ function renderGrid() {
     // We can sum busy + conflicts if we want accurate 'Currently Occupied' count
     document.getElementById('countBusy').innerText = busy;
     document.getElementById('countSwap').innerText = swap;
+    
+    // Re-apply selection styles if any
+    window.updateActionBar();
 }
 
 function getStatus(chaletId, dateStr) {

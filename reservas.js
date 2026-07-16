@@ -220,8 +220,11 @@ function enviarWhatsapp() {
     document.getElementById("erro-chale").classList.add("hidden");
     const total = document.getElementById("resumoTotal").innerText;
 
-    const dataIn = new Date(checkin).toLocaleDateString('pt-BR');
-    const dataOut = new Date(checkout).toLocaleDateString('pt-BR');
+    const [yIn, mIn, dIn] = checkin.split('-');
+    const dataIn = `${dIn}/${mIn}/${yIn}`;
+
+    const [yOut, mOut, dOut] = checkout.split('-');
+    const dataOut = `${dOut}/${mOut}/${yOut}`;
 
     // --- CAPTURE LEAD ASYNC (FIRE AND FORGET OR AWAIT?) ---
     // Since we open a new tab, async without await is risky if browser closes too fast, 
@@ -269,16 +272,27 @@ async function verificarDisponibilidade() {
         // QUERY: Find bookings that OVERLAP with [start, end]
         // overlap: (book_start < query_end) AND (book_end > query_start)
         // Note: Supabase filtering on Date columns works well with strings YYYY-MM-DD
-        const { data, error } = await supabase
+        const { data: bookingsData, error: bookingsError } = await supabase
             .from('bookings')
             .select('chalet_id')
+            .in('status', ['confirmed', 'pending'])
             .lt('checkin_date', end)
             .gt('checkout_date', start);
 
-        if (error) throw error;
+        if (bookingsError) throw bookingsError;
+
+        const { data: blocksData, error: blocksError } = await supabase
+            .from('blocked_chalets')
+            .select('chalet_id');
+
+        if (blocksError) throw blocksError;
 
         // Extract blocked IDs
-        const blockedIds = data.map(b => b.chalet_id);
+        const blockedIds = [
+            ...bookingsData.map(b => parseInt(b.chalet_id)),
+            ...blocksData.map(b => parseInt(b.chalet_id))
+        ];
+
         renderOpcoesChale(blockedIds);
 
     } catch (err) {

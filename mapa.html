@@ -363,6 +363,27 @@
         </div>
     </div>
 
+    <!-- ACTION BAR SELEÇÃO MÚLTIPLA -->
+    <div id="bulkActionBar" class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] border-t border-gray-200 p-4 transform translate-y-full transition-transform duration-300 z-40 flex items-center justify-between max-w-5xl mx-auto rounded-t-3xl">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-lg" id="bulkCountBadge">
+                0
+            </div>
+            <div>
+                <p class="font-bold text-gray-800 leading-none">Selecionados</p>
+                <button onclick="clearSelection()" class="text-xs text-gray-500 font-bold hover:text-gray-700 underline mt-1">Cancelar seleção</button>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="bulkDelete()" class="w-12 h-12 rounded-xl border-2 border-red-100 text-red-500 hover:bg-red-50 flex items-center justify-center transition" title="Excluir Selecionados">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <button onclick="bulkConfirm()" class="h-12 px-6 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 shadow-md shadow-green-200 flex items-center gap-2 transition">
+                <i class="fa-solid fa-check-double"></i> <span class="hidden md:inline">Confirmar</span>
+            </button>
+        </div>
+    </div>
+
     <script type="module" src="mapa.js"></script>
 </body>
 
