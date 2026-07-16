@@ -342,6 +342,19 @@ async function verificarDisponibilidade() {
             }
         }
 
+        // QUERY 3: Detect TURNOVER chalets (booking checks out on user's check-in date)
+        // These chalets are available but need cleaning, so check-in is at 14:00 instead of 12:00
+        let turnoverIds = [];
+        const { data: turnoverData, error: turnoverError } = await supabase
+            .from('bookings')
+            .select('chalet_id')
+            .in('status', ['confirmed', 'pending'])
+            .eq('checkout_date', start);
+
+        if (!turnoverError && turnoverData) {
+            turnoverIds = turnoverData.map(b => parseInt(b.chalet_id));
+        }
+
         const { data: blocksData, error: blocksError } = await supabase
             .from('blocked_chalets')
             .select('chalet_id');
@@ -355,7 +368,11 @@ async function verificarDisponibilidade() {
             ...blocksData.map(b => parseInt(b.chalet_id))
         ])];
 
-        renderOpcoesChale(blockedIds);
+        // Remove turnover chalets from blocked (they ARE available, just with later check-in)
+        // But keep them blocked if they're in sundayBlockedIds (Sunday exception)
+        const finalTurnoverIds = turnoverIds.filter(id => !blockedIds.includes(id));
+
+        renderOpcoesChale(blockedIds, finalTurnoverIds);
 
     } catch (err) {
         console.error("Erro ao verificar disponibilidade:", err);
@@ -365,7 +382,7 @@ async function verificarDisponibilidade() {
     }
 }
 
-function renderOpcoesChale(blockedIds = []) {
+function renderOpcoesChale(blockedIds = [], turnoverIds = []) {
     const container = document.getElementById("chale-opcoes");
     if (!container) return;
     container.innerHTML = "";
@@ -391,9 +408,10 @@ function renderOpcoesChale(blockedIds = []) {
         grupos[area].forEach(num => {
             // CHECK IF BLOCKED
             const isBusy = blockedIds.includes(num);
+            const isTurnover = turnoverIds.includes(num);
             const isAvailable = !isBusy;
 
-            let wrapperClass = "relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer select-none text-center h-20";
+            let wrapperClass = "relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer select-none text-center h-24";
 
             if (area === "De Frente Para a Piscina") {
                 wrapperClass += " bg-blue-50/90";
@@ -404,11 +422,20 @@ function renderOpcoesChale(blockedIds = []) {
             let iconClass = "text-xl mb-1";
             let textStatus = "";
             let disabledAttr = "";
+            let checkinBadge = "";
 
-            if (isAvailable) {
+            if (isAvailable && isTurnover) {
+                // TURNOVER: available but needs cleaning, check-in at 14:00
+                wrapperClass += " bg-amber-50 border-amber-200 hover:border-amber-400 hover:shadow-md";
+                iconClass += " text-amber-600";
+                textStatus = `<span class="text-[10px] font-bold text-amber-600 uppercase">Livre</span>`;
+                checkinBadge = `<span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full mt-0.5"><i class="fa-regular fa-clock mr-0.5"></i>Check-in 14:00</span>`;
+            } else if (isAvailable) {
+                // FREE: normal availability, check-in at 12:00
                 wrapperClass += " bg-white border-gray-100 hover:border-primary-green hover:shadow-md hover:bg-green-50/50";
                 iconClass += " text-primary-green";
                 textStatus = `<span class="text-[10px] font-bold text-green-600 uppercase">Livre</span>`;
+                checkinBadge = `<span class="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full mt-0.5"><i class="fa-regular fa-clock mr-0.5"></i>Check-in 12:00</span>`;
             } else {
                 // BUSY STYLE
                 wrapperClass += " bg-gray-100 border-gray-100 opacity-50 cursor-not-allowed grayscale";
@@ -424,8 +451,9 @@ function renderOpcoesChale(blockedIds = []) {
             <input type="radio" name="chale" value="Chalé ${num} (${area})" class="peer sr-only chale-radio" ${disabledAttr}>
             <div class="${wrapperClass}">
                 <i class="fa-solid ${iconName} ${iconClass} opacity-80"></i>
-                <span class="font-bold text-gray-800 text-sm leading-none mb-1">Chalé ${num}</span>
+                <span class="font-bold text-gray-800 text-sm leading-none mb-0.5">Chalé ${num}</span>
                 ${textStatus}
+                ${checkinBadge}
                 <div class="absolute top-2 right-2 text-primary-green opacity-0 peer-checked:opacity-100 transition-opacity">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
