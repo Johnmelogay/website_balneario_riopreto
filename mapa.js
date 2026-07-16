@@ -168,8 +168,9 @@ function updateDateLabel() {
 async function loadDataAndRender() {
     const y = selectedDate.getFullYear();
     const m = selectedDate.getMonth();
-    const startOfMonth = new Date(y, m, 1).toISOString().split('T')[0];
-    const endOfMonth = new Date(y, m + 1, 0).toISOString().split('T')[0];
+    const startOfMonth = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const endOfMonth = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
     const { data: bookings, error } = await supabase
         .from('bookings')
@@ -193,7 +194,10 @@ function renderGrid() {
     container.innerHTML = "";
 
     let free = 0, busy = 0, swap = 0;
-    const isoDate = selectedDate.toISOString().split('T')[0];
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDate.getDate()).padStart(2, '0');
+    const isoDate = `${y}-${m}-${d}`;
 
     // Render Chalets 1 to 10
     for (let id = 1; id <= 10; id++) {

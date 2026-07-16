@@ -20,14 +20,56 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(verificarDisponibilidade, 500);
     renderGaleria();
 
-    document.getElementById("checkin").addEventListener("change", () => {
-        calcular();
-        verificarDisponibilidade();
-    });
-    document.getElementById("checkout").addEventListener("change", () => {
-        calcular();
-        verificarDisponibilidade();
-    });
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+    if (checkinInput) {
+        checkinInput.min = todayStr;
+        if (!checkinInput.value) checkinInput.value = todayStr;
+    }
+    if (checkoutInput) {
+        checkoutInput.min = tomorrowStr;
+        if (!checkoutInput.value) checkoutInput.value = tomorrowStr;
+    }
+
+    if (checkinInput) {
+        checkinInput.addEventListener("change", () => {
+            const checkinVal = checkinInput.value;
+            if (checkinVal) {
+                const nextDay = new Date(checkinVal + 'T12:00:00');
+                nextDay.setDate(nextDay.getDate() + 1);
+                const nextDayStr = nextDay.toISOString().split('T')[0];
+                checkoutInput.min = nextDayStr;
+
+                const checkoutVal = checkoutInput.value;
+                if (!checkoutVal || checkoutVal <= checkinVal) {
+                    checkoutInput.value = nextDayStr;
+                }
+            }
+            calcular();
+            verificarDisponibilidade();
+        });
+    }
+
+    if (checkoutInput) {
+        checkoutInput.addEventListener("change", () => {
+            const checkinVal = checkinInput.value;
+            const checkoutVal = checkoutInput.value;
+            if (checkoutVal && checkinVal && checkoutVal <= checkinVal) {
+                const prevDay = new Date(checkoutVal + 'T12:00:00');
+                prevDay.setDate(prevDay.getDate() - 1);
+                checkinInput.value = prevDay.toISOString().split('T')[0];
+            }
+            calcular();
+            verificarDisponibilidade();
+        });
+    }
     document.getElementById("adultos").addEventListener("change", calcular);
 
     document.addEventListener("change", function (e) {
@@ -93,20 +135,15 @@ function calcular() {
         return;
     }
 
-    const d1 = new Date(checkin);
-    // O checkout na lógica de hotéis é "saída até o meio dia", então pagou pela noite anterior.
-    // Mas aqui o cálculo deve considerar a quantidade de noites.
-    // Para evitar issues de fuso horário, usar setHours no cálculo de diff apenas.
-    // Mas preciso do Dia da Semana.
     const [y1, m1, d_1] = checkin.split('-').map(Number);
-    const d1Day = new Date(y1, m1 - 1, d_1); // Força a data local para pegar dia da semana correto
-    const d2 = new Date(checkout);
+    const [y2, m2, d_2] = checkout.split('-').map(Number);
 
-    d1.setHours(0, 0, 0, 0);
-    d2.setHours(0, 0, 0, 0);
+    const d1 = new Date(Date.UTC(y1, m1 - 1, d_1));
+    const d2 = new Date(Date.UTC(y2, m2 - 1, d_2));
+    const d1Day = new Date(y1, m1 - 1, d_1); // For local day of week
 
     const diffMs = d2 - d1;
-    const noites = diffMs / (1000 * 60 * 60 * 24);
+    const noites = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
     if (noites <= 0) {
         elNoites.innerText = "Data Inválida";
@@ -252,12 +289,18 @@ function enviarWhatsapp() {
 // --- SUPABASE AVAILABILITY LOGIC ---
 
 async function verificarDisponibilidade() {
-    const checkin = document.getElementById("checkin").value;
-    const checkout = document.getElementById("checkout").value;
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+    const checkin = checkinInput ? checkinInput.value : "";
+    const checkout = checkoutInput ? checkoutInput.value : "";
 
-    // Default to today/next day if empty to show general availability
-    const start = checkin || new Date().toISOString().split('T')[0];
-    const end = checkout || new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    if (!checkin || !checkout || checkout <= checkin) {
+        renderOpcoesChale([]);
+        return;
+    }
+
+    const start = checkin;
+    const end = checkout;
 
     // Visual loading state
     const container = document.getElementById("chale-opcoes");

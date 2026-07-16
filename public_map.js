@@ -31,8 +31,9 @@ function changePublicDay(delta) {
 async function loadPublicMap() {
     const y = publicDate.getFullYear();
     const m = publicDate.getMonth();
-    const startOfMonth = new Date(y, m, 1).toISOString().split('T')[0];
-    const endOfMonth = new Date(y, m + 1, 0).toISOString().split('T')[0];
+    const startOfMonth = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    const endOfMonth = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
     // SECURE FETCH: We select ONLY non-sensitive fields
     const { data: bookings } = await supabase
@@ -58,7 +59,10 @@ function renderPublicGrid() {
     if (!container) return;
 
     container.innerHTML = "";
-    const isoDate = publicDate.toISOString().split('T')[0];
+    const y = publicDate.getFullYear();
+    const m = String(publicDate.getMonth() + 1).padStart(2, '0');
+    const d = String(publicDate.getDate()).padStart(2, '0');
+    const isoDate = `${y}-${m}-${d}`;
 
     for (let id = 1; id <= 10; id++) {
         const status = getPublicStatus(id, isoDate);
