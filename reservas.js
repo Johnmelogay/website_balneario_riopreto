@@ -169,7 +169,6 @@ function calcular() {
 
     // Sunday Checkout Message
     // Se checkout cai no domingo
-    const [y2, m2, d_2] = checkout.split('-').map(Number);
     const d2Day = new Date(y2, m2 - 1, d_2);
     if (d2Day.getDay() === 0) { // 0 = Domingo
         // Poderia injetar uma msg na UI, mas por enquanto só cálculo
