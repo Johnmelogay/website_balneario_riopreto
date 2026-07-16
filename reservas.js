@@ -311,15 +311,15 @@ async function verificarDisponibilidade() {
             return;
         }
 
-        // QUERY: Find bookings that OVERLAP with [start, end]
-        // overlap: (book_start < query_end) AND (book_end > query_start)
-        // Note: Supabase filtering on Date columns works well with strings YYYY-MM-DD
+        // QUERY: Find bookings that OVERLAP with [start, end] (inclusive)
+        // Using lte/gte to also block chalets that have a booking starting on the checkout day
+        // This prevents same-day check-out/check-in conflicts
         const { data: bookingsData, error: bookingsError } = await supabase
             .from('bookings')
             .select('chalet_id')
             .in('status', ['confirmed', 'pending'])
-            .lt('checkin_date', end)
-            .gt('checkout_date', start);
+            .lte('checkin_date', end)
+            .gte('checkout_date', start);
 
         if (bookingsError) throw bookingsError;
 
