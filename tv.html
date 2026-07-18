@@ -372,8 +372,19 @@
                     `).join('');
                 }
 
-                // 2. Preenche Bebidas (filtrando o Dindin para a outra coluna)
-                const bebidas = produtos.filter(p => p.category_id === CAT_BEBIDAS && !p.name.toLowerCase().includes('dindin'));
+                // 2. Preenche Bebidas (ordenadas e filtradas para caber exatamente 5 itens sem transbordar)
+                const ordemBebidas = ["heineken", "cerveja", "coca", "refrigerante lata", "suco", "água mineral"];
+                const bebidas = produtos
+                    .filter(p => p.category_id === CAT_BEBIDAS && !p.name.toLowerCase().includes('dindin'))
+                    .sort((a, b) => {
+                        const idxA = ordemBebidas.findIndex(term => a.name.toLowerCase().includes(term));
+                        const idxB = ordemBebidas.findIndex(term => b.name.toLowerCase().includes(term));
+                        const valA = idxA === -1 ? 99 : idxA;
+                        const valB = idxB === -1 ? 99 : idxB;
+                        return valA - valB;
+                    })
+                    .slice(0, 5); // Capped at exactly 5 items
+                
                 const elBebidas = document.getElementById('lista-bebidas');
                 if (elBebidas) {
                     elBebidas.innerHTML = bebidas.map(p => `
@@ -391,8 +402,11 @@
                     elDindinPreco.innerHTML = `R$ ${formatarMoeda(dindin.price).split(',')[0]}<span class="text-xl font-bold">,${formatarMoeda(dindin.price).split(',')[1]}</span>`;
                 }
 
-                // 4. Preenche Refeições
-                const refeicoes = produtos.filter(p => p.category_id === CAT_REFEICOES);
+                // 4. Preenche Refeições (removendo o dourado e limitando a 4 itens para evitar transbordamento)
+                const refeicoes = produtos
+                    .filter(p => p.category_id === CAT_REFEICOES && !p.name.toLowerCase().includes('dourado'))
+                    .slice(0, 4); // Capped at exactly 4 items
+                
                 const elRefeicoes = document.getElementById('lista-refeicoes');
                 if (elRefeicoes) {
                     elRefeicoes.innerHTML = refeicoes.map(p => {
