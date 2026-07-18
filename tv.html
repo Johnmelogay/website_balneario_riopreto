@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Digital TV - Balneário Rio Preto</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden; /* Trava a barra de rolagem para TV */
+            background-color: #000;
+        }
+
+        /* Efeito de vidro para os painéis (Glassmorphism) */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animações do Slideshow */
+        .slide {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            transform: scale(0.98);
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+            transform: scale(1);
+        }
+
+        /* Esconder barra de rolagem */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Texto com contorno para garantir leitura em cima da foto */
+        .text-shadow-hard {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="text-white h-screen w-screen relative">
+
+    <!-- Imagem de fundo usando a foto de referência enviada -->
+    <img src="image_ff559d.jpg" alt="Fundo Balneário" class="absolute inset-0 w-full h-full object-cover z-0 opacity-60">
+    <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-slate-900/40 z-0"></div>
+
+    <!-- TELA INICIAL PARA ATIVAR FULLSCREEN -->
+    <div id="tela-inicial" class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700">
+        <div class="text-center p-12 bg-slate-900 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-700 max-w-2xl">
+            <h1 class="text-5xl font-black text-sky-400 mb-6">Painel Digital</h1>
+            <p class="text-2xl text-slate-300 mb-10">O sistema de TV está pronto para iniciar.</p>
+            <button class="bg-gradient-to-r from-sky-600 to-sky-400 hover:from-sky-500 hover:to-sky-300 text-white font-bold py-6 px-12 rounded-full text-3xl shadow-[0_0_40px_rgba(14,165,233,0.4)] transition-all transform hover:scale-105">
+                INICIAR TELA CHEIA
+            </button>
+            <p class="mt-8 text-lg text-slate-400">Use o controle da TV e clique "OK" no botão.</p>
+        </div>
+    </div>
+
+    <div class="flex h-full w-full relative z-10">
+        
+        <!-- ========================================== -->
+        <!-- COLUNA ESQUERDA (FIXA) - 35% DA TELA       -->
+        <!-- ========================================== -->
+        <div class="w-[35%] glass-panel shadow-2xl flex flex-col justify-between p-10 border-r border-white/10">
+            
+            <!-- Logo e Identidade -->
+            <div class="text-center bg-slate-900/50 p-6 rounded-3xl border border-white/5">
+                <h2 class="text-3xl font-light text-sky-300 tracking-widest uppercase mb-1">Verão 2025</h2>
+                <h1 class="text-6xl font-black text-white leading-none tracking-tight drop-shadow-lg">
+                    Balneário<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">Rio Preto</span>
+                </h1>
+            </div>
+
+            <!-- Redes Sociais e Contato Fixos -->
+            <div class="flex flex-col gap-4 my-8">
+                <div class="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                    <div class="bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400 font-bold uppercase tracking-wider">Siga no Instagram</p>
+                        <p class="text-2xl font-bold text-white">@balnearioriopreto</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                    <div class="bg-sky-500 w-12 h-12 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400 font-bold uppercase tracking-wider">Acesse nosso site</p>
+                        <p class="text-2xl font-bold text-white">www.balnearioriopreto.com.br</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placa de Wi-Fi Gigante (Baseado na referência) -->
+            <div class="bg-gradient-to-b from-orange-400 to-orange-600 rounded-[2rem] p-6 text-center shadow-[0_15px_40px_rgba(249,115,22,0.4)] border-4 border-orange-300">
+                <h3 class="text-5xl font-black text-white tracking-widest uppercase mb-1 shadow-sm">WI-FI</h3>
+                <h4 class="text-3xl font-bold text-orange-100 uppercase tracking-widest mb-6">Gratuito</h4>
+                
+                <div class="bg-white p-4 rounded-3xl shadow-inner inline-block w-full">
+                    <!-- AQUI ENTRA A SUA IMAGEM EXATA DO QR CODE -->
+                    <img src="wifi_qrcode.png" alt="QR Code Wi-Fi" class="w-full aspect-square object-cover rounded-xl border-2 border-slate-100">
+                </div>
+                <p class="text-xl font-bold text-white mt-4 bg-black/20 py-2 rounded-xl">Aponte a câmera 📱</p>
+            </div>
+
+            <!-- Relógio -->
+            <div class="text-center mt-6">
+                <span id="relogio" class="text-6xl font-black text-white/90 tabular-nums tracking-tighter drop-shadow-md">00:00</span>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- COLUNA DIREITA (SLIDESHOW) - 65% DA TELA   -->
+        <!-- ========================================== -->
+        <div class="w-[65%] relative overflow-hidden" id="area-slides">
+            
+            <!-- SLIDE 1: PORÇÕES E BEBIDAS -->
+            <div class="slide active p-12 flex flex-col justify-center" id="slide-1">
+                <div class="glass-card p-12 rounded-[2.5rem] h-full shadow-2xl flex flex-col">
+                    <h2 class="text-5xl font-black text-white mb-10 text-center uppercase tracking-widest border-b border-white/10 pb-6">
+                        <span class="text-sky-400">Cardápio</span> Principal
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-16 flex-grow">
+                        <!-- Coluna Porções -->
+                        <div>
+                            <div class="flex items-center gap-4 mb-8">
+                                <span class="text-4xl">🍟</span>
+                                <h3 class="text-4xl font-bold text-orange-400">Porções</h3>
+                            </div>
+                            <ul class="space-y-6">
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Batata Frita</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 45</span>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Isca de Tilápia</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 65</span>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Frango a Passarinho</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 55</span>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Calabresa Acebolada</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 40</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Coluna Bebidas -->
+                        <div>
+                            <div class="flex items-center gap-4 mb-8">
+                                <span class="text-4xl">🧊</span>
+                                <h3 class="text-4xl font-bold text-sky-400">Bebidas</h3>
+                            </div>
+                            <ul class="space-y-6">
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Cerveja 600ml</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 15</span>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Heineken 600ml</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 18</span>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Refrigerante Lata</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 7</span>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <h4 class="text-3xl font-medium text-slate-100">Suco Natural</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 12</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 2: PRATOS ESPECIAIS E PICOLÉS (baseado na lista da imagem) -->
+            <div class="slide p-12 flex flex-col justify-center" id="slide-2">
+                <div class="glass-card p-12 rounded-[2.5rem] h-full shadow-2xl border-emerald-500/30 border-2">
+                    <h2 class="text-5xl font-black text-white mb-10 text-center uppercase tracking-widest border-b border-white/10 pb-6">
+                        <span class="text-emerald-400">Pratos &</span> Sobremesas
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-16">
+                        <!-- Pratos -->
+                        <div>
+                            <div class="flex items-center gap-4 mb-8">
+                                <span class="text-4xl">🍽️</span>
+                                <h3 class="text-4xl font-bold text-emerald-400">Refeições</h3>
+                            </div>
+                            <ul class="space-y-6">
+                                <li class="flex justify-between items-start border-b border-white/10 pb-4">
+                                    <div>
+                                        <h4 class="text-3xl font-bold text-slate-100">Moqueca Completa</h4>
+                                        <p class="text-lg text-slate-400 mt-1">Serve 2 pessoas</p>
+                                    </div>
+                                    <span class="text-4xl font-bold text-emerald-400 ml-4 mt-1">R$ 140</span>
+                                </li>
+                                <li class="flex justify-between items-start border-b border-white/10 pb-4">
+                                    <div>
+                                        <h4 class="text-3xl font-bold text-slate-100">Picanha na Chapa</h4>
+                                        <p class="text-lg text-slate-400 mt-1">Com acompanhamentos</p>
+                                    </div>
+                                    <span class="text-4xl font-bold text-emerald-400 ml-4 mt-1">R$ 160</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Sorvetes (Lista baseada na sua imagem) -->
+                        <div>
+                            <div class="flex items-center gap-4 mb-8">
+                                <span class="text-4xl">🍦</span>
+                                <h3 class="text-4xl font-bold text-pink-400">Sorvetes / Picolés</h3>
+                            </div>
+                            <!-- Usando colunas menores para caber a lista longa da foto -->
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                                <div class="text-2xl font-medium text-slate-200">Tapioca</div>
+                                <div class="text-2xl font-medium text-slate-200">Céu Azul</div>
+                                <div class="text-2xl font-medium text-slate-200">Leite Cond.</div>
+                                <div class="text-2xl font-medium text-slate-200">Flocos</div>
+                                <div class="text-2xl font-medium text-slate-200">Abacaxi</div>
+                                <div class="text-2xl font-medium text-slate-200">Abacate</div>
+                                <div class="text-2xl font-medium text-slate-200">Uva</div>
+                                <div class="text-2xl font-medium text-slate-200">Chocolate</div>
+                                <div class="text-2xl font-medium text-slate-200">Milho</div>
+                                <div class="text-2xl font-medium text-slate-200">Coco</div>
+                                <div class="text-2xl font-medium text-slate-200">Cupuaçu</div>
+                                <div class="text-2xl font-medium text-slate-200">Banana</div>
+                                <div class="text-2xl font-medium text-slate-200">Açaí</div>
+                                <div class="text-2xl font-medium text-slate-200">Amendoim</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: CHALÉS E INFORMAÇÕES -->
+            <div class="slide p-12 flex flex-col justify-center" id="slide-3">
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-12 rounded-[2.5rem] h-full shadow-2xl border border-white/10 flex flex-col items-center text-center justify-center relative overflow-hidden">
+                    
+                    <!-- Decoração de fundo -->
+                    <svg class="absolute top-0 right-0 text-white/5 w-96 h-96 -mt-10 -mr-10" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm16 16V5H5v14h14zm-8-2h6v-2h-6v2zm-4-4h10v-2H7v2zm0-4h10V7H7v2z"/></svg>
+
+                    <h2 class="text-6xl font-black text-white mb-6 uppercase tracking-widest z-10">
+                        Hospede-se Conosco
+                    </h2>
+                    <p class="text-3xl text-sky-300 mb-12 z-10">Conheça nossos confortáveis chalés!</p>
+                    
+                    <div class="grid grid-cols-2 gap-8 w-full max-w-4xl z-10">
+                        <div class="bg-white/10 p-8 rounded-3xl border border-white/10 backdrop-blur-sm">
+                            <h3 class="text-4xl font-bold text-white mb-2">Chalé Casal</h3>
+                            <p class="text-xl text-slate-300 mb-4">Ar condicionado, frigobar e TV.</p>
+                            <span class="text-4xl font-black text-emerald-400">R$ 250<span class="text-xl font-normal text-slate-400">/diária</span></span>
+                        </div>
+                        <div class="bg-white/10 p-8 rounded-3xl border border-white/10 backdrop-blur-sm">
+                            <h3 class="text-4xl font-bold text-white mb-2">Chalé Família</h3>
+                            <p class="text-xl text-slate-300 mb-4">Acomoda até 4 pessoas. Varanda.</p>
+                            <span class="text-4xl font-black text-emerald-400">R$ 400<span class="text-xl font-normal text-slate-400">/diária</span></span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-2xl text-slate-400 mt-12 z-10 bg-slate-950/50 px-8 py-4 rounded-full border border-white/5">
+                        Consulte a recepção para reservas e day use.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LÓGICA DE TELA CHEIA ---
+        const telaInicial = document.getElementById('tela-inicial');
+        
+        telaInicial.addEventListener('click', () => {
+            const doc = document.documentElement;
+            if (doc.requestFullscreen) { doc.requestFullscreen(); } 
+            else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); } 
+            else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
+
+            telaInicial.style.opacity = '0';
+            setTimeout(() => { telaInicial.style.display = 'none'; }, 700);
+        });
+
+        // --- 2. LÓGICA DO RELÓGIO ---
+        function atualizarRelogio() {
+            const agora = new Date();
+            const horas = String(agora.getHours()).padStart(2, '0');
+            const minutos = String(agora.getMinutes()).padStart(2, '0');
+            document.getElementById('relogio').innerText = `${horas}:${minutos}`;
+        }
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        // --- 3. LÓGICA DO SLIDESHOW ---
+        let currentSlide = 0;
+        let slides = document.querySelectorAll('.slide');
+        
+        function proximoSlide() {
+            // Remove classe active do slide atual
+            slides[currentSlide].classList.remove('active');
+            
+            // Calcula qual é o próximo (se chegar no final, volta pro zero)
+            currentSlide = (currentSlide + 1) % slides.length;
+            
+            // Adiciona classe active no novo slide
+            slides[currentSlide].classList.add('active');
+        }
+        
+        // Troca de tela a cada 15 segundos (15000 ms)
+        setInterval(proximoSlide, 15000);
+
+
+        // --- 4. ATUALIZAÇÃO SILENCIOSA DOS PREÇOS (AUTO-REFRESH) ---
+        // A cada 5 minutos, ele baixa o arquivo html novo e atualiza só os dados dos slides, 
+        // sem piscar a tela e sem atrapalhar a rotação do slideshow!
+        
+        async function atualizarDadosSilenciosamente() {
+            try {
+                const url = window.location.href.split('?')[0] + '?hora=' + new Date().getTime();
+                const resposta = await fetch(url);
+                const htmlTexto = await resposta.text();
+                
+                const parser = new DOMParser();
+                const novoDocumento = parser.parseFromString(htmlTexto, 'text/html');
+                
+                // Atualiza o conteúdo interno de CADA slide individualmente
+                // Isso garante que se o slide 2 estiver na tela, ele não vai piscar nem sumir.
+                for (let i = 1; i <= 3; i++) {
+                    const slideAtual = document.getElementById(`slide-${i}`);
+                    const slideNovo = novoDocumento.getElementById(`slide-${i}`);
+                    
+                    if (slideAtual && slideNovo) {
+                        slideAtual.innerHTML = slideNovo.innerHTML;
+                    }
+                }
+                
+                console.log("Preços e textos sincronizados silenciosamente: ", new Date().toLocaleTimeString());
+                
+                // Atualiza também a contagem de slides caso você adicione um slide novo no futuro
+                slides = document.querySelectorAll('.slide'); 
+                
+            } catch (erro) {
+                console.error("Erro ao buscar atualizações de preço.", erro);
+            }
+        }
+
+        // Busca novidades no servidor a cada 5 Minutos (300.000 ms)
+        setInterval(atualizarDadosSilenciosamente, 300000);
+
+    </script>
+</body>
+</html>
