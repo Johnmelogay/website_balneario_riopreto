@@ -60,6 +60,22 @@
         .text-shadow-hard {
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 rgba(0,0,0,0.5);
         }
+
+        /* Animação do Ticker de Notícias */
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+        }
+
+        .animate-ticker {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: ticker 45s linear infinite;
+        }
+        
+        .animate-ticker:hover {
+            animation-play-state: paused;
+        }
     </style>
 </head>
 <body class="text-white h-screen w-screen relative">
@@ -80,7 +96,7 @@
         </div>
     </div>
 
-    <div class="flex h-full w-full relative z-10">
+    <div class="flex h-[calc(100%-3.5rem)] w-full relative z-10">
         
         <!-- ========================================== -->
         <!-- COLUNA ESQUERDA (FIXA) - 35% DA TELA       -->
@@ -130,9 +146,14 @@
                 <p class="text-sm font-bold text-white mt-2 bg-black/20 py-1.5 rounded-xl">Aponte a câmera 📱</p>
             </div>
 
-            <!-- Relógio -->
-            <div class="text-center mt-4">
+            <!-- Relógio e Clima -->
+            <div class="text-center mt-4 flex flex-col items-center justify-center bg-slate-950/40 py-3 px-5 rounded-3xl border border-white/5 shadow-inner shrink-0">
                 <span id="relogio" class="text-5xl font-black text-white/90 tabular-nums tracking-tighter drop-shadow-md">00:00</span>
+                <div id="clima-container" class="flex items-center gap-2 mt-1 text-sm text-slate-300 font-bold">
+                    <span id="clima-temp">--°C</span>
+                    <span class="text-white/20">|</span>
+                    <span id="clima-desc">Carregando...</span>
+                </div>
             </div>
 
         </div>
@@ -200,8 +221,8 @@
                                     <span class="text-4xl font-bold text-white ml-4">R$ 6</span>
                                 </li>
                                 <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Suco Laranja (Jarra)</h4>
-                                    <span class="text-4xl font-bold text-white ml-4">R$ 12</span>
+                                    <h4 class="text-3xl font-medium text-slate-100">Dindin</h4>
+                                    <span class="text-4xl font-bold text-white ml-4">R$ 6</span>
                                 </li>
                             </ul>
                         </div>
@@ -333,6 +354,73 @@
                 </div>
             </div>
 
+            <!-- SLIDE 4: GALERIA DE VÍDEO (Destaques) -->
+            <div class="slide p-12 flex flex-col justify-center" id="slide-4">
+                <div class="bg-slate-900/80 rounded-[2.5rem] h-full shadow-2xl border border-white/10 overflow-hidden flex flex-col relative">
+                    <div class="absolute top-6 left-6 z-20 bg-sky-600/90 text-white font-bold px-6 py-3 rounded-full text-xl shadow-lg border border-sky-400/30 flex items-center gap-2">
+                        <span>🎥</span> Nossos Momentos
+                    </div>
+                    <video class="absolute inset-0 w-full h-full object-cover z-0 opacity-80" autoplay muted loop playsinline>
+                        <source src="videos/hero-video720p.mp4" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+                    <div class="absolute bottom-10 left-10 z-20">
+                        <h3 class="text-5xl font-black text-white text-shadow-hard uppercase">Venha Viver Essa Experiência</h3>
+                        <p class="text-2xl text-sky-300 mt-2 text-shadow-hard">Praia de água doce, lazer completo e contato com a natureza.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: GALERIA DE VÍDEO (Piscina) -->
+            <div class="slide p-12 flex flex-col justify-center" id="slide-5">
+                <div class="bg-slate-900/80 rounded-[2.5rem] h-full shadow-2xl border border-white/10 overflow-hidden flex flex-col relative">
+                    <div class="absolute top-6 left-6 z-20 bg-emerald-600/90 text-white font-bold px-6 py-3 rounded-full text-xl shadow-lg border border-emerald-400/30 flex items-center gap-2">
+                        <span>🏊</span> Lazer & Diversão
+                    </div>
+                    <video class="absolute inset-0 w-full h-full object-cover z-0 opacity-80" autoplay muted loop playsinline>
+                        <source src="videos/pool720p.mp4" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+                    <div class="absolute bottom-10 left-10 z-20">
+                        <h3 class="text-5xl font-black text-white text-shadow-hard uppercase">Piscina e Toboágua</h3>
+                        <p class="text-2xl text-emerald-300 mt-2 text-shadow-hard">A maior atração de lazer para toda a família.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: GALERIA DE VÍDEO (Chalés) -->
+            <div class="slide p-12 flex flex-col justify-center" id="slide-6">
+                <div class="bg-slate-900/80 rounded-[2.5rem] h-full shadow-2xl border border-white/10 overflow-hidden flex flex-col relative">
+                    <div class="absolute top-6 left-6 z-20 bg-orange-600/90 text-white font-bold px-6 py-3 rounded-full text-xl shadow-lg border border-orange-400/30 flex items-center gap-2">
+                        <span>🏡</span> Hospedagem Premium
+                    </div>
+                    <video class="absolute inset-0 w-full h-full object-cover z-0 opacity-80" autoplay muted loop playsinline>
+                        <source src="videos/aconchego720p.mp4" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+                    <div class="absolute bottom-10 left-10 z-20">
+                        <h3 class="text-5xl font-black text-white text-shadow-hard uppercase">Conforto dos Nossos Chalés</h3>
+                        <p class="text-2xl text-orange-300 mt-2 text-shadow-hard">Aconchego com ar-condicionado, frigobar e área privativa verde.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- BARRA DE NOTÍCIAS (NEWS TICKER) NO RODAPÉ -->
+    <div class="absolute bottom-0 left-0 w-full bg-slate-950/95 border-t border-white/10 h-14 z-40 flex items-center overflow-hidden">
+        <div class="bg-sky-600 px-6 h-full flex items-center font-black text-base tracking-wider uppercase whitespace-nowrap shrink-0 text-white shadow-lg border-r border-sky-400/30">
+            📢 NOTÍCIAS & ESPORTES (AO VIVO)
+        </div>
+        <div class="relative w-full overflow-hidden h-full flex items-center">
+            <div id="ticker-content" class="absolute whitespace-nowrap flex items-center gap-16 text-xl text-slate-200 uppercase font-semibold will-change-transform animate-ticker">
+                <span>Bem-vindos ao Balneário Rio Preto! Aproveitem nosso dia de sol!</span>
+                <span class="text-sky-400 font-bold mx-8">•</span>
+                <span>Wi-Fi gratuito disponível: conecte-se pelo QR Code ao lado!</span>
+                <span class="text-sky-400 font-bold mx-8">•</span>
+                <span>Conheça nossos confortáveis chalés privativos! Diárias a partir de R$ 280!</span>
+            </div>
         </div>
     </div>
 
@@ -393,8 +481,8 @@
                 const novoDocumento = parser.parseFromString(htmlTexto, 'text/html');
                 
                 // Atualiza o conteúdo interno de CADA slide individualmente
-                // Isso garante que se o slide 2 estiver na tela, ele não vai piscar nem sumir.
-                for (let i = 1; i <= 3; i++) {
+                // Isso garante que se o slide estiver na tela, ele não vai piscar nem sumir.
+                for (let i = 1; i <= slides.length; i++) {
                     const slideAtual = document.getElementById(`slide-${i}`);
                     const slideNovo = novoDocumento.getElementById(`slide-${i}`);
                     
@@ -415,6 +503,86 @@
 
         // Busca novidades no servidor a cada 5 Minutos (300.000 ms)
         setInterval(atualizarDadosSilenciosamente, 300000);
+
+        // --- 5. LÓGICA DE CLIMA E NOTÍCIAS REAIS ---
+        async function carregarClima() {
+            try {
+                // Coordenadas aproximadas de Candeias do Jamari, RO
+                const lat = -8.7850;
+                const lon = -63.7000;
+                const resposta = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+                const dados = await resposta.json();
+                
+                if (dados && dados.current) {
+                    const temp = Math.round(dados.current.temperature_2m);
+                    const code = dados.current.weather_code;
+                    
+                    // Mapeia códigos de clima do Open-Meteo
+                    let desc = "Limpo";
+                    let icon = "☀️";
+                    
+                    if (code === 0) { desc = "Céu Limpo"; icon = "☀️"; }
+                    else if ([1, 2, 3].includes(code)) { desc = "Parcialmente Nublado"; icon = "⛅"; }
+                    else if ([45, 48].includes(code)) { desc = "Nevoeiro"; icon = "🌫️"; }
+                    else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) { desc = "Chuva"; icon = "🌧️"; }
+                    else if ([95, 96, 99].includes(code)) { desc = "Tempestade"; icon = "⛈️"; }
+                    
+                    const elTemp = document.getElementById('clima-temp');
+                    const elDesc = document.getElementById('clima-desc');
+                    if (elTemp) elTemp.innerText = `${icon} ${temp}°C`;
+                    if (elDesc) elDesc.innerText = desc;
+                }
+            } catch (erro) {
+                console.error("Erro ao carregar clima:", erro);
+                const elDesc = document.getElementById('clima-desc');
+                if (elDesc) elDesc.innerText = "Candeias do Jamari";
+            }
+        }
+
+        async function carregarNoticias() {
+            try {
+                // Busca notícias regionais (G1 Rondônia) e esportivas (GE) via rss2json
+                const urlG1 = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fg1.globo.com%2Frss%2Fg1%2Fro%2Frondonia%2F";
+                const urlGE = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fge.globo.com%2Frss%2Fge%2F";
+                
+                const [respG1, respGE] = await Promise.all([
+                    fetch(urlG1).then(r => r.json()).catch(() => null),
+                    fetch(urlGE).then(r => r.json()).catch(() => null)
+                ]);
+                
+                let tickerTexts = [
+                    "☀️ Bem-vindos ao Balneário Rio Preto! Aproveitem nosso dia de sol!",
+                    "📱 Wi-Fi gratuito disponível: conecte-se pelo QR Code ao lado!",
+                    "🏠 Conheça nossos confortáveis chalés privativos! Diárias a partir de R$ 280!"
+                ];
+                
+                if (respG1 && respG1.status === "ok") {
+                    const g1Items = respG1.items.slice(0, 4).map(item => `📰 RO: ${item.title}`);
+                    tickerTexts.push(...g1Items);
+                }
+                
+                if (respGE && respGE.status === "ok") {
+                    const geItems = respGE.items.slice(0, 4).map(item => `⚽ ESPORTE: ${item.title}`);
+                    tickerTexts.push(...geItems);
+                }
+                
+                const tickerContent = document.getElementById('ticker-content');
+                if (tickerContent) {
+                    // Junta todos os textos com separadores bonitos
+                    tickerContent.innerHTML = tickerTexts.map(t => `<span>${t}</span>`).join('<span class="text-sky-400 font-bold mx-8">•</span>');
+                }
+            } catch (erro) {
+                console.error("Erro ao carregar notícias:", erro);
+            }
+        }
+
+        // Inicializa clima e notícias
+        carregarClima();
+        carregarNoticias();
+        
+        // Atualiza clima a cada 30 minutos, notícias a cada 10 minutos
+        setInterval(carregarClima, 1800000);
+        setInterval(carregarNoticias, 600000);
 
     </script>
 </body>
