@@ -14,21 +14,23 @@
         body {
             font-family: 'Outfit', sans-serif;
             overflow: hidden; /* Trava a barra de rolagem para TV */
-            background-color: #000;
+            background-color: #f0f9ff;
         }
 
-        /* Efeito de vidro para os painéis (Glassmorphism) */
+        /* Efeito de vidro para os painéis (Glassmorphism - LIGHT) */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
 
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
         }
 
         /* Animações do Slideshow */
@@ -78,11 +80,11 @@
         }
     </style>
 </head>
-<body class="text-white h-screen w-screen relative">
+<body class="text-slate-800 h-screen w-screen relative">
 
     <!-- Imagem de fundo usando a foto de referência enviada -->
-    <img src="image_ff559d.jpg" alt="Fundo Balneário" class="absolute inset-0 w-full h-full object-cover z-0 opacity-60">
-    <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-slate-900/40 z-0"></div>
+    <img src="image_ff559d.jpg" alt="Fundo Balneário" class="absolute inset-0 w-full h-full object-cover z-0 opacity-75">
+    <div class="absolute inset-0 bg-gradient-to-br from-sky-400/35 via-amber-100/50 to-emerald-300/35 z-0"></div>
 
     <!-- TELA INICIAL PARA ATIVAR FULLSCREEN -->
     <div id="tela-inicial" class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700">
@@ -101,26 +103,26 @@
         <!-- ========================================== -->
         <!-- COLUNA ESQUERDA (FIXA) - 35% DA TELA       -->
         <!-- ========================================== -->
-        <div class="w-[35%] glass-panel shadow-2xl flex flex-col justify-between p-4 border-r border-white/10 bg-slate-950/45">
+        <div class="w-[35%] glass-panel shadow-2xl flex flex-col justify-between p-4 border-r border-slate-200/50 bg-white/75">
             
             <!-- Logo e Identidade -->
-            <div class="text-center bg-white/5 p-3 rounded-3xl border border-white/10 flex flex-col items-center shadow-md">
-                <img src="images/logo_opt.webp" alt="Balneário Rio Preto" class="h-20 object-contain drop-shadow-lg">
-                <h2 class="text-xs font-black text-yellow-400 tracking-widest uppercase mt-2">Verão 2025</h2>
+            <div class="text-center bg-white p-3 rounded-3xl border border-slate-100 flex flex-col items-center shadow-sm">
+                <img src="images/logo_opt.webp" alt="Balneário Rio Preto" class="h-20 object-contain drop-shadow-sm">
+                <h2 class="text-xs font-black text-amber-500 tracking-widest uppercase mt-2">Verão 2025</h2>
             </div>
 
-            <!-- Relógio e Clima (Super Destacado) -->
-            <div class="text-center bg-slate-950/70 py-3 px-5 rounded-3xl border border-white/10 shadow-lg shadow-black/40 shrink-0">
-                <span id="relogio" class="text-5xl font-black text-yellow-400 tabular-nums tracking-tighter drop-shadow-md">00:00</span>
-                <div id="clima-container" class="flex items-center justify-center gap-2 mt-1 text-base text-sky-300 font-extrabold">
-                    <span id="clima-temp">--°C</span>
-                    <span class="text-white/20">|</span>
-                    <span id="clima-desc">Carregando...</span>
+            <!-- Relógio e Clima (Super Destacado - Light) -->
+            <div class="text-center bg-white py-3 px-5 rounded-3xl border border-slate-200/60 shadow-md shrink-0">
+                <span id="relogio" class="text-5xl font-black text-sky-700 tabular-nums tracking-tighter">00:00</span>
+                <div id="clima-container" class="flex items-center justify-center gap-2 mt-1 text-base text-slate-700 font-extrabold">
+                    <span id="clima-temp" class="text-amber-600">--°C</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="clima-desc" class="text-slate-500">Carregando...</span>
                 </div>
             </div>
 
             <!-- Player de Vídeo/Imagem Fixo (Ao Vivo) -->
-            <div class="relative w-full aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-lg bg-black/60 my-2" id="left-media-player">
+            <div class="relative w-full aspect-video rounded-3xl overflow-hidden border border-slate-200 shadow-md bg-slate-100 my-2" id="left-media-player">
                 <video id="left-video" class="absolute inset-0 w-full h-full object-cover z-0" autoplay muted playsinline></video>
                 <img id="left-image" class="absolute inset-0 w-full h-full object-cover z-0 hidden" src="" alt="Resort">
                 <div class="absolute top-2.5 left-2.5 z-10 bg-sky-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-sky-400/30 flex items-center gap-1 shadow-md uppercase tracking-wider">
@@ -128,30 +130,30 @@
                 </div>
             </div>
 
-            <!-- Redes Sociais e Contato Fixos (Lado a Lado) -->
+            <!-- Redes Sociais e Contato Fixos (Lado a Lado - Light) -->
             <div class="grid grid-cols-2 gap-2 my-1">
-                <div class="flex items-center gap-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+                <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200/60 shadow-sm">
                     <div class="bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                     </div>
                     <div class="min-w-0">
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Instagram</p>
-                        <p class="text-xs font-bold text-white truncate">@balnearioriopreto</p>
+                        <p class="text-xs font-bold text-slate-700 truncate">@balnearioriopreto</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 bg-white/5 p-2 rounded-2xl border border-white/10">
+                <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200/60 shadow-sm">
                     <div class="bg-sky-500 w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
                     </div>
                     <div class="min-w-0">
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Site</p>
-                        <p class="text-xs font-bold text-white truncate text-ellipsis overflow-hidden">balnearioriopreto.com.br</p>
+                        <p class="text-xs font-bold text-slate-700 truncate text-ellipsis overflow-hidden">balnearioriopreto.com.br</p>
                     </div>
                 </div>
             </div>
 
             <!-- Placa de Wi-Fi Horizontal -->
-            <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-3 shadow-md border-2 border-orange-400 flex items-center justify-between gap-4 shrink-0">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-3 shadow-md border border-orange-400 flex items-center justify-between gap-4 shrink-0">
                 <div class="text-left">
                     <h3 class="text-xl font-black text-white leading-none shadow-sm">WI-FI</h3>
                     <h4 class="text-xs font-bold text-orange-100 uppercase tracking-widest mt-0.5">Gratuito</h4>
@@ -171,9 +173,9 @@
             
             <!-- SLIDE 1: PORÇÕES E BEBIDAS -->
             <div class="slide active p-12 flex flex-col justify-center" id="slide-1">
-                <div class="glass-card p-12 rounded-[2.5rem] h-full shadow-2xl flex flex-col">
-                    <h2 class="text-5xl font-black text-white mb-10 text-center uppercase tracking-widest border-b border-white/10 pb-6">
-                        <span class="text-sky-400">Cardápio</span> Principal
+                <div class="glass-card p-12 rounded-[2.5rem] h-full shadow-2xl flex flex-col border-2 border-sky-100/60">
+                    <h2 class="text-5xl font-black text-slate-800 mb-10 text-center uppercase tracking-widest border-b border-slate-200/80 pb-6">
+                        <span class="text-sky-600">Cardápio</span> Principal
                     </h2>
                     
                     <div class="grid grid-cols-2 gap-16 flex-grow">
@@ -181,24 +183,24 @@
                         <div>
                             <div class="flex items-center gap-4 mb-8">
                                 <span class="text-4xl">🍟</span>
-                                <h3 class="text-4xl font-bold text-orange-400">Porções</h3>
+                                <h3 class="text-4xl font-bold text-orange-600">Porções</h3>
                             </div>
                             <ul class="space-y-6">
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Batata Frita</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 38<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Batata Frita</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 38<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Frango a Passarinho</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 48<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Frango a Passarinho</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 48<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Calabresa</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 48<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Calabresa</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 48<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Filé de Carne a Palito</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 69<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Filé de Carne a Palito</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 69<span class="text-2xl font-bold">,00</span></span>
                                 </li>
                             </ul>
                         </div>
@@ -207,28 +209,28 @@
                         <div>
                             <div class="flex items-center gap-4 mb-8">
                                 <span class="text-4xl">🧊</span>
-                                <h3 class="text-4xl font-bold text-sky-400">Bebidas</h3>
+                                <h3 class="text-4xl font-bold text-sky-600">Bebidas</h3>
                             </div>
                             <ul class="space-y-6">
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Heineken Longneck</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 12<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Heineken Longneck</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 12<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Cerveja Lata</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 7<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Cerveja Lata</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 7<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Coca Zero Lata</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 7<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Coca Zero Lata</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 7<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Refrigerante Lata</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 6<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Refrigerante Lata</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 6<span class="text-2xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-center border-b border-white/10 pb-4">
-                                    <h4 class="text-3xl font-medium text-slate-100">Dindin</h4>
-                                    <span class="text-4xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 6<span class="text-2xl font-bold">,00</span></span>
+                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                                    <h4 class="text-3xl font-bold text-slate-700">Dindin</h4>
+                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 6<span class="text-2xl font-bold">,00</span></span>
                                 </li>
                             </ul>
                         </div>
@@ -238,9 +240,9 @@
 
             <!-- SLIDE 2: PRATOS ESPECIAIS E PICOLÉS -->
             <div class="slide p-12 flex flex-col justify-center" id="slide-2">
-                <div class="glass-card p-12 rounded-[2.5rem] h-full shadow-2xl border-emerald-500/30 border-2">
-                    <h2 class="text-5xl font-black text-white mb-10 text-center uppercase tracking-widest border-b border-white/10 pb-6">
-                        <span class="text-emerald-400">Refeições &</span> Sobremesas
+                <div class="glass-card p-12 rounded-[2.5rem] h-full shadow-2xl border-emerald-100/60 border-2">
+                    <h2 class="text-5xl font-black text-slate-800 mb-10 text-center uppercase tracking-widest border-b border-slate-200/80 pb-6">
+                        <span class="text-emerald-600">Refeições &</span> Sobremesas
                     </h2>
                     
                     <div class="grid grid-cols-2 gap-16">
@@ -248,36 +250,36 @@
                         <div>
                             <div class="flex items-center gap-4 mb-6">
                                 <span class="text-4xl">🍽️</span>
-                                <h3 class="text-4xl font-bold text-emerald-400">Refeições Completas</h3>
+                                <h3 class="text-4xl font-bold text-emerald-600">Refeições Completas</h3>
                             </div>
                             <ul class="space-y-4">
-                                <li class="flex justify-between items-start border-b border-white/10 pb-3">
+                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
                                     <div>
-                                        <h4 class="text-2xl font-bold text-slate-100">Tambaqui Completo</h4>
-                                        <p class="text-base text-slate-300 mt-0.5">Farofa, Salada, Baião e Vinagrete</p>
+                                        <h4 class="text-2xl font-bold text-slate-800">Tambaqui Completo</h4>
+                                        <p class="text-base text-slate-500 mt-0.5">Farofa, Salada, Baião e Vinagrete</p>
                                     </div>
-                                    <span class="text-3xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 157<span class="text-xl font-bold">,00</span></span>
+                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 157<span class="text-xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-start border-b border-white/10 pb-3">
+                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
                                     <div>
-                                        <h4 class="text-2xl font-bold text-slate-100">Picanha Completa</h4>
-                                        <p class="text-base text-slate-300 mt-0.5">Macaxeira, Baião e Salada</p>
+                                        <h4 class="text-2xl font-bold text-slate-800">Picanha Completa</h4>
+                                        <p class="text-base text-slate-500 mt-0.5">Macaxeira, Baião e Salada</p>
                                     </div>
-                                    <span class="text-3xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 165<span class="text-xl font-bold">,00</span></span>
+                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 165<span class="text-xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-start border-b border-white/10 pb-3">
+                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
                                     <div>
-                                        <h4 class="text-2xl font-bold text-slate-100">Contra Filé Completo</h4>
-                                        <p class="text-base text-slate-300 mt-0.5">Macaxeira, Baião e Salada</p>
+                                        <h4 class="text-2xl font-bold text-slate-800">Contra Filé Completo</h4>
+                                        <p class="text-base text-slate-500 mt-0.5">Macaxeira, Baião e Salada</p>
                                     </div>
-                                    <span class="text-3xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 139<span class="text-xl font-bold">,00</span></span>
+                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 139<span class="text-xl font-bold">,00</span></span>
                                 </li>
-                                <li class="flex justify-between items-start border-b border-white/10 pb-3">
+                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
                                     <div>
-                                        <h4 class="text-2xl font-bold text-slate-100">Dourado Completo</h4>
-                                        <p class="text-base text-slate-300 mt-0.5">Farofa, Salada, Baião e Vinagrete</p>
+                                        <h4 class="text-2xl font-bold text-slate-800">Dourado Completo</h4>
+                                        <p class="text-base text-slate-500 mt-0.5">Farofa, Salada, Baião e Vinagrete</p>
                                     </div>
-                                    <span class="text-3xl font-black text-yellow-400 ml-4 whitespace-nowrap">R$ 185<span class="text-xl font-bold">,00</span></span>
+                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 185<span class="text-xl font-bold">,00</span></span>
                                 </li>
                             </ul>
                         </div>
@@ -286,26 +288,26 @@
                         <div>
                             <div class="flex items-center gap-4 mb-6">
                                 <span class="text-4xl">🍦</span>
-                                <h3 class="text-4xl font-bold text-pink-400">Dindin / Geladinho</h3>
+                                <h3 class="text-4xl font-bold text-pink-600">Dindin / Geladinho</h3>
                             </div>
-                            <p class="text-2xl text-slate-300 mb-6">Preço Único: <span class="text-3xl font-black text-pink-400">R$ 6<span class="text-xl font-bold">,00</span></span></p>
-                            <h4 class="text-xl font-bold text-slate-400 mb-4 uppercase tracking-wider">Sabores Disponíveis:</h4>
+                            <p class="text-2xl text-slate-700 mb-6">Preço Único: <span class="text-3xl font-black text-pink-600">R$ 6<span class="text-xl font-bold">,00</span></span></p>
+                            <h4 class="text-xl font-bold text-slate-500 mb-4 uppercase tracking-wider">Sabores Disponíveis:</h4>
                             <!-- Usando colunas menores para caber a lista longa da foto -->
                             <div class="grid grid-cols-2 gap-x-8 gap-y-3">
-                                <div class="text-xl font-medium text-slate-200">Tapioca</div>
-                                <div class="text-xl font-medium text-slate-200">Céu Azul</div>
-                                <div class="text-xl font-medium text-slate-200">Leite Cond.</div>
-                                <div class="text-xl font-medium text-slate-200">Flocos</div>
-                                <div class="text-xl font-medium text-slate-200">Abacaxi</div>
-                                <div class="text-xl font-medium text-slate-200">Abacate</div>
-                                <div class="text-xl font-medium text-slate-200">Uva</div>
-                                <div class="text-xl font-medium text-slate-200">Chocolate</div>
-                                <div class="text-xl font-medium text-slate-200">Milho</div>
-                                <div class="text-xl font-medium text-slate-200">Coco</div>
-                                <div class="text-xl font-medium text-slate-200">Cupuaçu</div>
-                                <div class="text-xl font-medium text-slate-200">Banana</div>
-                                <div class="text-xl font-medium text-slate-200">Açaí</div>
-                                <div class="text-xl font-medium text-slate-200">Amendoim</div>
+                                <div class="text-xl font-bold text-slate-600">Tapioca</div>
+                                <div class="text-xl font-bold text-slate-600">Céu Azul</div>
+                                <div class="text-xl font-bold text-slate-600">Leite Cond.</div>
+                                <div class="text-xl font-bold text-slate-600">Flocos</div>
+                                <div class="text-xl font-bold text-slate-600">Abacaxi</div>
+                                <div class="text-xl font-bold text-slate-600">Abacate</div>
+                                <div class="text-xl font-bold text-slate-600">Uva</div>
+                                <div class="text-xl font-bold text-slate-600">Chocolate</div>
+                                <div class="text-xl font-bold text-slate-600">Milho</div>
+                                <div class="text-xl font-bold text-slate-600">Coco</div>
+                                <div class="text-xl font-bold text-slate-600">Cupuaçu</div>
+                                <div class="text-xl font-bold text-slate-600">Banana</div>
+                                <div class="text-xl font-bold text-slate-600">Açaí</div>
+                                <div class="text-xl font-bold text-slate-600">Amendoim</div>
                             </div>
                         </div>
                     </div>
@@ -314,47 +316,47 @@
 
             <!-- SLIDE 3: CHALÉS E INFORMAÇÕES -->
             <div class="slide p-12 flex flex-col justify-center" id="slide-3">
-                <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-12 rounded-[2.5rem] h-full shadow-2xl border border-white/10 flex flex-col items-center text-center justify-center relative overflow-hidden">
+                <div class="bg-gradient-to-br from-white/95 to-sky-50/95 p-12 rounded-[2.5rem] h-full shadow-2xl border-2 border-sky-100 flex flex-col items-center text-center justify-center relative overflow-hidden">
                     
                     <!-- Decoração de fundo -->
-                    <svg class="absolute top-0 right-0 text-white/5 w-96 h-96 -mt-10 -mr-10" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm16 16V5H5v14h14zm-8-2h6v-2h-6v2zm-4-4h10v-2H7v2zm0-4h10V7H7v2z"/></svg>
+                    <svg class="absolute top-0 right-0 text-slate-200/20 w-96 h-96 -mt-10 -mr-10" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm16 16V5H5v14h14zm-8-2h6v-2h-6v2zm-4-4h10v-2H7v2zm0-4h10V7H7v2z"/></svg>
 
-                    <h2 class="text-6xl font-black text-white mb-6 uppercase tracking-widest z-10">
+                    <h2 class="text-6xl font-black text-slate-800 mb-6 uppercase tracking-widest z-10">
                         Hospede-se Conosco
                     </h2>
-                    <p class="text-3xl text-sky-300 mb-12 z-10">Conheça nossos confortáveis chalés!</p>
+                    <p class="text-3xl text-sky-700 font-extrabold mb-12 z-10">Conheça nossos confortáveis chalés!</p>
                     
                     <div class="grid grid-cols-2 gap-8 w-full max-w-5xl z-10">
-                        <div class="bg-white/10 p-8 rounded-3xl border border-white/10 backdrop-blur-sm flex flex-col justify-between">
+                        <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
                             <div>
-                                <h3 class="text-4xl font-bold text-white mb-2">Chalé Casal</h3>
-                                <p class="text-xl text-slate-300 mb-6">Ar-condicionado, frigobar e área externa privativa.</p>
+                                <h3 class="text-4xl font-black text-slate-800 mb-2">Chalé Casal</h3>
+                                <p class="text-xl text-slate-600 mb-6">Ar-condicionado, frigobar e área externa privativa.</p>
                             </div>
-                            <span class="text-5xl font-black text-yellow-400">R$ 280<span class="text-3xl font-bold">,00</span><span class="text-xl font-normal text-slate-400">/diária</span></span>
+                            <span class="text-5xl font-black text-amber-600">R$ 280<span class="text-3xl font-bold">,00</span><span class="text-xl font-normal text-slate-400">/diária</span></span>
                         </div>
-                        <div class="bg-white/10 p-8 rounded-3xl border border-white/10 backdrop-blur-sm flex flex-col justify-between">
+                        <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
                             <div>
-                                <h3 class="text-4xl font-bold text-white mb-2">Valores Adicionais</h3>
+                                <h3 class="text-4xl font-black text-slate-800 mb-2">Valores Adicionais</h3>
                                 <div class="text-left space-y-2 mb-6">
-                                    <div class="flex justify-between text-slate-300 text-lg">
+                                    <div class="flex justify-between text-slate-600 text-lg">
                                         <span>Adulto adicional:</span>
-                                        <span class="font-bold text-white">+R$ 40,00/diária</span>
+                                        <span class="font-extrabold text-slate-800">+R$ 40,00/diária</span>
                                     </div>
-                                    <div class="flex justify-between text-slate-300 text-lg">
+                                    <div class="flex justify-between text-slate-600 text-lg">
                                         <span>Criança adicional:</span>
-                                        <span class="font-bold text-white">+R$ 20,00/diária</span>
+                                        <span class="font-extrabold text-slate-800">+R$ 20,00/diária</span>
                                     </div>
-                                    <div class="flex justify-between text-slate-300 text-lg">
+                                    <div class="flex justify-between text-slate-600 text-lg">
                                         <span>Desconto FDS (Sex-Dom):</span>
-                                        <span class="font-bold text-emerald-400">-R$ 40,00 total</span>
+                                        <span class="font-extrabold text-emerald-600">-R$ 40,00 total</span>
                                     </div>
                                 </div>
                             </div>
-                            <span class="text-sm text-slate-400">Consulte a recepção para reservas</span>
+                            <span class="text-sm text-slate-500 font-medium">Consulte a recepção para reservas</span>
                         </div>
                     </div>
                     
-                    <p class="text-2xl text-slate-400 mt-12 z-10 bg-slate-950/50 px-8 py-4 rounded-full border border-white/5">
+                    <p class="text-2xl text-slate-600 mt-12 z-10 bg-white/95 px-8 py-4 rounded-full border border-slate-200/80 shadow-sm">
                         Faça sua reserva online pelo nosso site ou fale com a recepção!
                     </p>
                 </div>
@@ -363,17 +365,17 @@
     </div>
 
     <!-- BARRA DE NOTÍCIAS (NEWS TICKER) NO RODAPÉ -->
-    <div class="absolute bottom-0 left-0 w-full bg-slate-950/95 border-t border-white/10 h-14 z-40 flex items-center overflow-hidden">
+    <div class="absolute bottom-0 left-0 w-full bg-white/95 border-t border-slate-200 h-14 z-40 flex items-center overflow-hidden shadow-lg">
         <div class="bg-sky-600 px-6 h-full flex items-center font-black text-base tracking-wider uppercase whitespace-nowrap shrink-0 text-white shadow-lg border-r border-sky-400/30">
             📢 NOTÍCIAS & ESPORTES (AO VIVO)
         </div>
         <div class="relative w-full overflow-hidden h-full flex items-center">
-            <div id="ticker-content" class="absolute whitespace-nowrap flex items-center gap-16 text-xl text-slate-200 uppercase font-semibold will-change-transform animate-ticker">
+            <div id="ticker-content" class="absolute whitespace-nowrap flex items-center gap-16 text-xl text-slate-700 uppercase font-bold will-change-transform animate-ticker">
                 <span>Bem-vindos ao Balneário Rio Preto! Aproveitem nosso dia de sol!</span>
-                <span class="text-sky-400 font-bold mx-8">•</span>
+                <span class="text-sky-600 font-bold mx-8">•</span>
                 <span>Wi-Fi gratuito disponível: conecte-se pelo QR Code ao lado!</span>
-                <span class="text-sky-400 font-bold mx-8">•</span>
-                <span>Conheça nossos confortáveis chalés privativos! Diárias a partir de R$ 280!</span>
+                <span class="text-sky-600 font-bold mx-8">•</span>
+                <span>Conheça nossos confortáveis chalés privativos! Diárias a partir de R$ 280,00!</span>
             </div>
         </div>
     </div>
@@ -536,7 +538,7 @@
                 
                 const tickerContent = document.getElementById('ticker-content');
                 if (tickerContent) {
-                    tickerContent.innerHTML = tickerTexts.map(t => `<span>${t}</span>`).join('<span class="text-sky-400 font-bold mx-8">•</span>');
+                    tickerContent.innerHTML = tickerTexts.map(t => `<span>${t}</span>`).join('<span class="text-sky-600 font-bold mx-8">•</span>');
                 }
             } catch (erro) {
                 console.error("Erro ao carregar notícias:", erro);
