@@ -82,13 +82,12 @@
 </head>
 <body class="text-slate-800 h-screen w-screen relative">
 
-    <!-- Imagem de fundo usando a foto de referência enviada -->
-    <img src="image_ff559d.jpg" alt="Fundo Balneário" class="absolute inset-0 w-full h-full object-cover z-0 opacity-75">
-    <div class="absolute inset-0 bg-gradient-to-br from-sky-400/35 via-amber-100/50 to-emerald-300/35 z-0"></div>
+    <!-- Fundo com gradiente tropical quente e alegre (sem a imagem de fundo para limpar a leitura) -->
+    <div class="absolute inset-0 bg-gradient-to-br from-amber-200 via-orange-100 to-sky-200 z-0"></div>
 
     <!-- TELA INICIAL PARA ATIVAR FULLSCREEN -->
     <div id="tela-inicial" class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-700">
-        <div class="text-center p-12 bg-slate-900 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-700 max-w-2xl">
+        <div class="text-center p-12 bg-slate-900 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-slate-700 max-w-2xl text-white">
             <h1 class="text-5xl font-black text-sky-400 mb-6">Painel Digital</h1>
             <p class="text-2xl text-slate-300 mb-10">O sistema de TV está pronto para iniciar.</p>
             <button class="bg-gradient-to-r from-sky-600 to-sky-400 hover:from-sky-500 hover:to-sky-300 text-white font-bold py-6 px-12 rounded-full text-3xl shadow-[0_0_40px_rgba(14,165,233,0.4)] transition-all transform hover:scale-105">
@@ -103,7 +102,7 @@
         <!-- ========================================== -->
         <!-- COLUNA ESQUERDA (FIXA) - 35% DA TELA       -->
         <!-- ========================================== -->
-        <div class="w-[35%] glass-panel shadow-2xl flex flex-col justify-between p-4 border-r border-slate-200/50 bg-white/75">
+        <div class="w-[35%] glass-panel shadow-2xl flex flex-col justify-between p-4 border-r border-slate-200/50 bg-white/70">
             
             <!-- Logo e Identidade -->
             <div class="text-center bg-white p-3 rounded-3xl border border-slate-100 flex flex-col items-center shadow-sm">
@@ -111,13 +110,18 @@
                 <h2 class="text-xs font-black text-amber-500 tracking-widest uppercase mt-2">Verão 2025</h2>
             </div>
 
-            <!-- Relógio e Clima (Super Destacado - Light) -->
-            <div class="text-center bg-white py-3 px-5 rounded-3xl border border-slate-200/60 shadow-md shrink-0">
-                <span id="relogio" class="text-5xl font-black text-sky-700 tabular-nums tracking-tighter">00:00</span>
-                <div id="clima-container" class="flex items-center justify-center gap-2 mt-1 text-base text-slate-700 font-extrabold">
-                    <span id="clima-temp" class="text-amber-600">--°C</span>
-                    <span class="text-slate-300">|</span>
-                    <span id="clima-desc" class="text-slate-500">Carregando...</span>
+            <!-- Relógio e Clima (Super Destacado - Grid de Alta Visibilidade) -->
+            <div class="grid grid-cols-2 gap-3 bg-white p-3 rounded-3xl border border-slate-200/60 shadow-md shrink-0 items-center">
+                <div class="text-center border-r border-slate-200 pr-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Horário</p>
+                    <span id="relogio" class="text-4xl font-black text-sky-700 tabular-nums tracking-tighter">00:00</span>
+                </div>
+                <div class="text-center pl-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Temperatura</p>
+                    <div class="flex items-center justify-center gap-1">
+                        <span id="clima-temp" class="text-3xl font-black text-orange-600">--°C</span>
+                    </div>
+                    <span id="clima-desc" class="text-[10px] text-slate-500 font-extrabold block truncate">Carregando...</span>
                 </div>
             </div>
 
@@ -138,7 +142,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Instagram</p>
-                        <p class="text-xs font-bold text-slate-700 truncate">@balnearioriopreto</p>
+                        <p class="text-xs font-bold text-slate-700 truncate">@balneario_riopreto</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200/60 shadow-sm">
@@ -152,15 +156,24 @@
                 </div>
             </div>
 
-            <!-- Placa de Wi-Fi Horizontal -->
-            <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-3 shadow-md border border-orange-400 flex items-center justify-between gap-4 shrink-0">
-                <div class="text-left">
-                    <h3 class="text-xl font-black text-white leading-none shadow-sm">WI-FI</h3>
-                    <h4 class="text-xs font-bold text-orange-100 uppercase tracking-widest mt-0.5">Gratuito</h4>
-                    <p class="text-[9px] text-white/90 font-medium mt-1 bg-black/20 px-2 py-0.5 rounded-full inline-block">Aponte a câmera 📱</p>
+            <!-- QR Codes Duplos e Grandes (Site e Wi-Fi) -->
+            <div class="grid grid-cols-2 gap-3 mt-1 mb-1 shrink-0">
+                <!-- QR Code 1: Site -->
+                <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-3xl p-3 border border-sky-400/25 text-center shadow-md flex flex-col justify-between items-center">
+                    <h3 class="text-sm font-black text-white leading-none uppercase tracking-wider mb-2">Nosso Site</h3>
+                    <div class="bg-white p-2 rounded-2xl shadow-inner w-full aspect-square flex items-center justify-center">
+                        <img src="website_qrcode.png" alt="QR Code Website" class="w-full h-full object-contain rounded-lg">
+                    </div>
+                    <p class="text-[9px] text-white/90 font-bold mt-2 bg-black/20 px-2 py-0.5 rounded-full whitespace-nowrap">Acesse o Site 🌐</p>
                 </div>
-                <div class="bg-white p-1 rounded-xl shadow-inner max-w-[70px] w-full shrink-0">
-                    <img src="wifi_qrcode.png" alt="QR Code Wi-Fi" class="w-full aspect-square object-cover rounded-md">
+
+                <!-- QR Code 2: Wi-Fi -->
+                <div class="bg-gradient-to-br from-orange-500 to-amber-600 rounded-3xl p-3 border border-orange-400/25 text-center shadow-md flex flex-col justify-between items-center">
+                    <h3 class="text-sm font-black text-white leading-none uppercase tracking-wider mb-2">Wi-Fi Grátis</h3>
+                    <div class="bg-white p-2 rounded-2xl shadow-inner w-full aspect-square flex items-center justify-center">
+                        <img src="wifi_qrcode.png" alt="QR Code Wi-Fi" class="w-full h-full object-contain rounded-lg">
+                    </div>
+                    <p class="text-[9px] text-white/90 font-bold mt-2 bg-black/20 px-2 py-0.5 rounded-full whitespace-nowrap">Conectar Wi-Fi 📶</p>
                 </div>
             </div>
 
@@ -522,17 +535,38 @@
                 
                 let tickerTexts = [
                     "☀️ Bem-vindos ao Balneário Rio Preto! Aproveitem nosso dia de sol!",
-                    "📱 Wi-Fi gratuito disponível: conecte-se pelo QR Code ao lado!",
+                    "📱 Conecte-se ao nosso Wi-Fi gratuito com o QR Code ao lado!",
                     "🏠 Conheça nossos confortáveis chalés privativos! Diárias a partir de R$ 280,00!"
                 ];
                 
+                // Filtro para barrar notícias pesadas, violentas ou tristes
+                const palavrasProibidas = [
+                    "assassin", "morte", "morre", "preso", "prende", "roubo", "furt", 
+                    "crime", "políc", "sequestr", "invas", "acidente", "homicid", 
+                    "trafic", "tiro", "balead", "corpo", "cadáve", "tragéd", "presíd", 
+                    "violên", "assalt", "armad", "droga", "quadrilha", "suspeit", "vítima",
+                    "roubado", "assassinado", "morreu", "fuga", "fugiu", "estupr", "pedof",
+                    "espanc", "agred", "agress", "balead", "mort"
+                ];
+
+                const eSeguro = (titulo) => {
+                    const tLower = titulo.toLowerCase();
+                    return !palavrasProibidas.some(palavra => tLower.includes(palavra));
+                };
+                
                 if (respG1 && respG1.status === "ok") {
-                    const g1Items = respG1.items.slice(0, 4).map(item => `📰 RO: ${item.title}`);
+                    const g1Items = respG1.items
+                        .filter(item => eSeguro(item.title))
+                        .slice(0, 4)
+                        .map(item => `📰 RO: ${item.title}`);
                     tickerTexts.push(...g1Items);
                 }
                 
                 if (respGE && respGE.status === "ok") {
-                    const geItems = respGE.items.slice(0, 4).map(item => `⚽ ESPORTE: ${item.title}`);
+                    const geItems = respGE.items
+                        .filter(item => eSeguro(item.title))
+                        .slice(0, 4)
+                        .map(item => `⚽ ESPORTE: ${item.title}`);
                     tickerTexts.push(...geItems);
                 }
                 
