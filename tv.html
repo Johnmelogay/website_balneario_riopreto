@@ -6,6 +6,7 @@
     <title>Painel Digital TV - Balneário Rio Preto</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
@@ -198,23 +199,8 @@
                                 <span class="text-4xl">🍟</span>
                                 <h3 class="text-4xl font-bold text-orange-600">Porções</h3>
                             </div>
-                            <ul class="space-y-6">
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Batata Frita</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 38<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Frango a Passarinho</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 48<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Calabresa</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 48<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Filé de Carne a Palito</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 69<span class="text-2xl font-bold">,00</span></span>
-                                </li>
+                            <ul id="lista-porcoes" class="space-y-6">
+                                <!-- Carregado dinamicamente do Supabase -->
                             </ul>
                         </div>
 
@@ -224,27 +210,8 @@
                                 <span class="text-4xl">🧊</span>
                                 <h3 class="text-4xl font-bold text-sky-600">Bebidas</h3>
                             </div>
-                            <ul class="space-y-6">
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Heineken Longneck</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 12<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Cerveja Lata</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 7<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Coca Zero Lata</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 7<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Refrigerante Lata</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 6<span class="text-2xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-center border-b border-slate-100 pb-4">
-                                    <h4 class="text-3xl font-bold text-slate-700">Dindin</h4>
-                                    <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 6<span class="text-2xl font-bold">,00</span></span>
-                                </li>
+                            <ul id="lista-bebidas" class="space-y-6">
+                                <!-- Carregado dinamicamente do Supabase -->
                             </ul>
                         </div>
                     </div>
@@ -265,35 +232,8 @@
                                 <span class="text-4xl">🍽️</span>
                                 <h3 class="text-4xl font-bold text-emerald-600">Refeições Completas</h3>
                             </div>
-                            <ul class="space-y-4">
-                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
-                                    <div>
-                                        <h4 class="text-2xl font-bold text-slate-800">Tambaqui Completo</h4>
-                                        <p class="text-base text-slate-500 mt-0.5">Farofa, Salada, Baião e Vinagrete</p>
-                                    </div>
-                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 157<span class="text-xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
-                                    <div>
-                                        <h4 class="text-2xl font-bold text-slate-800">Picanha Completa</h4>
-                                        <p class="text-base text-slate-500 mt-0.5">Macaxeira, Baião e Salada</p>
-                                    </div>
-                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 165<span class="text-xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
-                                    <div>
-                                        <h4 class="text-2xl font-bold text-slate-800">Contra Filé Completo</h4>
-                                        <p class="text-base text-slate-500 mt-0.5">Macaxeira, Baião e Salada</p>
-                                    </div>
-                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 139<span class="text-xl font-bold">,00</span></span>
-                                </li>
-                                <li class="flex justify-between items-start border-b border-slate-100 pb-3">
-                                    <div>
-                                        <h4 class="text-2xl font-bold text-slate-800">Dourado Completo</h4>
-                                        <p class="text-base text-slate-500 mt-0.5">Farofa, Salada, Baião e Vinagrete</p>
-                                    </div>
-                                    <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ 185<span class="text-xl font-bold">,00</span></span>
-                                </li>
+                            <ul id="lista-refeicoes" class="space-y-4">
+                                <!-- Carregado dinamicamente do Supabase -->
                             </ul>
                         </div>
 
@@ -303,7 +243,7 @@
                                 <span class="text-4xl">🍦</span>
                                 <h3 class="text-4xl font-bold text-pink-600">Dindin / Geladinho</h3>
                             </div>
-                            <p class="text-2xl text-slate-700 mb-6">Preço Único: <span class="text-3xl font-black text-pink-600">R$ 6<span class="text-xl font-bold">,00</span></span></p>
+                            <p class="text-2xl text-slate-700 mb-6">Preço Único: <span id="preco-dindin" class="text-3xl font-black text-pink-600">R$ 6<span class="text-xl font-bold">,00</span></span></p>
                             <h4 class="text-xl font-bold text-slate-500 mb-4 uppercase tracking-wider">Sabores Disponíveis:</h4>
                             <!-- Usando colunas menores para caber a lista longa da foto -->
                             <div class="grid grid-cols-2 gap-x-8 gap-y-3">
@@ -394,6 +334,114 @@
     </div>
 
     <script>
+        // --- 0. CONEXÃO SUPABASE & REALTIME (ATUALIZAÇÃO INSTANTÂNEA) ---
+        const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Formata valores decimais
+        function formatarMoeda(valor) {
+            return parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Carrega e renderiza produtos do banco de dados em tempo real
+        async function carregarProdutosDoBanco() {
+            try {
+                const { data: produtos, error } = await _supabase
+                    .from('products')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('name');
+
+                if (error) throw error;
+
+                // IDs das categorias oficiais no banco
+                const CAT_BEBIDAS = '1ce491dd-cbf3-4e0f-96aa-c0b4a2bfb9cc';
+                const CAT_REFEICOES = 'c652ff84-d198-469c-8f5d-c503451c8c3f';
+                const CAT_PORCOES = 'ee69ee2b-afc5-4a81-af0d-1006a16f114e';
+
+                // 1. Preenche Porções
+                const porcoes = produtos.filter(p => p.category_id === CAT_PORCOES);
+                const elPorcoes = document.getElementById('lista-porcoes');
+                if (elPorcoes) {
+                    elPorcoes.innerHTML = porcoes.map(p => `
+                        <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <h4 class="text-3xl font-bold text-slate-700">${p.name}</h4>
+                            <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ ${formatarMoeda(p.price).split(',')[0]}<span class="text-2xl font-bold">,${formatarMoeda(p.price).split(',')[1]}</span></span>
+                        </li>
+                    `).join('');
+                }
+
+                // 2. Preenche Bebidas (filtrando o Dindin para a outra coluna)
+                const bebidas = produtos.filter(p => p.category_id === CAT_BEBIDAS && !p.name.toLowerCase().includes('dindin'));
+                const elBebidas = document.getElementById('lista-bebidas');
+                if (elBebidas) {
+                    elBebidas.innerHTML = bebidas.map(p => `
+                        <li class="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <h4 class="text-3xl font-bold text-slate-700">${p.name}</h4>
+                            <span class="text-4xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ ${formatarMoeda(p.price).split(',')[0]}<span class="text-2xl font-bold">,${formatarMoeda(p.price).split(',')[1]}</span></span>
+                        </li>
+                    `).join('');
+                }
+
+                // 3. Preenche Dindin / Geladinho Preço Único
+                const dindin = produtos.find(p => p.category_id === CAT_BEBIDAS && p.name.toLowerCase().includes('dindin'));
+                const elDindinPreco = document.getElementById('preco-dindin');
+                if (dindin && elDindinPreco) {
+                    elDindinPreco.innerHTML = `R$ ${formatarMoeda(dindin.price).split(',')[0]}<span class="text-xl font-bold">,${formatarMoeda(dindin.price).split(',')[1]}</span>`;
+                }
+
+                // 4. Preenche Refeições
+                const refeicoes = produtos.filter(p => p.category_id === CAT_REFEICOES);
+                const elRefeicoes = document.getElementById('lista-refeicoes');
+                if (elRefeicoes) {
+                    elRefeicoes.innerHTML = refeicoes.map(p => {
+                        let nomeExibicao = p.name;
+                        let descExibicao = "";
+                        if (p.name.includes('(')) {
+                            const partes = p.name.split('(');
+                            nomeExibicao = partes[0].trim();
+                            descExibicao = partes[1].replace(')', '').trim();
+                            if (descExibicao) {
+                                descExibicao = descExibicao.charAt(0).toUpperCase() + descExibicao.slice(1).toLowerCase();
+                            }
+                        }
+                        return `
+                            <li class="flex justify-between items-start border-b border-slate-100 pb-3">
+                                <div>
+                                    <h4 class="text-2xl font-bold text-slate-800">${nomeExibicao}</h4>
+                                    <p class="text-base text-slate-500 mt-0.5">${descExibicao}</p>
+                                </div>
+                                <span class="text-3xl font-black text-amber-600 ml-4 whitespace-nowrap">R$ ${formatarMoeda(p.price).split(',')[0]}<span class="text-xl font-bold">,${formatarMoeda(p.price).split(',')[1]}</span></span>
+                            </li>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                console.error("Erro ao carregar cardápio do Supabase:", err);
+            }
+        }
+
+        // Canal de comunicação Realtime para atualização instantânea na TV
+        function inicializarRealtimeSupabase() {
+            try {
+                _supabase
+                    .channel('changes_products')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+                        console.log('Alteração detectada no banco! Sincronizando TV...', payload);
+                        carregarProdutosDoBanco();
+                    })
+                    .subscribe();
+            } catch (err) {
+                console.error("Erro no canal Realtime Supabase:", err);
+            }
+        }
+
+        // Dispara as consultas
+        carregarProdutosDoBanco();
+        inicializarRealtimeSupabase();
+
         // --- 1. LÓGICA DE TELA CHEIA ---
         const telaInicial = document.getElementById('tela-inicial');
         
