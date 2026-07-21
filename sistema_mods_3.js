@@ -417,10 +417,16 @@ function renderCashierModal(type, id) {
 
                 <!-- Footer Actions -->
                 <div class="bg-gray-50 p-4 border-t border-gray-100 flex flex-col gap-2">
-                    <button onclick="window.printCashierReceipt('${type}', '${id}')" id="btnPrintCashierReceipt"
-                        class="w-full py-3.5 bg-stone-800 hover:bg-stone-900 text-white font-black text-sm rounded-2xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2 mb-1">
-                        <i class="fa-solid fa-print text-emerald-400"></i> IMPRIMIR GUIA DO CLIENTE / CONFERÊNCIA (10%)
-                    </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-1">
+                        <button onclick="window.printCashierReceipt('${type}', '${id}')" id="btnPrintCashierReceipt"
+                            class="w-full py-3 bg-stone-800 hover:bg-stone-900 text-white font-black text-xs rounded-xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-print text-emerald-400"></i> IMPRIMIR VIA NAVEGADOR
+                        </button>
+                        <button onclick="window.printDirectUSB('${type}', '${id}')" id="btnPrintDirectUSB"
+                            class="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-black text-xs rounded-xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bolt text-amber-300"></i> IMPRIMIR DIRETO USB (ELGIN i8)
+                        </button>
+                    </div>
 
                     <button onclick="window.confirmCashierCheckout('${type}', '${id}')" id="btnConfirmCashier"
                         class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base rounded-2xl shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
@@ -801,4 +807,107 @@ window.printCashierReceipt = (type, id) => {
     `);
 
     printWindow.document.close();
+};
+
+// ====== DIRECT WEB SERIAL USB DRIVER (ELGIN i8 / NO MAC DRIVER NEEDED) ======
+window.printDirectUSB = async (type, id) => {
+    if (!('serial' in navigator)) {
+        alert('O seu navegador não suporta comunicação USB direta (Web Serial). Por favor, utilize o Google Chrome ou Microsoft Edge no Mac.');
+        return;
+    }
+
+    if (!cashierActiveOrders || cashierActiveOrders.length === 0) return;
+
+    try {
+        // Request USB Serial port connection directly from browser
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+
+        const writer = port.writable.getWriter();
+        const encoder = new TextEncoder();
+
+        // ESC/POS Commands
+        const RESET = new Uint8Array([0x1B, 0x40]);
+        const CENTER = new Uint8Array([0x1B, 0x61, 0x01]);
+        const LEFT = new Uint8Array([0x1B, 0x61, 0x00]);
+        const BOLD_ON = new Uint8Array([0x1B, 0x45, 0x01]);
+        const BOLD_OFF = new Uint8Array([0x1B, 0x45, 0x00]);
+        const CUT_FULL = new Uint8Array([0x1D, 0x56, 0x00]); // Elgin Auto Cut
+
+        const staff = getCurrentStaff();
+        const staffName = staff?.name || 'Caixa Central';
+        const customerInput = document.getElementById('cashierCustomerName')?.value?.trim();
+        const customerName = customerInput || cashierActiveOrders[0]?.customer_name || 'Nao Informado';
+
+        const chk10 = document.getElementById('chkCashier10');
+        const is10Enabled = chk10 ? chk10.checked : cashierServiceEnabled;
+
+        const subtotal = cashierBaseTotal;
+        const serviceFee = is10Enabled ? subtotal * 0.10 : 0;
+        const total = subtotal + serviceFee;
+        const nowStr = new Date().toLocaleString('pt-BR');
+
+        // Consolidate items
+        const itemMap = {};
+        cashierActiveOrders.forEach(order => {
+            (order.order_items || []).forEach(item => {
+                const name = (item.product_name || 'Produto').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (!itemMap[name]) {
+                    itemMap[name] = { qty: 0, total: 0 };
+                }
+                itemMap[name].qty += Number(item.quantity || 1);
+                itemMap[name].total += Number(item.unit_price || 0) * Number(item.quantity || 1);
+            });
+        });
+
+        // 1. Header
+        await writer.write(RESET);
+        await writer.write(CENTER);
+        await writer.write(BOLD_ON);
+        await writer.write(encoder.encode("BALNEARIO RIO PRETO\n"));
+        await writer.write(encoder.encode("CONFERENCIA DE CONSUMO\n"));
+        await writer.write(BOLD_OFF);
+        await writer.write(encoder.encode("================================\n"));
+
+        // 2. Info
+        await writer.write(LEFT);
+        await writer.write(encoder.encode(`DATA: ${nowStr}\n`));
+        await writer.write(encoder.encode(`LOCAL: ${type.toUpperCase()}: ${id}\n`));
+        await writer.write(encoder.encode(`ATENDENTE: ${staffName}\n`));
+        await writer.write(encoder.encode(`CLIENTE: ${customerName}\n`));
+        await writer.write(encoder.encode("--------------------------------\n"));
+
+        // 3. Items
+        for (const name of Object.keys(itemMap)) {
+            const item = itemMap[name];
+            const line = `${item.qty}x ${name.padEnd(20).slice(0, 20)} R$ ${item.total.toFixed(2)}\n`;
+            await writer.write(encoder.encode(line));
+        }
+
+        // 4. Totals
+        await writer.write(encoder.encode("--------------------------------\n"));
+        await writer.write(encoder.encode(`Subtotal: R$ ${subtotal.toFixed(2)}\n`));
+        await writer.write(encoder.encode(`10% Garcons: R$ ${serviceFee.toFixed(2)}\n`));
+        await writer.write(encoder.encode("================================\n"));
+        await writer.write(BOLD_ON);
+        await writer.write(encoder.encode(`TOTAL A PAGAR: R$ ${total.toFixed(2)}\n`));
+        await writer.write(BOLD_OFF);
+        await writer.write(encoder.encode("================================\n\n"));
+        await writer.write(CENTER);
+        await writer.write(encoder.encode("*** CONFERENCIA DE CONSUMO ***\n"));
+        await writer.write(encoder.encode("Obrigado pela preferencia!\n\n\n\n"));
+
+        // 5. Cut Paper
+        await writer.write(CUT_FULL);
+
+        writer.releaseLock();
+        await port.close();
+
+        alert('⚡ Cupom impresso e cortado na Elgin i8 com sucesso!');
+    } catch(err) {
+        console.error('Direct USB printing error:', err);
+        if (err.name !== 'NotFoundError') {
+            alert('Erro ao conectar via USB com a Elgin i8: ' + err.message);
+        }
+    }
 };
