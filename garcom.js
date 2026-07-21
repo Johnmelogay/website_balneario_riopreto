@@ -303,7 +303,15 @@ function createLocationBtn(label, id, icon, stats) {
     `;
     btn.onclick = () => {
         currentLocation.id = id;
-        openMainApp(label);
+        const typeLabel = currentLocation.type === 'chale' ? 'Chalé' : (currentLocation.type === 'mesa' ? 'Mesa' : 'Balcão');
+        const label = `${typeLabel} ${id}`;
+        if (stats && stats.total_open_val > 0) {
+            // Open consumption overview directly
+            window.openExtratoForOngoing(currentLocation.type, id, label);
+        } else {
+            // Start new order directly
+            openMainApp(label);
+        }
     };
     return btn;
 }
@@ -676,6 +684,12 @@ window.openExtratoForOngoing = (type, id, label) => {
 
 window.openLocationFromResumo = (type, id, label) => {
     currentLocation = { type, id };
+    openMainApp(label);
+};
+
+window.openMainAppFromExtrato = () => {
+    const typeLabel = currentLocation.type === 'chale' ? 'Chalé' : (currentLocation.type === 'mesa' ? 'Mesa' : 'Balcão');
+    const label = `${typeLabel} ${currentLocation.id}`;
     openMainApp(label);
 };
 

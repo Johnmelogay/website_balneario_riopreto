@@ -463,11 +463,14 @@
             </p>
 
             <div class="flex gap-2">
-                <button onclick="closeExtrato()" class="flex-1 py-3.5 bg-stone-100 text-stone-600 font-black rounded-xl active:scale-95 transition text-xs">
-                    VOLTAR
+                <button onclick="closeExtrato(); openMainAppFromExtrato();" class="flex-[2] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
+                    <i class="fa-solid fa-cart-plus"></i> + PEDIDO
                 </button>
-                <button onclick="openGuiaClienteModal()" class="flex-[2] py-3.5 bg-emerald-700 text-white font-black rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-xs">
-                    <i class="fa-solid fa-receipt text-sm"></i> GUIA DO CLIENTE (10%)
+                <button onclick="openGuiaClienteModal()" class="flex-[2] py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
+                    <i class="fa-solid fa-print"></i> GUIA CLIENTE
+                </button>
+                <button onclick="closeExtrato()" class="flex-1 py-3.5 bg-stone-100 text-stone-600 font-bold rounded-xl active:scale-95 transition text-[11px]">
+                    VOLTAR
                 </button>
             </div>
         </div>
@@ -570,7 +573,7 @@
     </div>
 
     <!-- ====== BOTTOM NAVBAR ====== -->
-    <nav id="garcomBottomNav" class="fixed bottom-0 left-0 right-0 z-[999999] bg-white border-t-2 border-stone-200 py-2.5 px-2 hidden justify-around items-center shadow-[0_-8px_30px_rgba(0,0,0,0.15)]">
+    <nav id="garcomBottomNav" style="display: none;" class="fixed bottom-0 left-0 right-0 z-[999999] bg-white border-t-2 border-stone-200 py-2.5 px-2 justify-around items-center shadow-[0_-8px_30px_rgba(0,0,0,0.15)]">
         <button onclick="switchGarcomTab('fazer_pedido')" id="navBtn_fazerPedido" class="flex flex-col items-center gap-0.5 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition active:scale-95">
             <i class="fa-solid fa-map-location-dot text-xl"></i>
             <span>Locais</span>
@@ -594,9 +597,9 @@
         </button>
     </nav>
 
-    <script type="module" src="garcom.js"></script>
-    <script type="module" src="garcom_mods_1.js"></script>
-    <script type="module" src="garcom_mods_2.js"></script>
+    <script type="module" src="garcom.js?v=2.0.4"></script>
+    <script type="module" src="garcom_mods_1.js?v=2.0.4"></script>
+    <script type="module" src="garcom_mods_2.js?v=2.0.4"></script>
 </body>
 
 </html>
