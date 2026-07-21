@@ -85,14 +85,25 @@
 
         // ====== PARSE URL PARAMS ======
         const params = new URLSearchParams(window.location.search);
-        const locationType = params.get('tipo') || 'chale';
-        const locationId = params.get('id') || '1';
+        const locationType = (params.get('tipo') || 'chale').toLowerCase().trim();
+        const rawId = (params.get('id') || '1').trim();
+
+        // Build possible location IDs (e.g., 'M1' and '1' for Mesa 1)
+        const possibleLocIds = [rawId];
+        if (locationType === 'mesa') {
+            if (!rawId.toUpperCase().startsWith('M')) possibleLocIds.push(`M${rawId}`);
+            else possibleLocIds.push(rawId.toUpperCase().replace('M', ''));
+        } else if (locationType === 'balcao') {
+            if (!rawId.toUpperCase().startsWith('B')) possibleLocIds.push(`B${rawId}`);
+            else possibleLocIds.push(rawId.toUpperCase().replace('B', ''));
+        }
 
         // Set location display
         const icons = { chale: '🏡', mesa: '🪑', balcao: '🏪' };
         const labels = { chale: 'Chalé', mesa: 'Mesa', balcao: 'Balcão' };
+        const displayId = rawId.toUpperCase().replace('M', '').replace('B', '');
         document.getElementById('locationIcon').textContent = icons[locationType] || '📍';
-        document.getElementById('locationLabel').textContent = `${labels[locationType] || locationType} ${locationId}`;
+        document.getElementById('locationLabel').textContent = `${labels[locationType] || locationType} ${displayId}`;
 
         // ====== STATE ======
         let orders = [];
@@ -100,7 +111,7 @@
         // ====== LOAD ORDERS ======
         async function loadOrders() {
             const today = new Date();
-            const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+            const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
 
             const { data, error } = await supabase
                 .from('orders')
@@ -109,7 +120,7 @@
                     order_items(*)
                 `)
                 .eq('location_type', locationType)
-                .eq('location_id', locationId)
+                .in('location_id', possibleLocIds)
                 .gte('created_at', startOfDay)
                 .neq('status', 'cancelado')
                 .order('created_at', { ascending: false });
@@ -290,8 +301,8 @@
                 });
         }
 
-        // ====== POLLING FALLBACK ======
-        setInterval(loadOrders, 15000);
+        // ====== POLLING FALLBACK (Every 3 seconds) ======
+        setInterval(loadOrders, 3000);
 
         // ====== AUTO-REFRESH TIMERS ======
         setInterval(() => {
