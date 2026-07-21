@@ -303,6 +303,8 @@ window.logoutAndGoLogin = () => {
 };
 
 // ====== CATALOG ======
+let productsChannel = null;
+
 async function loadCatalog() {
     // Load categories
     const { data: cats } = await supabase
@@ -313,7 +315,7 @@ async function loadCatalog() {
 
     categories = cats || [];
 
-    // Load products
+    // Load products with stock
     const { data: prods } = await supabase
         .from('products')
         .select('*, categories(name, destination)')
@@ -322,12 +324,71 @@ async function loadCatalog() {
 
     products = prods || [];
 
+    validateCartStock();
+
     renderCategoryTabs();
     if (categories.length > 0) {
-        selectCategory(categories[0].id);
+        selectCategory(activeCategory || 'all');
     } else {
         renderProducts([]);
     }
+
+    startProductsRealtime();
+}
+
+function validateCartStock() {
+    let cartChanged = false;
+    cart.forEach(c => {
+        const freshP = products.find(p => p.id === c.product.id);
+        if (freshP && freshP.is_stock_controlled) {
+            c.product = freshP; // keep reference fresh
+            if (freshP.stock_qty <= 0) {
+                cart = cart.filter(item => item.product.id !== c.product.id);
+                cartChanged = true;
+                alert(`⚠️ O produto "${freshP.name}" ESGOTOU e foi removido do seu carrinho.`);
+            } else if (c.qty > freshP.stock_qty) {
+                c.qty = freshP.stock_qty;
+                cartChanged = true;
+                alert(`⚠️ O estoque do produto "${freshP.name}" mudou! A quantidade no carrinho foi ajustada para ${freshP.stock_qty}.`);
+            }
+        }
+    });
+
+    if (cartChanged) updateCartUI();
+}
+
+function startProductsRealtime() {
+    if (productsChannel) return;
+
+    // Fast 3s polling for real-time stock sync
+    setInterval(() => {
+        const mainApp = document.getElementById('mainApp');
+        if (mainApp && !mainApp.classList.contains('hidden')) {
+            refreshProductsSilent();
+        }
+    }, 3000);
+
+    // Supabase Realtime channel for instant stock updates
+    productsChannel = supabase
+        .channel('garcom-products-stock')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+            refreshProductsSilent();
+        })
+        .subscribe();
+}
+
+async function refreshProductsSilent() {
+    const { data: prods } = await supabase
+        .from('products')
+        .select('*, categories(name, destination)')
+        .eq('is_active', true)
+        .order('name');
+
+    if (!prods) return;
+    products = prods;
+
+    validateCartStock();
+    selectCategory(activeCategory || 'all');
 }
 
 function renderCategoryTabs() {
@@ -581,6 +642,34 @@ window.sendOrder = async () => {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
 
     try {
+        // 0. Pre-verify real-time DB stock levels right before sending order
+        const cartProductIds = cart.map(c => c.product.id);
+        const { data: freshStockProducts } = await supabase
+            .from('products')
+            .select('id, name, stock_qty, is_stock_controlled')
+            .in('id', cartProductIds);
+
+        if (freshStockProducts) {
+            for (const c of cart) {
+                const fresh = freshStockProducts.find(p => p.id === c.product.id);
+                if (fresh && fresh.is_stock_controlled) {
+                    if (fresh.stock_qty <= 0) {
+                        alert(`🚫 ATENÇÃO: O item "${fresh.name}" ACABOU de esgotar no estoque!\n\nO pedido NÃO foi enviado. Remova este item do carrinho.`);
+                        refreshProductsSilent();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> CONFIRMAR E ENVIAR';
+                        return;
+                    } else if (c.qty > fresh.stock_qty) {
+                        alert(`🚫 ATENÇÃO: Restam apenas ${fresh.stock_qty} unidade(s) de "${fresh.name}" no estoque!\n\nVocê selecionou ${c.qty}. O pedido NÃO foi enviado. Ajuste seu carrinho.`);
+                        refreshProductsSilent();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> CONFIRMAR E ENVIAR';
+                        return;
+                    }
+                }
+            }
+        }
+
         const total = cart.reduce((sum, c) => sum + (c.qty * Number(c.product.price)), 0);
         const orderNotes = document.getElementById('orderNotes').value;
         const customerName = document.getElementById('customerName').value || null;
