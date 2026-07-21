@@ -99,10 +99,18 @@ async function startKDS() {
     // Load initial
     await loadOrders();
 
-    // Polling fallback (3 seconds)
-    setInterval(() => {
-        loadOrders();
-    }, 3000);
+    // Polling inteligente: 3s somente em caso de falha no WebSocket, 30s quando online
+    let pollingInterval = null;
+
+    function setPollingInterval(ms) {
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(() => {
+            loadOrders();
+        }, ms);
+    }
+
+    // Inicia com heartbeat leve de 30s por padrão
+    setPollingInterval(30000);
 
     // Realtime subscription (primary — instant updates)
     const channel = supabase
@@ -126,13 +134,16 @@ async function startKDS() {
             if (indicator) {
                 if (status === 'SUBSCRIBED') {
                     indicator.innerHTML = '<i class="fa-solid fa-wifi text-green-400"></i>';
-                    indicator.title = 'Conexão em tempo real ativa';
-                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    indicator.title = 'Conexão em tempo real ativa (Polling leve 30s)';
+                    setPollingInterval(30000); // Polling leve enquanto online
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
                     indicator.innerHTML = '<i class="fa-solid fa-wifi text-red-400 animate-pulse"></i>';
-                    indicator.title = 'Conexão perdida — usando polling automático';
+                    indicator.title = 'Conexão perdida — ativando polling reserva de 3s';
+                    setPollingInterval(3000); // Polling rápido de emergência
                 } else {
                     indicator.innerHTML = '<i class="fa-solid fa-wifi text-yellow-400"></i>';
                     indicator.title = 'Reconectando...';
+                    setPollingInterval(5000);
                 }
             }
         });

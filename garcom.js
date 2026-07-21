@@ -802,6 +802,14 @@ let lastOrderMeta = null; // Store last order info for retry/WhatsApp
 window.sendOrder = async () => {
     if (cart.length === 0) return;
 
+    // 0. Verificação prévia de área cega/conexão antes de processar
+    const isOnline = await checkNetworkConnection();
+    if (!isOnline) {
+        updateNetworkStatusUI();
+        window.showOfflineModal();
+        return;
+    }
+
     const staff = getCurrentStaff();
     if (!staff) {
         alert('Sessão expirada. Faça login novamente.');
@@ -977,7 +985,13 @@ window.sendOrder = async () => {
 
     } catch (err) {
         console.error('Order error:', err);
-        showError(err.message || 'Erro de conexão. Verifique o Wi-Fi.');
+        const isOnline = await checkNetworkConnection();
+        if (!isOnline) {
+            updateNetworkStatusUI();
+            window.showOfflineModal();
+        } else {
+            showError(err.message || 'Erro de conexão. Verifique o Wi-Fi.');
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ENVIAR PEDIDO';
@@ -1236,6 +1250,82 @@ function listenForReadyOrders() {
 
 window.listenForReadyOrders = listenForReadyOrders;
 
+// ====== REDE / ÁREA CEGA MONITORING ======
+async function checkNetworkConnection() {
+    if (!navigator.onLine) return false;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch('manifest.json?cache_bust=' + Date.now(), { 
+            method: 'HEAD', 
+            cache: 'no-store',
+            signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
+async function updateNetworkStatusUI() {
+    const isOnline = await checkNetworkConnection();
+    const banner = document.getElementById('garcomOfflineBanner');
+    if (banner) {
+        if (!isOnline) {
+            banner.classList.remove('hidden');
+        } else {
+            banner.classList.add('hidden');
+        }
+    }
+}
+
+window.checkNetworkConnection = checkNetworkConnection;
+window.updateNetworkStatusUI = updateNetworkStatusUI;
+
+window.showOfflineModal = () => {
+    const modal = document.getElementById('garcomOfflineModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+};
+
+window.closeOfflineModal = () => {
+    const modal = document.getElementById('garcomOfflineModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
+window.retrySendOrder = async () => {
+    const btn = document.getElementById('btnRetrySendOrder');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Testando Conexão...';
+    }
+
+    const isOnline = await checkNetworkConnection();
+    if (isOnline) {
+        window.closeOfflineModal();
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> TESTAR CONEXÃO E REENVIAR';
+        }
+        await window.sendOrder();
+    } else {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-300"></i> AINDA SEM CONEXÃO (Aproxime-se do Wi-Fi)';
+        }
+    }
+};
+
+// Monitor network connection continuously every 5s and on browser events
+window.addEventListener('online', updateNetworkStatusUI);
+window.addEventListener('offline', updateNetworkStatusUI);
+
 // ====== INIT ======
 document.addEventListener('DOMContentLoaded', () => {
     const staff = getCurrentStaff();
@@ -1244,4 +1334,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showLocationScreen();
         listenForReadyOrders();
     }
+    updateNetworkStatusUI();
+    setInterval(updateNetworkStatusUI, 5000);
 });
