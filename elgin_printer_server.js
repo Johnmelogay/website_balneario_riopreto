@@ -1,6 +1,6 @@
 // elgin_printer_server.js
-// Servidor de Impressão Direta em Alta Resolução (Visual PDF/HTML Render - 576 Dots Full Width)
-// Ocupa 100% da largura do papel de 80mm da Elgin i8 com tipografia legível, negrito de alto contraste e a logo oficial!
+// Servidor de Impressão Direta em Alta Resolução (Sem Desperdício de Papel + Tipografia Nitida)
+// Renderiza o recibo com corte automático rente ao texto, sem sangrar letras e com logo/título nítido!
 
 const http = require('http');
 const usb = require('usb');
@@ -11,7 +11,7 @@ const PNG = require('pngjs').PNG;
 
 const PORT = 3001;
 
-// ====== RENDERIZA HTML PARA RASTER BITMAP ESC/POS (576 dots / Full Width 80mm Elgin i8) ======
+// ====== RENDERIZA HTML E CORTA O ESPAÇO EM BRANCO AUTOMATICAMENTE ======
 function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const tempHtmlPath = path.join(__dirname, 'temp_receipt_render.html');
     const tempPngPath = path.join(__dirname, 'temp_receipt_render.png');
@@ -31,15 +31,33 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const png = PNG.sync.read(pngData);
 
     const width = targetWidth;
-    const height = Math.floor(targetWidth * (png.height / png.width));
     const widthBytes = Math.ceil(width / 8);
+
+    // 1. Encontrar a última linha vertical com pixels pretos para eliminar desperdício de papel
+    let lastY = 0;
+    for (let y = png.height - 1; y >= 0; y--) {
+        for (let x = 0; x < png.width; x++) {
+            const idx = (y * png.width + x) * 4;
+            const a = png.data[idx + 3];
+            const lum = png.data[idx] * 0.299 + png.data[idx + 1] * 0.587 + png.data[idx + 2] * 0.114;
+            if (a > 128 && lum < 140) {
+                lastY = y;
+                break;
+            }
+        }
+        if (lastY > 0) break;
+    }
+
+    // Se encontrou a última linha, corta a altura com margem de apenas 15px no final
+    const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 20) : png.height;
+    const height = Math.floor(targetWidth * (croppedHeight / png.width));
 
     const rasterData = Buffer.alloc(widthBytes * height);
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const srcX = Math.floor(x * (png.width / width));
-            const srcY = Math.floor(y * (png.height / height));
+            const srcY = Math.floor(y * (croppedHeight / height));
             const idx = (srcY * png.width + srcX) * 4;
 
             const r = png.data[idx];
@@ -47,9 +65,9 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
             const b = png.data[idx + 2];
             const a = png.data[idx + 3];
 
-            // High contrast binarization threshold for ultra crisp thermal paper
+            // Limiar de luminância otimizado para evitar letras grossas/borradas
             const lum = (r * 0.299 + g * 0.587 + b * 0.114);
-            const isBlack = (a > 128) && (lum < 225);
+            const isBlack = (a > 128) && (lum < 135);
 
             if (isBlack) {
                 const byteIdx = y * widthBytes + Math.floor(x / 8);
@@ -132,19 +150,19 @@ async function printVisualPdfHardware(data) {
         (data.items || []).forEach(item => {
             itemsRows += `
                 <tr>
-                    <td style="padding: 8px 0; border-bottom: 2px dashed #cbd5e1; vertical-align: top;">
-                        <span style="font-weight: 900; color: #047857; margin-right: 6px; font-size: 17px;">${item.qty}x</span>
-                        <span style="font-weight: 800; color: #000000; font-size: 16px;">${item.name}</span>
-                        ${item.notes ? `<div style="font-size: 13px; color: #d97706; font-style: italic; font-weight: 700; margin-top: 2px;">Obs: ${item.notes}</div>` : ''}
+                    <td style="padding: 6px 0; border-bottom: 1px dashed #94a3b8; vertical-align: top;">
+                        <span style="font-weight: 800; color: #000; margin-right: 6px; font-size: 15px;">${item.qty}x</span>
+                        <span style="font-weight: 700; color: #000; font-size: 15px;">${item.name}</span>
+                        ${item.notes ? `<div style="font-size: 12px; color: #475569; font-style: italic; font-weight: 600; margin-top: 2px;">Obs: ${item.notes}</div>` : ''}
                     </td>
-                    <td style="padding: 8px 0; border-bottom: 2px dashed #cbd5e1; vertical-align: top; text-align: right; font-weight: 900; color: #000000; font-size: 17px; white-space: nowrap;">
+                    <td style="padding: 6px 0; border-bottom: 1px dashed #94a3b8; vertical-align: top; text-align: right; font-weight: 800; color: #000; font-size: 15px; white-space: nowrap;">
                         R$ ${Number(item.total || 0).toFixed(2).replace('.', ',')}
                     </td>
                 </tr>
             `;
         });
 
-        // HTML Visual Layout tailored for 576 dots full-width Elgin i8 receipt
+        // Crisp, ultra-readable receipt layout optimized for thermal paper (No dark circles, no paper waste)
         const receiptHtml = `
             <!DOCTYPE html>
             <html>
@@ -158,37 +176,37 @@ async function printVisualPdfHardware(data) {
                         width: 576px;
                         background: #ffffff;
                         color: #000000;
-                        padding: 16px 20px;
-                        line-height: 1.35;
+                        padding: 10px 16px;
+                        line-height: 1.3;
                     }
-                    .header { text-align: center; padding-bottom: 12px; border-bottom: 3px solid #064e3b; }
-                    .logo { width: 72px; height: 72px; border-radius: 16px; margin: 0 auto 8px auto; display: block; object-fit: contain; }
-                    .brand-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 27px; color: #064e3b; text-transform: uppercase; letter-spacing: -0.5px; }
-                    .subtitle { font-size: 14px; font-weight: 900; color: #047857; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 3px; }
+                    .header { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #000000; }
+                    .brand-icon { font-size: 26px; margin-bottom: 2px; }
+                    .brand-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 24px; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; }
+                    .subtitle { font-size: 12px; font-weight: 800; color: #000000; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
                     
-                    .info-box { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 14px; padding: 12px 14px; margin: 14px 0; font-size: 15px; }
-                    .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                    .info-box { border: 1.5px solid #000000; border-radius: 10px; padding: 10px 12px; margin: 10px 0; font-size: 14px; }
+                    .info-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
                     .info-row:last-child { margin-bottom: 0; }
-                    .info-label { color: #475569; font-weight: 800; }
+                    .info-label { color: #000000; font-weight: 700; }
                     .info-val { color: #000000; font-weight: 900; }
 
-                    .items-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 16px; }
-                    .items-table th { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 900; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 3px solid #64748b; padding-bottom: 6px; text-align: left; }
+                    .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; }
+                    .items-table th { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #000000; padding-bottom: 4px; text-align: left; }
                     .items-table th.right { text-align: right; }
 
-                    .summary-box { background: #f0fdf4; border: 3px solid #4ade80; border-radius: 16px; padding: 14px; margin: 14px 0; }
-                    .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 16px; }
-                    .summary-row.total { border-top: 3px solid #22c55e; padding-top: 10px; margin-top: 10px; margin-bottom: 0; }
-                    .total-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 20px; color: #064e3b; }
-                    .total-amount { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 28px; color: #047857; }
+                    .summary-box { border: 2px solid #000000; border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+                    .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 14px; }
+                    .summary-row.total { border-top: 2px solid #000000; padding-top: 8px; margin-top: 6px; margin-bottom: 0; }
+                    .total-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 17px; color: #000000; }
+                    .total-amount { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 24px; color: #000000; }
 
-                    .footer { text-align: center; margin-top: 16px; padding-top: 12px; border-top: 2px dashed #cbd5e1; font-size: 13px; color: #334155; }
-                    .footer-highlight { font-weight: 900; color: #064e3b; font-size: 14px; margin-bottom: 3px; }
+                    .footer { text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000000; font-size: 11px; color: #000000; }
+                    .footer-highlight { font-weight: 900; color: #000000; font-size: 12px; margin-bottom: 2px; }
                 </style>
             </head>
             <body>
                 <div class="header">
-                    <img src="https://balnearioriopreto.com.br/images/logo_opt.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+                    <div class="brand-icon">🌿</div>
                     <h1 class="brand-title">Balneário Rio Preto</h1>
                     <div class="subtitle">Conferência de Consumo</div>
                 </div>
@@ -196,7 +214,7 @@ async function printVisualPdfHardware(data) {
                 <div class="info-box">
                     <div class="info-row">
                         <span class="info-label">LOCAL / COMANDA:</span>
-                        <span class="info-val" style="color: #064e3b; font-size: 18px;">${data.location || 'MESA'}</span>
+                        <span class="info-val" style="font-size: 16px;">${data.location || 'MESA'}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">CLIENTE:</span>
@@ -226,12 +244,12 @@ async function printVisualPdfHardware(data) {
 
                 <div class="summary-box">
                     <div class="summary-row">
-                        <span style="color: #334155; font-weight: 800;">Consumo Produtos:</span>
-                        <span style="font-weight: 900; color: #000000;">R$ ${subtotal}</span>
+                        <span style="font-weight: 700;">Consumo Produtos:</span>
+                        <span style="font-weight: 900;">R$ ${subtotal}</span>
                     </div>
                     <div class="summary-row">
-                        <span style="color: #334155; font-weight: 800;">Taxa de Serviço 10% (Garçons):</span>
-                        <span style="font-weight: 900; color: #047857;">R$ ${serviceFee}</span>
+                        <span style="font-weight: 700;">Taxa de Serviço 10% (Garçons):</span>
+                        <span style="font-weight: 900;">R$ ${serviceFee}</span>
                     </div>
                     <div class="summary-row total">
                         <span class="total-title">TOTAL A RECEBER:</span>
@@ -241,22 +259,22 @@ async function printVisualPdfHardware(data) {
 
                 <div class="footer">
                     <div class="footer-highlight">*** GUIA DE CONFERÊNCIA ***</div>
-                    <p style="margin: 3px 0;">A taxa de serviço de 10% é opcional aos garçons.</p>
-                    <p style="margin: 3px 0; font-weight: 800; color: #000000;">Obrigado pela preferência e volte sempre! 🌿</p>
-                    <p style="margin-top: 6px; font-size: 11px; color: #64748b; font-weight: 700;">balnearioriopreto.com.br</p>
+                    <p style="margin: 2px 0;">A taxa de serviço de 10% é opcional aos garçons.</p>
+                    <p style="margin: 2px 0; font-weight: 800;">Obrigado pela preferência e volte sempre! 🌿</p>
+                    <p style="margin-top: 4px; font-size: 10px; color: #475569; font-weight: 700;">balnearioriopreto.com.br</p>
                 </div>
             </body>
             </html>
         `;
 
-        // Render HTML to 576-dot full-width high-resolution raster bitmap
+        // Render HTML to high-resolution raster bitmap with auto-crop for zero paper waste
         const rasterBuffer = htmlToEscPosRaster(receiptHtml, 576);
 
         await dev.open();
         await dev.claimInterface(0);
 
         const RESET = new Uint8Array([0x1B, 0x40, 0x1B, 0x61, 0x01]);
-        const FEED_CUT = new Uint8Array([0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x00]); // Feed + Auto Cut paper
+        const FEED_CUT = new Uint8Array([0x0A, 0x1D, 0x56, 0x00]); // Single line feed + immediate Auto Cut
 
         const payload = Buffer.concat([
             RESET,
@@ -270,7 +288,7 @@ async function printVisualPdfHardware(data) {
             await dev.releaseInterface(0);
         } catch (e) {}
 
-        console.log("🎨 IMPRESSÃO FULL WIDTH (576 DOTS) CONCLUÍDA COM SUCESSO NA ELGIN i8!");
+        console.log("✂️ IMPRESSÃO NITIDA + CORTE AUTOMÁTICO RENTE SEM DESPERDÍCIO DE PAPEL CONCLUÍDA!");
     } finally {
         if (dev) {
             try {
@@ -282,5 +300,5 @@ async function printVisualPdfHardware(data) {
 }
 
 server.listen(PORT, () => {
-    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (576 Dots Full Width) ativo na porta ${PORT}`);
+    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Nítido + Zero Desperdício) ativo na porta ${PORT}`);
 });
