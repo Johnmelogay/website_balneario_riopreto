@@ -287,30 +287,125 @@ function renderGuiaReceiptBody(data) {
 
 window.printGuiaCliente = () => {
     if (!currentGuiaData) return;
-    const bodyContent = document.getElementById('guiaReceiptBody')?.innerHTML || '';
-    const win = window.open('', '', 'width=400,height=600');
+    const data = currentGuiaData;
+    const nowStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    const locLabel = `${data.type.toUpperCase()}: ${data.id}`;
+    const staffName = window.currentStaff?.name || 'Garçom';
+
+    let itemsHtml = '';
+    data.items.forEach(item => {
+        itemsHtml += `
+            <tr>
+                <td style="padding: 5px 0; border-bottom: 1px dashed #e2e8f0; vertical-align: top;">
+                    <span style="font-weight: 900; color: #047857; margin-right: 4px;">${item.qty}x</span>
+                    <span style="font-weight: 600; color: #1e293b;">${item.name}</span>
+                </td>
+                <td style="padding: 5px 0; border-bottom: 1px dashed #e2e8f0; vertical-align: top; text-align: right; font-weight: 700; color: #0f172a; white-space: nowrap;">
+                    R$ ${item.total.toFixed(2).replace('.', ',')}
+                </td>
+            </tr>
+        `;
+    });
+
+    const win = window.open('', '', 'width=420,height=700');
     if (!win) return;
     win.document.write(`
+        <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="UTF-8">
             <title>Guia de Conferência - Balneário Rio Preto</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@600;800;900&display=swap" rel="stylesheet">
             <style>
-                body { font-family: monospace; font-size: 12px; margin: 0; padding: 10px; }
-                .text-center { text-align: center; }
-                .text-right { text-align: right; }
-                .font-bold { font-weight: bold; }
-                .font-black { font-weight: 900; }
-                .w-full { width: 100%; }
-                .border-b { border-bottom: 1px dashed #000; }
-                .py-1 { padding-top: 4px; padding-bottom: 4px; }
-                .py-2 { padding-top: 8px; padding-bottom: 8px; }
-                .flex { display: flex; }
-                .justify-between { justify-content: space-between; }
-                @media print { body { margin: 0; } }
+                @page { size: 80mm auto; margin: 0; }
+                * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                body {
+                    font-family: 'Inter', -apple-system, sans-serif;
+                    font-size: 11px;
+                    color: #111827;
+                    width: 280px;
+                    margin: 0 auto;
+                    padding: 12px 10px;
+                    background: #ffffff;
+                    line-height: 1.35;
+                }
+                .header { text-align: center; padding-bottom: 8px; }
+                .logo { width: 48px; height: 48px; border-radius: 12px; margin: 0 auto 6px auto; display: block; object-fit: contain; }
+                .brand-name { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 16px; color: #064e3b; text-transform: uppercase; letter-spacing: -0.3px; margin: 0; }
+                .receipt-subtitle { font-size: 9px; font-weight: 800; color: #047857; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+                .info-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; margin: 8px 0; font-size: 10.5px; }
+                .info-row { display: flex; justify-content: space-between; margin-bottom: 2.5px; }
+                .info-row:last-child { margin-bottom: 0; }
+                .info-label { color: #64748b; font-weight: 600; }
+                .info-val { color: #0f172a; font-weight: 800; }
+                .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                .items-table th { font-family: 'Outfit', sans-serif; font-size: 9.5px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 4px; text-align: left; }
+                .items-table th.right { text-align: right; }
+                .summary-box { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 10px; margin: 10px 0; }
+                .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 11px; }
+                .summary-row.total { border-top: 1.5px solid #86efac; padding-top: 6px; margin-top: 6px; margin-bottom: 0; }
+                .total-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 13px; color: #064e3b; }
+                .total-amount { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 17px; color: #047857; }
+                .footer { text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 9.5px; color: #64748b; }
+                .footer-highlight { font-weight: 800; color: #064e3b; margin-bottom: 2px; }
+                @media print { body { width: 100%; margin: 0; padding: 6px; } }
             </style>
         </head>
-        <body onload="window.print(); window.close();">
-            ${bodyContent}
+        <body onload="setTimeout(() => { window.print(); window.close(); }, 600);">
+            <div class="header">
+                <img src="https://balnearioriopreto.com.br/images/logo_opt.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+                <h1 class="brand-name">Balneário Rio Preto</h1>
+                <div class="receipt-subtitle">Conferência de Consumo</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">LOCAL / COMANDA:</span>
+                    <span class="info-val" style="color: #064e3b; font-size: 12px;">${locLabel}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ATENDENTE:</span>
+                    <span class="info-val">${staffName}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">DATA & HORA:</span>
+                    <span class="info-val">${nowStr}</span>
+                </div>
+            </div>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Item / Descrição</th>
+                        <th class="right">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span style="color: #475569; font-weight: 600;">Consumo Produtos:</span>
+                    <span style="font-weight: 800; color: #0f172a;">R$ ${data.baseTotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div class="summary-row">
+                    <span style="color: #475569; font-weight: 600;">Taxa de Serviço 10% (Garçons):</span>
+                    <span style="font-weight: 800; color: #047857;">R$ ${data.serviceFee.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div class="summary-row total">
+                    <span class="total-title">TOTAL A PAGAR:</span>
+                    <span class="total-amount">R$ ${data.grandTotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="footer-highlight">*** GUIA DE CONFERÊNCIA ***</div>
+                <p style="margin: 2px 0;">⚠️ Pagamento exclusivo no Caixa Central.</p>
+                <p style="margin: 2px 0;">Taxa de 10% opcional aos garçons.</p>
+                <p style="margin: 2px 0; font-weight: 600; color: #334155;">Obrigado pela preferência! 🌿</p>
+            </div>
         </body>
         </html>
     `);

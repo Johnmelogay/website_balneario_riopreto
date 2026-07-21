@@ -59,6 +59,7 @@
             <span id="locationIcon" class="text-lg">🏡</span>
             <span id="locationLabel" class="text-white font-bold text-sm"></span>
         </div>
+        <div id="customerWelcome" class="hidden mt-2 text-emerald-200 text-xs font-bold"></div>
     </header>
 
     <!-- ====== MAIN CONTENT ====== -->
@@ -145,17 +146,29 @@
         // ====== RENDER ======
         function renderOrders() {
             const main = document.getElementById('mainContent');
+            const welcomeEl = document.getElementById('customerWelcome');
 
             if (orders.length === 0) {
+                if (welcomeEl) welcomeEl.classList.add('hidden');
                 main.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-16 text-stone-400">
                         <div class="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center mb-4 text-4xl">
                             🍽️
                         </div>
-                        <h2 class="font-black text-stone-600 text-lg mb-1">Nenhum pedido ainda</h2>
+                        <h2 class="font-black text-stone-600 text-lg mb-1">Nenhum pedido ativo</h2>
                         <p class="text-sm text-stone-400 text-center">Seus pedidos aparecerão aqui automaticamente<br>assim que forem enviados para a cozinha.</p>
                     </div>`;
                 return;
+            }
+
+            const customerName = orders.find(o => o.customer_name?.trim())?.customer_name?.trim() || '';
+            if (welcomeEl) {
+                if (customerName) {
+                    welcomeEl.textContent = `Olá, ${customerName}! 👋 Acompanhe seus pedidos:`;
+                    welcomeEl.classList.remove('hidden');
+                } else {
+                    welcomeEl.classList.add('hidden');
+                }
             }
 
             const hasReady = orders.some(o => o.status === 'pronto');
@@ -165,7 +178,7 @@
                     <div class="mb-4 p-4 rounded-2xl bg-emerald-600 text-white shadow-lg flex items-center gap-3 border border-emerald-500">
                         <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shrink-0">🍽️</div>
                         <div>
-                            <h3 class="font-black text-base leading-tight">Seu pedido está pronto!</h3>
+                            <h3 class="font-black text-base leading-tight">${customerName ? 'Olá, ' + customerName + '! ' : ''}Seu pedido está pronto!</h3>
                             <p class="text-emerald-100 text-xs font-bold mt-0.5">Pode subir para o restaurante que estará esperando por você.</p>
                         </div>
                     </div>
@@ -259,10 +272,13 @@
 
                     <!-- Items -->
                     <div class="px-4 py-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-sm">${destIcon}</span>
-                            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">${destLabel}</span>
-                            ${order.order_number ? `<span class="text-[10px] font-bold text-stone-300 ml-auto">#${order.order_number}</span>` : ''}
+                        <div class="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-stone-100">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">${destIcon}</span>
+                                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">${destLabel}</span>
+                                ${order.order_number ? `<span class="text-[10px] font-bold text-stone-300 ml-1">#${order.order_number}</span>` : ''}
+                            </div>
+                            ${order.customer_name ? `<span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-user text-emerald-600 mr-1.5"></i>${order.customer_name}</span>` : ''}
                         </div>
                         ${items.map(item => `
                             <div class="flex items-center justify-between py-1.5 border-b border-stone-50 last:border-0">

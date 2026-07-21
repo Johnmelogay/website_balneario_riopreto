@@ -562,7 +562,7 @@ window.printCashierReceipt = (type, id) => {
         (order.order_items || []).forEach(item => {
             const name = item.product_name || 'Produto';
             if (!itemMap[name]) {
-                itemMap[name] = { qty: 0, price: Number(item.unit_price || 0), total: 0 };
+                itemMap[name] = { qty: 0, price: Number(item.unit_price || 0), total: 0, notes: item.notes };
             }
             itemMap[name].qty += Number(item.quantity || 1);
             itemMap[name].total += Number(item.unit_price || 0) * Number(item.quantity || 1);
@@ -570,19 +570,26 @@ window.printCashierReceipt = (type, id) => {
     });
 
     const nowStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    const locLabel = `${type.toUpperCase()}: ${id}`;
 
     let itemsHtml = '';
     Object.keys(itemMap).forEach(name => {
         const item = itemMap[name];
         itemsHtml += `
-            <div style="display: flex; justify-content: space-between; margin: 3px 0; font-size: 11px;">
-                <span style="flex: 1; padding-right: 5px;">${item.qty}x ${name}</span>
-                <span style="font-weight: bold; white-space: nowrap;">R$ ${item.total.toFixed(2).replace('.', ',')}</span>
-            </div>
+            <tr>
+                <td style="padding: 5px 0; border-bottom: 1px dashed #e2e8f0; vertical-align: top;">
+                    <span style="font-weight: 900; color: #047857; margin-right: 4px;">${item.qty}x</span>
+                    <span style="font-weight: 600; color: #1e293b;">${name}</span>
+                    ${item.notes ? `<div style="font-size: 9px; color: #d97706; font-style: italic; margin-top: 1px;">Obs: ${item.notes}</div>` : ''}
+                </td>
+                <td style="padding: 5px 0; border-bottom: 1px dashed #e2e8f0; vertical-align: top; text-align: right; font-weight: 700; color: #0f172a; white-space: nowrap;">
+                    R$ ${item.total.toFixed(2).replace('.', ',')}
+                </td>
+            </tr>
         `;
     });
 
-    const printWindow = window.open('', '', 'width=400,height=600');
+    const printWindow = window.open('', '', 'width=420,height=700');
     if (!printWindow) {
         alert('Por favor, permita pop-ups no seu navegador para imprimir a guia.');
         return;
@@ -592,71 +599,202 @@ window.printCashierReceipt = (type, id) => {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Guia de Conferência - Balneário Rio Preto</title>
+            <meta charset="UTF-8">
+            <title>Conferência de Consumo - Balneário Rio Preto</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@600;800;900&display=swap" rel="stylesheet">
             <style>
+                @page {
+                    size: 80mm auto;
+                    margin: 0;
+                }
+                * {
+                    box-sizing: border-box;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
                 body {
-                    font-family: 'Courier New', Courier, monospace;
-                    font-size: 12px;
+                    font-family: 'Inter', -apple-system, sans-serif;
+                    font-size: 11px;
+                    color: #111827;
                     width: 280px;
                     margin: 0 auto;
-                    padding: 8px;
-                    color: #000;
+                    padding: 12px 10px;
+                    background: #ffffff;
+                    line-height: 1.35;
                 }
-                .text-center { text-align: center; }
-                .text-right { text-align: right; }
-                .font-bold { font-weight: bold; }
-                .divider { border-bottom: 1px dashed #000; margin: 6px 0; }
-                .divider-thick { border-bottom: 2px solid #000; margin: 6px 0; }
+                .header {
+                    text-align: center;
+                    padding-bottom: 8px;
+                }
+                .logo {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 12px;
+                    margin: 0 auto 6px auto;
+                    display: block;
+                    object-fit: contain;
+                }
+                .brand-name {
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 900;
+                    font-size: 16px;
+                    color: #064e3b;
+                    text-transform: uppercase;
+                    letter-spacing: -0.3px;
+                    margin: 0;
+                }
+                .receipt-subtitle {
+                    font-size: 9px;
+                    font-weight: 800;
+                    color: #047857;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                    margin-top: 2px;
+                }
+                .info-box {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    padding: 8px 10px;
+                    margin: 8px 0;
+                    font-size: 10.5px;
+                }
+                .info-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 2.5px;
+                }
+                .info-row:last-child { margin-bottom: 0; }
+                .info-label { color: #64748b; font-weight: 600; }
+                .info-val { color: #0f172a; font-weight: 800; }
+
+                .items-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 10px 0;
+                }
+                .items-table th {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 9.5px;
+                    font-weight: 800;
+                    color: #475569;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    border-bottom: 1.5px solid #cbd5e1;
+                    padding-bottom: 4px;
+                    text-align: left;
+                }
+                .items-table th.right { text-align: right; }
+
+                .summary-box {
+                    background: #f0fdf4;
+                    border: 1.5px solid #bbf7d0;
+                    border-radius: 12px;
+                    padding: 10px;
+                    margin: 10px 0;
+                }
+                .summary-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 4px;
+                    font-size: 11px;
+                }
+                .summary-row.total {
+                    border-top: 1.5px solid #86efac;
+                    padding-top: 6px;
+                    margin-top: 6px;
+                    margin-bottom: 0;
+                }
+                .total-title {
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 900;
+                    font-size: 13px;
+                    color: #064e3b;
+                }
+                .total-amount {
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 900;
+                    font-size: 17px;
+                    color: #047857;
+                }
+
+                .footer {
+                    text-align: center;
+                    margin-top: 12px;
+                    padding-top: 8px;
+                    border-top: 1px dashed #cbd5e1;
+                    font-size: 9.5px;
+                    color: #64748b;
+                }
+                .footer-highlight {
+                    font-weight: 800;
+                    color: #064e3b;
+                    margin-bottom: 2px;
+                }
                 @media print {
-                    body { width: 100%; margin: 0; padding: 0; }
+                    body { width: 100%; margin: 0; padding: 6px; }
                 }
             </style>
         </head>
-        <body onload="window.print(); setTimeout(() => window.close(), 1000);">
-            <div class="text-center font-bold" style="font-size: 15px;">BALNEÁRIO RIO PRETO</div>
-            <div class="text-center" style="font-size: 11px; margin-top: 2px;">CONFERÊNCIA DE CONSUMO</div>
-            
-            <div class="divider"></div>
-
-            <div><strong>DATA:</strong> ${nowStr}</div>
-            <div><strong>LOCAL:</strong> ${type.toUpperCase()}: ${id}</div>
-            <div><strong>ATENDENTE:</strong> ${staffName}</div>
-            <div><strong>CLIENTE:</strong> ${customerName}</div>
-
-            <div class="divider"></div>
-
-            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; margin-bottom: 4px;">
-                <span>QTD ITEM</span>
-                <span>VALOR</span>
+        <body onload="setTimeout(() => { window.print(); window.close(); }, 600);">
+            <div class="header">
+                <img src="https://balnearioriopreto.com.br/images/logo_opt.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+                <h1 class="brand-name">Balneário Rio Preto</h1>
+                <div class="receipt-subtitle">Conferência de Consumo</div>
             </div>
 
-            ${itemsHtml}
-
-            <div class="divider"></div>
-
-            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
-                <span>CONSUMO DOS PRODUTOS:</span>
-                <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">LOCAL / COMANDA:</span>
+                    <span class="info-val" style="color: #064e3b; font-size: 12px;">${locLabel}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">CLIENTE:</span>
+                    <span class="info-val">${customerName}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ATENDENTE:</span>
+                    <span class="info-val">${staffName}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">DATA & HORA:</span>
+                    <span class="info-val">${nowStr}</span>
+                </div>
             </div>
-            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
-                <span>TAXA DE SERVIÇO (10%):</span>
-                <span>R$ ${serviceFee.toFixed(2).replace('.', ',')} ${is10Enabled ? '' : '(OPCIONAL ISENTA)'}</span>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Item / Descrição</th>
+                        <th class="right">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span style="color: #475569; font-weight: 600;">Consumo Produtos:</span>
+                    <span style="font-weight: 800; color: #0f172a;">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div class="summary-row">
+                    <span style="color: #475569; font-weight: 600;">Taxa de Serviço 10% (Garçons):</span>
+                    <span style="font-weight: 800; color: #047857;">R$ ${serviceFee.toFixed(2).replace('.', ',')} ${is10Enabled ? '' : '<small style="color:#ef4444">(Isenta)</small>'}</span>
+                </div>
+                <div class="summary-row total">
+                    <span class="total-title">TOTAL A RECEBER:</span>
+                    <span class="total-amount">R$ ${total.toFixed(2).replace('.', ',')}</span>
+                </div>
             </div>
 
-            <div class="divider-thick"></div>
-
-            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin: 4px 0;">
-                <span>TOTAL A RECEBER:</span>
-                <span>R$ ${total.toFixed(2).replace('.', ',')}</span>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="text-center" style="font-size: 10px; margin-top: 12px; line-height: 1.4;">
-                *** GUIA DE CONFERÊNCIA DO CLIENTE ***<br>
-                Taxa de serviço 10% é opcional.<br>
-                Obrigado pela preferência!<br>
-                Balneário Rio Preto
+            <div class="footer">
+                <div class="footer-highlight">*** GUIA DE CONFERÊNCIA ***</div>
+                <p style="margin: 2px 0;">A taxa de serviço de 10% é opcional.</p>
+                <p style="margin: 2px 0; font-weight: 600; color: #334155;">Obrigado pela preferência e volte sempre! 🌿</p>
+                <p style="margin-top: 4px; font-size: 8.5px; color: #94a3b8;">balnearioriopreto.com.br</p>
             </div>
         </body>
         </html>
