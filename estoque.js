@@ -278,6 +278,15 @@ window.saveAllStock = async () => {
             saved++;
         }
 
+        // Audit Log
+        try {
+            import('./audit_logger.js').then(({ logAuditAction }) => {
+                logAuditAction('STOCK_UPDATED', {
+                    products_updated_count: saved
+                }, { type: 'cozinha', id: 'estoque' });
+            }).catch(() => {});
+        } catch(e) {}
+
         pendingChanges.clear();
         renderProducts();
         updateCounters();

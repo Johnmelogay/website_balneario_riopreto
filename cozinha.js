@@ -352,18 +352,34 @@ function updateTimersOnly() {
 // ====== ACTIONS ======
 window.markPreparing = async (orderId) => {
     await supabase.from('orders').update({ status: 'preparando', updated_at: new Date().toISOString() }).eq('id', orderId);
+    logKitchenAudit(orderId, 'preparando');
     loadOrders();
 };
 
 window.markReady = async (orderId) => {
     await supabase.from('orders').update({ status: 'pronto', updated_at: new Date().toISOString() }).eq('id', orderId);
+    logKitchenAudit(orderId, 'pronto');
     loadOrders();
 };
 
 window.markDelivered = async (orderId) => {
     await supabase.from('orders').update({ status: 'entregue', updated_at: new Date().toISOString() }).eq('id', orderId);
+    logKitchenAudit(orderId, 'entregue');
     loadOrders();
 };
+
+function logKitchenAudit(orderId, newStatus) {
+    try {
+        const order = orders.find(o => o.id === orderId);
+        import('./audit_logger.js').then(({ logAuditAction }) => {
+            logAuditAction('STATUS_CHANGED', {
+                order_id: orderId,
+                order_number: order?.order_number || null,
+                new_status: newStatus
+            }, { type: order?.location_type, id: order?.location_id });
+        }).catch(() => {});
+    } catch(e) {}
+}
 
 // ====== INIT ======
 document.addEventListener('DOMContentLoaded', () => {

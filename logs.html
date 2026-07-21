@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Auditoria & Logs • Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="theme-color" content="#1e1b18">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #1c1917; color: #e7e5e4; }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        .pin-dot { width: 14px; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.15); transition: all 0.2s; }
+        .pin-dot.filled { background: #3b82f6; transform: scale(1.2); }
+        .numpad-btn { width: 56px; height: 56px; border-radius: 16px; background: rgba(255,255,255,0.06);
+            color: white; font-size: 22px; font-weight: 800; display: flex; align-items: center;
+            justify-content: center; transition: all 0.15s; border: 1px solid rgba(255,255,255,0.06); }
+        .numpad-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.92); }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-fade { animation: fadeIn 0.2s ease-out; }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- ====== LOGIN SCREEN ====== -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-gradient-to-b from-stone-900 to-stone-950 flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl">🛡️</div>
+            <h1 class="text-2xl font-black text-white">Auditoria & Logs</h1>
+            <p class="text-blue-400 text-xs font-bold mt-1">Balneário Rio Preto</p>
+        </div>
+        <div class="w-full max-w-xs space-y-5">
+            <div class="flex justify-center gap-3" id="pinDots">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            <p id="loginError" class="text-red-400 text-xs font-bold text-center hidden">PIN inválido</p>
+            <div class="grid grid-cols-3 gap-3 max-w-[220px] mx-auto">
+                <button onclick="pinInput('1')" class="numpad-btn">1</button>
+                <button onclick="pinInput('2')" class="numpad-btn">2</button>
+                <button onclick="pinInput('3')" class="numpad-btn">3</button>
+                <button onclick="pinInput('4')" class="numpad-btn">4</button>
+                <button onclick="pinInput('5')" class="numpad-btn">5</button>
+                <button onclick="pinInput('6')" class="numpad-btn">6</button>
+                <button onclick="pinInput('7')" class="numpad-btn">7</button>
+                <button onclick="pinInput('8')" class="numpad-btn">8</button>
+                <button onclick="pinInput('9')" class="numpad-btn">9</button>
+                <button onclick="pinClear()" class="numpad-btn text-red-400 text-sm">CLR</button>
+                <button onclick="pinInput('0')" class="numpad-btn">0</button>
+                <button onclick="pinDelete()" class="numpad-btn text-amber-400 text-sm"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MAIN AUDIT DASHBOARD ====== -->
+    <div id="mainScreen" class="hidden flex-col h-screen overflow-hidden">
+
+        <!-- Header -->
+        <header class="bg-stone-900 border-b border-stone-800 px-4 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🛡️</span>
+                <div>
+                    <h1 class="text-white font-black text-lg leading-tight">Trilha de Auditoria</h1>
+                    <p class="text-stone-500 text-[10px] font-bold uppercase tracking-widest">Logs de Ações & Aparelhos</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Date Picker -->
+                <div class="relative">
+                    <input type="date" id="datePicker"
+                        class="bg-stone-800 border border-stone-700 text-white font-bold text-xs rounded-xl px-3 py-2 outline-none focus:border-blue-500 transition">
+                </div>
+                <button onclick="loadLogs()" class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 active:scale-95 transition">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="bg-stone-900/80 border-b border-stone-800 px-4 py-2 flex items-center justify-around shrink-0 text-center">
+            <div>
+                <p class="text-blue-400 font-black text-lg" id="statTotal">0</p>
+                <p class="text-stone-500 text-[9px] font-bold uppercase">Total Ações</p>
+            </div>
+            <div>
+                <p class="text-emerald-400 font-black text-lg" id="statOrders">0</p>
+                <p class="text-stone-500 text-[9px] font-bold uppercase">Pedidos</p>
+            </div>
+            <div>
+                <p class="text-amber-400 font-black text-lg" id="statStatus">0</p>
+                <p class="text-stone-500 text-[9px] font-bold uppercase">Status Cozinha</p>
+            </div>
+            <div>
+                <p class="text-purple-400 font-black text-lg" id="statStock">0</p>
+                <p class="text-stone-500 text-[9px] font-bold uppercase">Estoque</p>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="bg-stone-900 px-4 py-2.5 border-b border-stone-800 flex flex-wrap gap-2 items-center shrink-0">
+            <!-- Search Input -->
+            <div class="relative flex-1 min-w-[150px]">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs"></i>
+                <input type="text" id="searchInput" placeholder="Buscar texto, funcionário, pedido..."
+                    class="w-full pl-8 pr-3 py-1.5 bg-stone-800 border border-stone-700 rounded-lg text-white text-xs font-medium outline-none focus:border-blue-500 transition">
+            </div>
+
+            <!-- Action Type Filter -->
+            <select id="actionFilter" class="bg-stone-800 border border-stone-700 text-stone-300 font-bold text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500">
+                <option value="all">Todas as Ações</option>
+                <option value="ORDER_CREATED">Pedido Criado</option>
+                <option value="STATUS_CHANGED">Status Cozinha</option>
+                <option value="STOCK_UPDATED">Estoque Ajustado</option>
+                <option value="STAFF_LOGIN">Login Funcionário</option>
+                <option value="PAYMENT_CLOSED">Pagamento Caixa</option>
+            </select>
+
+            <!-- Staff Filter -->
+            <select id="staffFilter" class="bg-stone-800 border border-stone-700 text-stone-300 font-bold text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500">
+                <option value="all">Todos Funcionários</option>
+            </select>
+        </div>
+
+        <!-- Logs Timeline Feed -->
+        <main class="flex-1 overflow-y-auto p-4 space-y-2" id="logsContainer">
+            <div class="flex flex-col items-center justify-center h-full text-stone-600">
+                <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 text-blue-500"></i>
+                <p class="font-bold text-sm">Carregando logs...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- ====== DETAILS MODAL ====== -->
+    <div id="detailsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-stone-900 border border-stone-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl anim-fade">
+            <div class="px-5 py-4 border-b border-stone-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span id="modalIcon" class="text-xl">🛡️</span>
+                    <h3 id="modalTitle" class="font-black text-white text-base">Detalhes da Ação</h3>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-stone-800 text-stone-400 flex items-center justify-center hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto max-h-[75vh] space-y-4" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script type="module" src="logs.js"></script>
+</body>
+
+</html>

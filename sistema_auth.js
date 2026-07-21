@@ -39,6 +39,14 @@ export async function loginStaff(pin) {
     };
     
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    
+    // Log Audit Event
+    try {
+        import('./audit_logger.js').then(({ logAuditAction }) => {
+            logAuditAction('STAFF_LOGIN', { staff_name: data.name, role: data.role });
+        }).catch(() => {});
+    } catch(e) {}
+
     return { success: true, user: session };
 }
 

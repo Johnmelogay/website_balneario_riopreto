@@ -620,7 +620,20 @@ window.sendOrder = async () => {
             total
         };
 
-        // 4. Success!
+        // 4. Audit Log
+        try {
+            import('./audit_logger.js').then(({ logAuditAction }) => {
+                logAuditAction('ORDER_CREATED', {
+                    orders: createdOrders.map(o => o.number),
+                    total_amount: total,
+                    items_count: cart.reduce((s, c) => s + c.qty, 0),
+                    customer_name: customerName,
+                    customer_phone: customerPhone
+                }, currentLocation);
+            }).catch(() => {});
+        } catch(e) {}
+
+        // 5. Success!
         toggleCart();
         showSuccess(createdOrders);
 
