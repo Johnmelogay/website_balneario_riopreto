@@ -1,6 +1,5 @@
 // elgin_printer_server.js
-// Servidor de Impressão Direta em Alta Resolução (Sem Desperdício de Papel + Tipografia Nitida)
-// Renderiza o recibo com corte automático rente ao texto, sem sangrar letras e com logo/título nítido!
+// Servidor de Impressão Direta em Alta Resolução (Logo Oficial + Fontes Grandes e Legíveis + Zero Desperdício de Papel)
 
 const http = require('http');
 const usb = require('usb');
@@ -19,7 +18,7 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     fs.writeFileSync(tempHtmlPath, htmlContent);
 
     const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    const cmd = `"${chromePath}" --headless --disable-gpu --screenshot="${tempPngPath}" --window-size=576,1400 "${tempHtmlPath}"`;
+    const cmd = `"${chromePath}" --headless --disable-gpu --screenshot="${tempPngPath}" --window-size=576,1600 "${tempHtmlPath}"`;
     
     execSync(cmd);
 
@@ -33,14 +32,14 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const width = targetWidth;
     const widthBytes = Math.ceil(width / 8);
 
-    // 1. Encontrar a última linha vertical com pixels pretos para eliminar desperdício de papel
+    // Encontrar a última linha vertical com pixels pretos para eliminar desperdício de papel
     let lastY = 0;
     for (let y = png.height - 1; y >= 0; y--) {
         for (let x = 0; x < png.width; x++) {
             const idx = (y * png.width + x) * 4;
             const a = png.data[idx + 3];
             const lum = png.data[idx] * 0.299 + png.data[idx + 1] * 0.587 + png.data[idx + 2] * 0.114;
-            if (a > 128 && lum < 140) {
+            if (a > 128 && lum < 165) {
                 lastY = y;
                 break;
             }
@@ -48,8 +47,7 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
         if (lastY > 0) break;
     }
 
-    // Se encontrou a última linha, corta a altura com margem de apenas 15px no final
-    const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 20) : png.height;
+    const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 25) : png.height;
     const height = Math.floor(targetWidth * (croppedHeight / png.width));
 
     const rasterData = Buffer.alloc(widthBytes * height);
@@ -65,9 +63,9 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
             const b = png.data[idx + 2];
             const a = png.data[idx + 3];
 
-            // Limiar de luminância otimizado para evitar letras grossas/borradas
+            // Limiar equilibrado de luminância para caracteres grandes e nítidos
             const lum = (r * 0.299 + g * 0.587 + b * 0.114);
-            const isBlack = (a > 128) && (lum < 135);
+            const isBlack = (a > 128) && (lum < 165);
 
             if (isBlack) {
                 const byteIdx = y * widthBytes + Math.floor(x / 8);
@@ -150,25 +148,25 @@ async function printVisualPdfHardware(data) {
         (data.items || []).forEach(item => {
             itemsRows += `
                 <tr>
-                    <td style="padding: 6px 0; border-bottom: 1px dashed #94a3b8; vertical-align: top;">
-                        <span style="font-weight: 800; color: #000; margin-right: 6px; font-size: 15px;">${item.qty}x</span>
-                        <span style="font-weight: 700; color: #000; font-size: 15px;">${item.name}</span>
-                        ${item.notes ? `<div style="font-size: 12px; color: #475569; font-style: italic; font-weight: 600; margin-top: 2px;">Obs: ${item.notes}</div>` : ''}
+                    <td style="padding: 8px 0; border-bottom: 2px dashed #000000; vertical-align: top;">
+                        <span style="font-weight: 900; color: #000000; margin-right: 8px; font-size: 21px;">${item.qty}x</span>
+                        <span style="font-weight: 800; color: #000000; font-size: 19px;">${item.name}</span>
+                        ${item.notes ? `<div style="font-size: 15px; color: #000000; font-style: italic; font-weight: 700; margin-top: 3px;">Obs: ${item.notes}</div>` : ''}
                     </td>
-                    <td style="padding: 6px 0; border-bottom: 1px dashed #94a3b8; vertical-align: top; text-align: right; font-weight: 800; color: #000; font-size: 15px; white-space: nowrap;">
+                    <td style="padding: 8px 0; border-bottom: 2px dashed #000000; vertical-align: top; text-align: right; font-weight: 900; color: #000000; font-size: 20px; white-space: nowrap;">
                         R$ ${Number(item.total || 0).toFixed(2).replace('.', ',')}
                     </td>
                 </tr>
             `;
         });
 
-        // Crisp, ultra-readable receipt layout optimized for thermal paper (No dark circles, no paper waste)
+        // HTML Visual Layout with Large Readable Fonts & Official Logo
         const receiptHtml = `
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
                 <style>
                     * { box-sizing: border-box; margin: 0; padding: 0; }
                     body {
@@ -176,37 +174,37 @@ async function printVisualPdfHardware(data) {
                         width: 576px;
                         background: #ffffff;
                         color: #000000;
-                        padding: 10px 16px;
-                        line-height: 1.3;
+                        padding: 12px 14px;
+                        line-height: 1.35;
                     }
-                    .header { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #000000; }
-                    .brand-icon { font-size: 26px; margin-bottom: 2px; }
-                    .brand-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 24px; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; }
-                    .subtitle { font-size: 12px; font-weight: 800; color: #000000; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+                    .header { text-align: center; padding-bottom: 12px; border-bottom: 3px solid #000000; }
+                    .logo { width: 84px; height: 84px; margin: 0 auto 6px auto; display: block; object-fit: contain; filter: contrast(180%); }
+                    .brand-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 30px; color: #000000; text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1; }
+                    .subtitle { font-size: 15px; font-weight: 900; color: #000000; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
                     
-                    .info-box { border: 1.5px solid #000000; border-radius: 10px; padding: 10px 12px; margin: 10px 0; font-size: 14px; }
-                    .info-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+                    .info-box { border: 2.5px solid #000000; border-radius: 14px; padding: 12px 14px; margin: 12px 0; font-size: 18px; }
+                    .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
                     .info-row:last-child { margin-bottom: 0; }
-                    .info-label { color: #000000; font-weight: 700; }
+                    .info-label { color: #000000; font-weight: 800; }
                     .info-val { color: #000000; font-weight: 900; }
 
-                    .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 14px; }
-                    .items-table th { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #000000; padding-bottom: 4px; text-align: left; }
+                    .items-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 19px; }
+                    .items-table th { font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 3px solid #000000; padding-bottom: 6px; text-align: left; }
                     .items-table th.right { text-align: right; }
 
-                    .summary-box { border: 2px solid #000000; border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
-                    .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 14px; }
-                    .summary-row.total { border-top: 2px solid #000000; padding-top: 8px; margin-top: 6px; margin-bottom: 0; }
-                    .total-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 17px; color: #000000; }
-                    .total-amount { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 24px; color: #000000; }
+                    .summary-box { border: 3px solid #000000; border-radius: 16px; padding: 14px; margin: 12px 0; }
+                    .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 18px; }
+                    .summary-row.total { border-top: 3px solid #000000; padding-top: 10px; margin-top: 8px; margin-bottom: 0; }
+                    .total-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 24px; color: #000000; }
+                    .total-amount { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 34px; color: #000000; }
 
-                    .footer { text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000000; font-size: 11px; color: #000000; }
-                    .footer-highlight { font-weight: 900; color: #000000; font-size: 12px; margin-bottom: 2px; }
+                    .footer { text-align: center; margin-top: 12px; padding-top: 10px; border-top: 2px dashed #000000; font-size: 14px; color: #000000; }
+                    .footer-highlight { font-weight: 900; color: #000000; font-size: 15px; margin-bottom: 3px; }
                 </style>
             </head>
             <body>
                 <div class="header">
-                    <div class="brand-icon">🌿</div>
+                    <img src="https://balnearioriopreto.com.br/images/logo_opt.png" alt="Logo" class="logo" onerror="this.style.display='none'">
                     <h1 class="brand-title">Balneário Rio Preto</h1>
                     <div class="subtitle">Conferência de Consumo</div>
                 </div>
@@ -214,7 +212,7 @@ async function printVisualPdfHardware(data) {
                 <div class="info-box">
                     <div class="info-row">
                         <span class="info-label">LOCAL / COMANDA:</span>
-                        <span class="info-val" style="font-size: 16px;">${data.location || 'MESA'}</span>
+                        <span class="info-val" style="font-size: 22px;">${data.location || 'MESA'}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">CLIENTE:</span>
@@ -244,11 +242,11 @@ async function printVisualPdfHardware(data) {
 
                 <div class="summary-box">
                     <div class="summary-row">
-                        <span style="font-weight: 700;">Consumo Produtos:</span>
+                        <span style="font-weight: 800;">Consumo Produtos:</span>
                         <span style="font-weight: 900;">R$ ${subtotal}</span>
                     </div>
                     <div class="summary-row">
-                        <span style="font-weight: 700;">Taxa de Serviço 10% (Garçons):</span>
+                        <span style="font-weight: 800;">Taxa de Serviço 10% (Garçons):</span>
                         <span style="font-weight: 900;">R$ ${serviceFee}</span>
                     </div>
                     <div class="summary-row total">
@@ -259,15 +257,15 @@ async function printVisualPdfHardware(data) {
 
                 <div class="footer">
                     <div class="footer-highlight">*** GUIA DE CONFERÊNCIA ***</div>
-                    <p style="margin: 2px 0;">A taxa de serviço de 10% é opcional aos garçons.</p>
-                    <p style="margin: 2px 0; font-weight: 800;">Obrigado pela preferência e volte sempre! 🌿</p>
-                    <p style="margin-top: 4px; font-size: 10px; color: #475569; font-weight: 700;">balnearioriopreto.com.br</p>
+                    <p style="margin: 3px 0; font-weight: 700;">A taxa de serviço de 10% é opcional aos garçons.</p>
+                    <p style="margin: 3px 0; font-weight: 900;">Obrigado pela preferência e volte sempre! 🌿</p>
+                    <p style="margin-top: 6px; font-size: 13px; color: #000000; font-weight: 800;">balnearioriopreto.com.br</p>
                 </div>
             </body>
             </html>
         `;
 
-        // Render HTML to high-resolution raster bitmap with auto-crop for zero paper waste
+        // Render HTML to 576-dot full-width raster bitmap
         const rasterBuffer = htmlToEscPosRaster(receiptHtml, 576);
 
         await dev.open();
@@ -288,7 +286,7 @@ async function printVisualPdfHardware(data) {
             await dev.releaseInterface(0);
         } catch (e) {}
 
-        console.log("✂️ IMPRESSÃO NITIDA + CORTE AUTOMÁTICO RENTE SEM DESPERDÍCIO DE PAPEL CONCLUÍDA!");
+        console.log("🎨 IMPRESSÃO COM LOGO OFICIAL E FONTES AMPLIADAS CONCLUÍDA NA ELGIN i8!");
     } finally {
         if (dev) {
             try {
@@ -300,5 +298,5 @@ async function printVisualPdfHardware(data) {
 }
 
 server.listen(PORT, () => {
-    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Nítido + Zero Desperdício) ativo na porta ${PORT}`);
+    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Logo + Fontes Grandes) ativo na porta ${PORT}`);
 });
