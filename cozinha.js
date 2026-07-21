@@ -268,7 +268,6 @@ function orderCard(order) {
     // Critical Time (Card turns entirely red)
     if (order.status !== 'pronto' && elapsed >= TIMER_CRITICAL) {
         cardBg = 'bg-[url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ef4444\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E")] bg-red-950/80 border-red-600 shadow-xl shadow-red-900/30';
-        isUrgent = 'animate-pulse';
         timeColor = 'text-red-400 font-black decoration-wavy underline';
     }
 
@@ -282,7 +281,7 @@ function orderCard(order) {
     const staffName = order.staff_users?.name || '—';
 
     return `
-        <div id="card-${order.id}" class="order-card-container ${cardBg} ${statusClass} ${isUrgent} rounded-2xl overflow-hidden anim-in border border-stone-700" data-created="${order.created_at}" data-status="${order.status}">
+        <div id="card-${order.id}" class="order-card-container ${cardBg} ${statusClass} rounded-2xl overflow-hidden border border-stone-700" data-created="${order.created_at}" data-status="${order.status}">
             <!-- Header -->
             <div class="px-4 pt-4 pb-2 flex items-center justify-between">
                 <div class="flex items-center gap-2">
