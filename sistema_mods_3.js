@@ -443,21 +443,22 @@ window.confirmCashierCheckout = async (type, id) => {
         const customerName = document.getElementById('cashierCustomerName')?.value?.trim() || null;
 
         // Update all active orders for this comanda
-        const updates = cashierActiveOrders.map(o => {
+        for (const o of cashierActiveOrders) {
             const ratio = Number(o.total) / cashierBaseTotal;
-            return {
-                ...o,
-                payment_status: 'pago',
-                payment_method: cashierPayMethod,
-                customer_name: customerName || o.customer_name,
-                service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
-                updated_at: new Date().toISOString(),
-                staff_id: staff?.id || o.staff_id
-            };
-        });
+            const { error: updateErr } = await supabase
+                .from('orders')
+                .update({
+                    payment_status: 'pago',
+                    payment_method: cashierPayMethod,
+                    customer_name: customerName || o.customer_name,
+                    service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
+                    updated_at: new Date().toISOString(),
+                    staff_id: staff?.id || o.staff_id
+                })
+                .eq('id', o.id);
 
-        const { error } = await supabase.from('orders').upsert(updates);
-        if (error) throw error;
+            if (updateErr) throw updateErr;
+        }
 
         // Audit Log for Payment Closed
         try {
