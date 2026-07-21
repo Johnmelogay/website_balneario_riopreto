@@ -192,10 +192,10 @@
     </div>
 
     <!-- ====== MAIN APP (Catálogo + Carrinho) ====== -->
-    <div id="mainApp" class="hidden flex flex-col min-h-screen">
+    <div id="mainApp" class="fixed inset-0 z-30 bg-stone-100 hidden flex-col h-screen h-[100dvh] w-full overflow-hidden">
 
         <!-- Top Bar -->
-        <header class="bg-white sticky top-0 z-30 px-4 py-3 shadow-sm border-b border-stone-200">
+        <header class="bg-white sticky top-0 z-30 px-4 py-3 shadow-sm border-b border-stone-200 shrink-0">
             <div class="flex items-center justify-between">
                 <button onclick="goBackToLocation()" class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 active:scale-95 transition">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -232,8 +232,8 @@
             </div>
         </header>
 
-        <!-- Products Grid -->
-        <main class="flex-1 bg-stone-100 p-4 overflow-y-auto pb-32" id="productsContainer">
+        <!-- Products Grid (Scrollable) -->
+        <main class="flex-1 bg-stone-100 p-4 overflow-y-auto pb-36" id="productsContainer" style="-webkit-overflow-scrolling: touch;">
             <!-- Skeleton Loading -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-white rounded-2xl h-36 animate-pulse border border-stone-100"></div>
