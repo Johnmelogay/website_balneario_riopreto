@@ -411,7 +411,6 @@ window.printGuiaCliente = () => {
     `);
     win.document.close();
 };
-};
 
 // ====== CANCEL ORDER ======
 window.cancelarPedido = async (orderId, orderNumber) => {
