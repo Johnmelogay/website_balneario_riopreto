@@ -376,6 +376,11 @@ function renderCashierModal(type, id) {
 
                 <!-- Footer Actions -->
                 <div class="bg-gray-50 p-4 border-t border-gray-100 flex flex-col gap-2">
+                    <button onclick="window.printCashierReceipt('${type}', '${id}')" id="btnPrintCashierReceipt"
+                        class="w-full py-3.5 bg-stone-800 hover:bg-stone-900 text-white font-black text-sm rounded-2xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2 mb-1">
+                        <i class="fa-solid fa-print text-emerald-400"></i> IMPRIMIR GUIA DO CLIENTE / CONFERÊNCIA (10%)
+                    </button>
+
                     <button onclick="window.confirmCashierCheckout('${type}', '${id}')" id="btnConfirmCashier"
                         class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base rounded-2xl shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
                         <i class="fa-solid fa-lock"></i> CONFIRMAR RECEBIMENTO E MOVER PARA HISTÓRICO
@@ -492,4 +497,129 @@ window.confirmCashierCheckout = async (type, id) => {
 
 window.closeMod = () => {
     document.getElementById('modalContainer').innerHTML = '';
+};
+
+// ====== THERMAL RECEIPT PRINTING (80mm) ======
+window.printCashierReceipt = (type, id) => {
+    if (!cashierActiveOrders || cashierActiveOrders.length === 0) return;
+
+    const staff = getCurrentStaff();
+    const staffName = staff?.name || 'Caixa Central';
+    const customerInput = document.getElementById('cashierCustomerName')?.value?.trim();
+    const customerName = customerInput || cashierActiveOrders[0]?.customer_name || 'Não Informado';
+
+    const chk10 = document.getElementById('chkCashier10');
+    const is10Enabled = chk10 ? chk10.checked : cashierServiceEnabled;
+
+    const subtotal = cashierBaseTotal;
+    const serviceFee = is10Enabled ? subtotal * 0.10 : 0;
+    const total = subtotal + serviceFee;
+
+    // Consolidate items by product name
+    const itemMap = {};
+    cashierActiveOrders.forEach(order => {
+        (order.order_items || []).forEach(item => {
+            const name = item.product_name || 'Produto';
+            if (!itemMap[name]) {
+                itemMap[name] = { qty: 0, price: Number(item.unit_price || 0), total: 0 };
+            }
+            itemMap[name].qty += Number(item.quantity || 1);
+            itemMap[name].total += Number(item.unit_price || 0) * Number(item.quantity || 1);
+        });
+    });
+
+    const nowStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+    let itemsHtml = '';
+    Object.keys(itemMap).forEach(name => {
+        const item = itemMap[name];
+        itemsHtml += `
+            <div style="display: flex; justify-content: space-between; margin: 3px 0; font-size: 11px;">
+                <span style="flex: 1; padding-right: 5px;">${item.qty}x ${name}</span>
+                <span style="font-weight: bold; white-space: nowrap;">R$ ${item.total.toFixed(2).replace('.', ',')}</span>
+            </div>
+        `;
+    });
+
+    const printWindow = window.open('', '', 'width=400,height=600');
+    if (!printWindow) {
+        alert('Por favor, permita pop-ups no seu navegador para imprimir a guia.');
+        return;
+    }
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Guia de Conferência - Balneário Rio Preto</title>
+            <style>
+                body {
+                    font-family: 'Courier New', Courier, monospace;
+                    font-size: 12px;
+                    width: 280px;
+                    margin: 0 auto;
+                    padding: 8px;
+                    color: #000;
+                }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .font-bold { font-weight: bold; }
+                .divider { border-bottom: 1px dashed #000; margin: 6px 0; }
+                .divider-thick { border-bottom: 2px solid #000; margin: 6px 0; }
+                @media print {
+                    body { width: 100%; margin: 0; padding: 0; }
+                }
+            </style>
+        </head>
+        <body onload="window.print(); setTimeout(() => window.close(), 1000);">
+            <div class="text-center font-bold" style="font-size: 15px;">BALNEÁRIO RIO PRETO</div>
+            <div class="text-center" style="font-size: 11px; margin-top: 2px;">CONFERÊNCIA DE CONSUMO</div>
+            
+            <div class="divider"></div>
+
+            <div><strong>DATA:</strong> ${nowStr}</div>
+            <div><strong>LOCAL:</strong> ${type.toUpperCase()}: ${id}</div>
+            <div><strong>ATENDENTE:</strong> ${staffName}</div>
+            <div><strong>CLIENTE:</strong> ${customerName}</div>
+
+            <div class="divider"></div>
+
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; margin-bottom: 4px;">
+                <span>QTD ITEM</span>
+                <span>VALOR</span>
+            </div>
+
+            ${itemsHtml}
+
+            <div class="divider"></div>
+
+            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+                <span>CONSUMO DOS PRODUTOS:</span>
+                <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+                <span>TAXA DE SERVIÇO (10%):</span>
+                <span>R$ ${serviceFee.toFixed(2).replace('.', ',')} ${is10Enabled ? '' : '(OPCIONAL ISENTA)'}</span>
+            </div>
+
+            <div class="divider-thick"></div>
+
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin: 4px 0;">
+                <span>TOTAL A RECEBER:</span>
+                <span>R$ ${total.toFixed(2).replace('.', ',')}</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="text-center" style="font-size: 10px; margin-top: 12px; line-height: 1.4;">
+                *** GUIA DE CONFERÊNCIA DO CLIENTE ***<br>
+                Taxa de serviço 10% é opcional.<br>
+                Obrigado pela preferência!<br>
+                Balneário Rio Preto
+            </div>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
 };
