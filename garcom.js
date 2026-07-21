@@ -260,18 +260,44 @@ let currentGarcomNavTab = 'fazer_pedido';
 window.switchGarcomTab = (tabKey) => {
     currentGarcomNavTab = tabKey;
 
+    // If mainApp (catalog) is open, close it to return to location screen
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp && !mainApp.classList.contains('hidden')) {
+        mainApp.classList.add('hidden');
+        mainApp.classList.remove('flex');
+    }
+
+    // If extrato is open, close it
+    const extratoScreen = document.getElementById('extratoScreen');
+    if (extratoScreen && !extratoScreen.classList.contains('hidden')) {
+        extratoScreen.classList.add('hidden');
+        extratoScreen.classList.remove('flex');
+    }
+
+    // Ensure locationScreen is visible
+    const locScreen = document.getElementById('locationScreen');
+    if (locScreen) {
+        locScreen.classList.remove('hidden');
+        locScreen.style.display = 'flex';
+    }
+
     const locGrid = document.getElementById('locationGrid');
     const liveFeed = document.getElementById('liveFeedContainer');
     const resumoCont = document.getElementById('resumoContainer');
     const tabsRow = document.querySelector('#locationScreen .flex-wrap');
 
-    // Reset button styles
-    ['fazerPedido', 'pedidosFeitos', 'resumoDia'].forEach(k => {
-        const btn = document.getElementById(`navBtn_${k}`);
+    // Reset button highlights
+    const navItems = [
+        { id: 'navBtn_fazerPedido', key: 'fazer_pedido' },
+        { id: 'navBtn_pedidosFeitos', key: 'pedidos_feitos' },
+        { id: 'navBtn_resumoDia', key: 'resumo_dia' },
+        { id: 'navBtn_notificacoes', key: 'notificacoes' }
+    ];
+
+    navItems.forEach(item => {
+        const btn = document.getElementById(item.id);
         if (!btn) return;
-        const keyMatch = k.toLowerCase().replace(/[^a-z]/g, '');
-        const targetMatch = tabKey.toLowerCase().replace(/[^a-z]/g, '');
-        if (keyMatch.includes(targetMatch) || targetMatch.includes(keyMatch)) {
+        if (item.key === tabKey) {
             btn.className = "flex flex-col items-center gap-1 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition scale-105";
         } else {
             btn.className = "flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition";
@@ -283,7 +309,9 @@ window.switchGarcomTab = (tabKey) => {
         if (liveFeed) { liveFeed.classList.add('hidden'); liveFeed.classList.remove('flex'); }
         if (resumoCont) { resumoCont.classList.add('hidden'); resumoCont.classList.remove('flex'); }
         if (tabsRow) tabsRow.classList.remove('hidden');
-        setLocationType(currentLocation.type || 'chale');
+        if (typeof window.setLocationType === 'function') {
+            setLocationType(currentLocation.type || 'chale');
+        }
     } else if (tabKey === 'pedidos_feitos') {
         if (locGrid) locGrid.classList.add('hidden');
         if (liveFeed) { liveFeed.classList.remove('hidden'); liveFeed.classList.add('flex'); }
@@ -296,6 +324,10 @@ window.switchGarcomTab = (tabKey) => {
         if (resumoCont) { resumoCont.classList.remove('hidden'); resumoCont.classList.add('flex'); }
         if (tabsRow) tabsRow.classList.add('hidden');
         if (typeof window.showResumoDia === 'function') window.showResumoDia();
+    } else if (tabKey === 'notificacoes') {
+        if (typeof window.openNotificationsModal === 'function') {
+            window.openNotificationsModal();
+        }
     }
 };
 

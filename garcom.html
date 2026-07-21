@@ -217,31 +217,6 @@
                 <!-- Injected via JS -->
             </div>
         </div>
-
-        <!-- ====== BOTTOM NAVBAR ====== -->
-        <nav id="garcomBottomNav" class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 py-2 px-3 flex justify-around items-center shadow-xl">
-            <button onclick="switchGarcomTab('fazer_pedido')" id="navBtn_fazerPedido" class="flex flex-col items-center gap-1 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition">
-                <i class="fa-solid fa-circle-plus text-lg"></i>
-                <span>Fazer Pedido</span>
-            </button>
-
-            <button onclick="switchGarcomTab('pedidos_feitos')" id="navBtn_pedidosFeitos" class="flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative">
-                <i class="fa-solid fa-fire-burner text-lg"></i>
-                <span>Pedidos Ao Vivo</span>
-                <span id="navLiveBadge" class="hidden absolute -top-1 right-2 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
-            </button>
-
-            <button onclick="switchGarcomTab('resumo_dia')" id="navBtn_resumoDia" class="flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition">
-                <i class="fa-solid fa-receipt text-lg"></i>
-                <span>Tickets do Dia</span>
-            </button>
-
-            <button onclick="openNotificationsModal()" id="navBtn_notificacoes" class="flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative">
-                <i class="fa-solid fa-bell text-lg"></i>
-                <span>Avisos</span>
-                <span id="navNotiBadge" class="hidden absolute -top-1 right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
-            </button>
-        </nav>
     </div>
 
     <!-- ====== MAIN APP (Catálogo + Carrinho) ====== -->
@@ -509,7 +484,30 @@
             <p id="notiMsg" class="text-xs font-medium text-gray-600 mt-0.5"></p>
         </div>
         <button onclick="hideNoti()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button>
-    </div>
+    <!-- ====== BOTTOM NAVBAR ====== -->
+    <nav id="garcomBottomNav" class="fixed bottom-0 left-0 right-0 z-[90] bg-white border-t border-stone-200 py-2.5 px-3 flex justify-around items-center shadow-2xl">
+        <button onclick="switchGarcomTab('fazer_pedido')" id="navBtn_fazerPedido" class="flex flex-col items-center gap-1 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition active:scale-95">
+            <i class="fa-solid fa-circle-plus text-xl"></i>
+            <span>Fazer Pedido</span>
+        </button>
+
+        <button onclick="switchGarcomTab('pedidos_feitos')" id="navBtn_pedidosFeitos" class="flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
+            <i class="fa-solid fa-fire-burner text-xl"></i>
+            <span>Pedidos Ao Vivo</span>
+            <span id="navLiveBadge" class="hidden absolute -top-1 right-2 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+        </button>
+
+        <button onclick="switchGarcomTab('resumo_dia')" id="navBtn_resumoDia" class="flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition active:scale-95">
+            <i class="fa-solid fa-receipt text-xl"></i>
+            <span>Tickets do Dia</span>
+        </button>
+
+        <button onclick="switchGarcomTab('notificacoes')" id="navBtn_notificacoes" class="flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
+            <i class="fa-solid fa-bell text-xl"></i>
+            <span>Avisos</span>
+            <span id="navNotiBadge" class="hidden absolute -top-1 right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+        </button>
+    </nav>
 
     <script type="module" src="garcom.js"></script>
     <script type="module" src="garcom_mods_1.js"></script>
