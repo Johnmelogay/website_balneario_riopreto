@@ -58,6 +58,13 @@ function showLocationScreen() {
     const staff = getCurrentStaff();
     document.getElementById('staffNameDisplay').textContent = staff?.name || '';
     document.getElementById('locationScreen').style.display = 'flex';
+    
+    const nav = document.getElementById('garcomBottomNav');
+    if (nav) {
+        nav.classList.remove('hidden');
+        nav.style.display = 'flex';
+    }
+
     setLocationType('chale');
     startGlobalGarcomRealtime();
 }
@@ -714,6 +721,15 @@ window.goBackToLocation = () => {
 window.logoutAndGoLogin = () => {
     logoutStaff();
     document.getElementById('locationScreen').style.display = 'none';
+    const mainApp = document.getElementById('mainApp');
+    if (mainApp) mainApp.classList.add('hidden');
+
+    const nav = document.getElementById('garcomBottomNav');
+    if (nav) {
+        nav.classList.add('hidden');
+        nav.style.display = 'none';
+    }
+
     document.getElementById('loginScreen').style.display = 'flex';
     currentPin = '';
     updatePinDots();

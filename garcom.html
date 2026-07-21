@@ -570,33 +570,27 @@
     </div>
 
     <!-- ====== BOTTOM NAVBAR ====== -->
-    <nav id="garcomBottomNav" class="fixed bottom-0 left-0 right-0 z-[99] bg-white/95 backdrop-blur-md border-t border-stone-200 py-2 px-2 flex justify-around items-center shadow-2xl">
+    <nav id="garcomBottomNav" class="fixed bottom-0 left-0 right-0 z-[999999] bg-white border-t-2 border-stone-200 py-2.5 px-2 hidden justify-around items-center shadow-[0_-8px_30px_rgba(0,0,0,0.15)]">
         <button onclick="switchGarcomTab('fazer_pedido')" id="navBtn_fazerPedido" class="flex flex-col items-center gap-0.5 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition active:scale-95">
-            <i class="fa-solid fa-map-location-dot text-lg"></i>
+            <i class="fa-solid fa-map-location-dot text-xl"></i>
             <span>Locais</span>
         </button>
 
-        <button onclick="switchGarcomTab('cardapio')" id="navBtn_cardapio" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
-            <i class="fa-solid fa-utensils text-lg"></i>
-            <span>Cardápio</span>
-            <span id="navCartBadge" class="hidden absolute -top-1 right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+        <button onclick="switchGarcomTab('comandas_ativas')" id="navBtn_comandasAtivas" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
+            <i class="fa-solid fa-bolt text-xl"></i>
+            <span>Comandas Ativas</span>
+            <span id="navActiveComandasBadge" class="hidden absolute -top-1 right-2 bg-amber-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
         </button>
 
         <button onclick="switchGarcomTab('pedidos_feitos')" id="navBtn_pedidosFeitos" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
-            <i class="fa-solid fa-fire-burner text-lg"></i>
+            <i class="fa-solid fa-fire-burner text-xl"></i>
             <span>Ao Vivo</span>
             <span id="navLiveBadge" class="hidden absolute -top-1 right-2 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
         </button>
 
         <button onclick="switchGarcomTab('resumo_dia')" id="navBtn_resumoDia" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition active:scale-95">
-            <i class="fa-solid fa-receipt text-lg"></i>
-            <span>Tickets</span>
-        </button>
-
-        <button onclick="switchGarcomTab('notificacoes')" id="navBtn_notificacoes" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
-            <i class="fa-solid fa-bell text-lg"></i>
-            <span>Avisos</span>
-            <span id="navNotiBadge" class="hidden absolute -top-1 right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+            <i class="fa-solid fa-receipt text-xl"></i>
+            <span>Minhas Vendas</span>
         </button>
     </nav>
 
