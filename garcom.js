@@ -254,6 +254,142 @@ function openMainApp(label) {
     }
 }
 
+// ====== BOTTOM NAVBAR & TAB SWITCHING ======
+let currentGarcomNavTab = 'fazer_pedido';
+
+window.switchGarcomTab = (tabKey) => {
+    currentGarcomNavTab = tabKey;
+
+    const locGrid = document.getElementById('locationGrid');
+    const liveFeed = document.getElementById('liveFeedContainer');
+    const resumoCont = document.getElementById('resumoContainer');
+    const tabsRow = document.querySelector('#locationScreen .flex-wrap');
+
+    // Reset button styles
+    ['fazerPedido', 'pedidosFeitos', 'resumoDia'].forEach(k => {
+        const btn = document.getElementById(`navBtn_${k}`);
+        if (!btn) return;
+        const keyMatch = k.toLowerCase().replace(/[^a-z]/g, '');
+        const targetMatch = tabKey.toLowerCase().replace(/[^a-z]/g, '');
+        if (keyMatch.includes(targetMatch) || targetMatch.includes(keyMatch)) {
+            btn.className = "flex flex-col items-center gap-1 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition scale-105";
+        } else {
+            btn.className = "flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition";
+        }
+    });
+
+    if (tabKey === 'fazer_pedido') {
+        if (locGrid) locGrid.classList.remove('hidden');
+        if (liveFeed) { liveFeed.classList.add('hidden'); liveFeed.classList.remove('flex'); }
+        if (resumoCont) { resumoCont.classList.add('hidden'); resumoCont.classList.remove('flex'); }
+        if (tabsRow) tabsRow.classList.remove('hidden');
+        setLocationType(currentLocation.type || 'chale');
+    } else if (tabKey === 'pedidos_feitos') {
+        if (locGrid) locGrid.classList.add('hidden');
+        if (liveFeed) { liveFeed.classList.remove('hidden'); liveFeed.classList.add('flex'); }
+        if (resumoCont) { resumoCont.classList.add('hidden'); resumoCont.classList.remove('flex'); }
+        if (tabsRow) tabsRow.classList.add('hidden');
+        loadLiveOrdersFeed();
+    } else if (tabKey === 'resumo_dia') {
+        if (locGrid) locGrid.classList.add('hidden');
+        if (liveFeed) { liveFeed.classList.add('hidden'); liveFeed.classList.remove('flex'); }
+        if (resumoCont) { resumoCont.classList.remove('hidden'); resumoCont.classList.add('flex'); }
+        if (tabsRow) tabsRow.classList.add('hidden');
+        if (typeof window.showResumoDia === 'function') window.showResumoDia();
+    }
+};
+
+// ====== LIVE ORDERS FEED (COLOR-CODED) ======
+window.loadLiveOrdersFeed = async () => {
+    const list = document.getElementById('liveFeedList');
+    if (!list) return;
+
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
+
+    const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*), staff_users(name)')
+        .gte('created_at', startOfDay)
+        .neq('status', 'cancelado')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error loading live orders feed:', error);
+        return;
+    }
+
+    if (!orders || orders.length === 0) {
+        list.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 text-stone-400">
+                <i class="fa-solid fa-utensils text-4xl mb-3 opacity-30"></i>
+                <p class="font-bold text-sm">Nenhum pedido feito hoje</p>
+            </div>`;
+        return;
+    }
+
+    list.innerHTML = orders.map(o => {
+        const locLabel = o.location_type === 'chale' 
+            ? `Chalé ${o.location_id}` 
+            : o.location_type === 'mesa' 
+                ? `Mesa ${o.location_id.replace('M','')}` 
+                : `Balcão ${o.location_id}`;
+
+        const items = o.order_items || [];
+        const itemsSummary = items.map(i => `${i.quantity}x ${i.product_name}`).join(', ');
+        const customerName = o.customer_name || 'Sem Nome';
+        const destIcon = o.destination === 'bar' ? '🍺' : '🍳';
+        const timeAgo = new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        // Color-Coded Badges & Card Styles
+        let statusBadge = '';
+        let cardBorder = 'border-stone-200 bg-white';
+
+        if (o.status === 'pendente') {
+            statusBadge = `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase flex items-center gap-1"><i class="fa-solid fa-clock"></i> Pendente</span>`;
+            cardBorder = 'border-amber-200 bg-amber-50/30';
+        } else if (o.status === 'preparando') {
+            statusBadge = `<span class="bg-orange-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-sm uppercase flex items-center gap-1 animate-pulse"><i class="fa-solid fa-fire-burner"></i> Fazendo</span>`;
+            cardBorder = 'border-orange-300 bg-orange-50/40';
+        } else if (o.status === 'pronto') {
+            statusBadge = `<span class="bg-green-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-md uppercase flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> PRONTO!</span>`;
+            cardBorder = 'border-green-400 bg-green-50/60 ring-2 ring-green-300';
+        } else if (o.status === 'entregue') {
+            statusBadge = `<span class="bg-stone-200 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Entregue</span>`;
+            cardBorder = 'border-stone-200 bg-white opacity-80';
+        }
+
+        return `
+            <div class="rounded-2xl p-4 border shadow-sm transition space-y-2 ${cardBorder}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">${destIcon}</span>
+                        <span class="font-black text-stone-900 text-sm">#${o.order_number || o.id.slice(0, 5)}</span>
+                        <span class="font-bold text-xs bg-stone-100 px-2 py-0.5 rounded-md text-stone-700">${locLabel}</span>
+                    </div>
+                    ${statusBadge}
+                </div>
+
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-stone-700">Cliente: <strong class="text-stone-900">${customerName}</strong></span>
+                    <span class="font-mono font-bold text-stone-400 text-[11px]">${timeAgo}</span>
+                </div>
+
+                <p class="text-xs font-medium text-stone-600 border-t border-stone-100 pt-2 truncate">
+                    <i class="fa-solid fa-utensils mr-1.5 text-stone-400"></i>${itemsSummary || 'Sem itens'}
+                </p>
+
+                <div class="flex justify-between items-center pt-2 border-t border-stone-100">
+                    <span class="font-black text-emerald-700 text-sm">R$ ${Number(o.total || 0).toFixed(2).replace('.',',')}</span>
+                    <button onclick="window.openLocationFromResumo('${o.location_type}', '${o.location_id}', '${locLabel}')" class="text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 px-3 py-1 rounded-xl transition">
+                        Ver Comanda
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
 window.openLocationFromResumo = (type, id, label) => {
     currentLocation = { type, id };
     openMainApp(label);
@@ -270,6 +406,10 @@ window.goBackToLocation = () => {
     if (locScreen) {
         locScreen.classList.remove('hidden');
         locScreen.style.display = 'flex';
+    }
+
+    if (typeof window.switchGarcomTab === 'function') {
+        window.switchGarcomTab(currentGarcomNavTab || 'fazer_pedido');
     }
 
     // Un-subscribe from realtime if needed
