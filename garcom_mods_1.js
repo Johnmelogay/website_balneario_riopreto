@@ -172,197 +172,150 @@ window.hideNoti = () => {
 
 // ====== PAYMENT MODAL (GARÇOM) - SPLIT & SERVICE ======
 let garcomServiceEnabled = false;
-let garcomBaseTotal = 0;
-let garcomOpenOrders = [];
+// ====== GUIA DE CONFERÊNCIA DO CLIENTE (PRE-BILL) ======
+let currentGuiaData = null;
 
-window.openPaymentModalGarcom = async () => {
-    if (!window.currentLocationType || !window.currentLocationId) return;
-
-    // Fetch open orders
-    const { data: openOrders } = await supabase
+window.openGuiaClienteModal = async () => {
+    // Fetch open orders for current location
+    const { data: openOrders, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('*, order_items(*), staff_users(name)')
         .eq('location_type', window.currentLocationType)
         .eq('location_id', window.currentLocationId)
         .eq('payment_status', 'aberto')
         .neq('status', 'cancelado');
 
-    garcomOpenOrders = openOrders || [];
-    if (garcomOpenOrders.length === 0) {
-        alert('Nenhuma comanda em aberto para faturar.');
+    if (error || !openOrders || openOrders.length === 0) {
+        alert('Nenhuma comanda em aberto para este local.');
         return;
     }
 
-    garcomBaseTotal = garcomOpenOrders.reduce((sum, o) => sum + Number(o.total), 0);
-    garcomServiceEnabled = false;
+    const subtotal = openOrders.reduce((sum, o) => sum + Number(o.total), 0);
+    const serviceFee = subtotal * 0.10;
+    const grandTotal = subtotal + serviceFee;
 
-    // Reset Inputs
-    ['pix', 'dinheiro', 'credito', 'debito'].forEach(method => {
-        const el = document.getElementById(`garcomPayVal_${method}`);
-        if(el) el.value = '';
-    });
+    const allItems = openOrders.flatMap(o => o.order_items || []);
+    const staffNames = Array.from(new Set(openOrders.map(o => o.staff_users?.name).filter(Boolean)));
 
-    document.getElementById('garcomServiceToggle').style.transform = 'translateX(0)';
-    document.getElementById('btnGarcomService').classList.remove('bg-emerald-500');
-    document.getElementById('btnGarcomService').classList.add('bg-stone-300');
+    currentGuiaData = {
+        locationType: window.currentLocationType,
+        locationId: window.currentLocationId,
+        subtotal,
+        serviceFee,
+        grandTotal,
+        items: allItems,
+        orders: openOrders,
+        staffNames
+    };
 
-    document.getElementById('paymentModalGarcom').classList.remove('hidden');
-    document.getElementById('paymentModalGarcom').classList.add('flex');
+    renderGuiaReceiptBody(currentGuiaData);
 
-    window.calcGarcomSplit();
-};
-
-window.closePaymentModalGarcom = () => {
-    document.getElementById('paymentModalGarcom').classList.add('hidden');
-    document.getElementById('paymentModalGarcom').classList.remove('flex');
-};
-
-window.toggleGarcomServiceFee = () => {
-    garcomServiceEnabled = !garcomServiceEnabled;
-    const toggle = document.getElementById('garcomServiceToggle');
-    const btnBox = document.getElementById('btnGarcomService');
-
-    if (garcomServiceEnabled) {
-        toggle.style.transform = 'translateX(100%)';
-        btnBox.classList.remove('bg-stone-300');
-        btnBox.classList.add('bg-emerald-500');
-    } else {
-        toggle.style.transform = 'translateX(0)';
-        btnBox.classList.remove('bg-emerald-500');
-        btnBox.classList.add('bg-stone-300');
-    }
-    
-    window.calcGarcomSplit();
-};
-
-window.focusGarcomSplit = (method) => {
-    // Optional: Auto-fill remaining into this focused field if it's empty
-    const el = document.getElementById(`garcomPayVal_${method}`);
-    if (!el.value || Number(el.value) === 0) {
-        const serviceVal = garcomServiceEnabled ? garcomBaseTotal * 0.10 : 0;
-        const targetTotal = garcomBaseTotal + serviceVal;
-
-        const pPIX = Number(document.getElementById('garcomPayVal_pix').value) || 0;
-        const pDIN = Number(document.getElementById('garcomPayVal_dinheiro').value) || 0;
-        const pCRE = Number(document.getElementById('garcomPayVal_credito').value) || 0;
-        const pDEB = Number(document.getElementById('garcomPayVal_debito').value) || 0;
-        const currentSum = pPIX + pDIN + pCRE + pDEB;
-
-        const remaining = targetTotal - currentSum;
-        if (remaining > 0) {
-            el.value = remaining.toFixed(2);
-            window.calcGarcomSplit();
-        }
+    const modal = document.getElementById('guiaClienteModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
 };
 
-window.calcGarcomSplit = () => {
-    const serviceVal = garcomServiceEnabled ? garcomBaseTotal * 0.10 : 0;
-    const targetTotal = garcomBaseTotal + serviceVal;
-
-    document.getElementById('garcomPaySubtotal').textContent = `R$ ${garcomBaseTotal.toFixed(2).replace('.', ',')}`;
-    document.getElementById('garcomPayService').textContent = `R$ ${serviceVal.toFixed(2).replace('.', ',')}`;
-    document.getElementById('garcomPayTotal').textContent = `R$ ${targetTotal.toFixed(2).replace('.', ',')}`;
-
-    const pPIX = Number(document.getElementById('garcomPayVal_pix').value) || 0;
-    const pDIN = Number(document.getElementById('garcomPayVal_dinheiro').value) || 0;
-    const pCRE = Number(document.getElementById('garcomPayVal_credito').value) || 0;
-    const pDEB = Number(document.getElementById('garcomPayVal_debito').value) || 0;
-
-    const currentSum = pPIX + pDIN + pCRE + pDEB;
-    const remaining = targetTotal - currentSum;
-
-    const statusLabel = document.getElementById('garcomPayStatusLabel');
-    const remainingVal = document.getElementById('garcomPayRemaining');
-    const btnConfirm = document.getElementById('btnConfirmPaymentGarcom');
-
-    if (remaining > 0.001) {
-        // Needs more money
-        statusLabel.textContent = "Falta Receber";
-        statusLabel.className = "text-amber-600 font-bold text-sm uppercase tracking-wider";
-        remainingVal.textContent = `R$ ${remaining.toFixed(2).replace('.', ',')}`;
-        remainingVal.className = "font-black text-amber-500 text-xl";
-        btnConfirm.disabled = true;
-    } else if (remaining < -0.001) {
-        // Overpaid (Troco)
-        statusLabel.textContent = "Troco a Devolver";
-        statusLabel.className = "text-blue-600 font-bold text-sm uppercase tracking-wider";
-        remainingVal.textContent = `R$ ${Math.abs(remaining).toFixed(2).replace('.', ',')}`;
-        remainingVal.className = "font-black text-blue-500 text-xl";
-        btnConfirm.disabled = false;
-    } else {
-        // Exact
-        statusLabel.textContent = "Valor Atingido";
-        statusLabel.className = "text-emerald-600 font-bold text-sm uppercase tracking-wider";
-        remainingVal.textContent = "R$ 0,00";
-        remainingVal.className = "font-black text-emerald-500 text-xl";
-        btnConfirm.disabled = false;
+window.closeGuiaClienteModal = () => {
+    const modal = document.getElementById('guiaClienteModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 };
 
-window.confirmPaymentGarcom = async () => {
-    if (garcomOpenOrders.length === 0) return;
+function renderGuiaReceiptBody(data) {
+    const body = document.getElementById('guiaReceiptBody');
+    if (!body) return;
 
-    const btn = document.getElementById('btnConfirmPaymentGarcom');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
+    const now = new Date().toLocaleString('pt-BR');
+    const locLabel = data.locationType === 'chale' ? `CHALÉ ${data.locationId}` : data.locationType === 'mesa' ? `MESA ${data.locationId.replace('M','')}` : `BALCÃO ${data.locationId}`;
+    const staffLabel = data.staffNames.length > 0 ? data.staffNames.join(', ') : 'Equipe Rio Preto';
 
-    const pPIX = Number(document.getElementById('garcomPayVal_pix').value) || 0;
-    const pDIN = Number(document.getElementById('garcomPayVal_dinheiro').value) || 0;
-    const pCRE = Number(document.getElementById('garcomPayVal_credito').value) || 0;
-    const pDEB = Number(document.getElementById('garcomPayVal_debito').value) || 0;
-    const totalPaid = pPIX + pDIN + pCRE + pDEB;
-    const serviceVal = garcomServiceEnabled ? garcomBaseTotal * 0.10 : 0;
-    const customerName = (document.getElementById('garcomPayCustomerName')?.value || '').trim();
-    
-    // Determine payment method — use specific name if only one method used, else 'SPLIT'
-    const methodsUsed = [];
-    if(pPIX > 0) methodsUsed.push('pix');
-    if(pDIN > 0) methodsUsed.push('dinheiro');
-    if(pCRE > 0) methodsUsed.push('credito');
-    if(pDEB > 0) methodsUsed.push('debito');
-    const payMethod = methodsUsed.length === 1 ? methodsUsed[0] : 'SPLIT';
-    
-    // Distribute paid values and service fee among the open orders proportionally based on order total
-    const staff = window.currentStaff;
-    const updates = garcomOpenOrders.map(o => {
-        const ratio = Number(o.total) / garcomBaseTotal;
-        return {
-            ...o,
-            payment_status: 'pago',
-            payment_method: payMethod,
-            customer_name: customerName || o.customer_name,
-            service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
-            split_pix: parseFloat((pPIX * ratio).toFixed(2)),
-            split_dinheiro: parseFloat((pDIN * ratio).toFixed(2)),
-            split_credito: parseFloat((pCRE * ratio).toFixed(2)),
-            split_debito: parseFloat((pDEB * ratio).toFixed(2)),
-            updated_at: new Date().toISOString(),
-            staff_id: staff?.id || o.staff_id
-        };
-    });
+    body.innerHTML = `
+        <div class="text-center border-b border-dashed border-stone-300 pb-3">
+            <p class="font-black text-sm uppercase tracking-wider">BALNEÁRIO RIO PRETO</p>
+            <p class="text-[10px] text-stone-500 font-bold uppercase">Guia de Conferência do Cliente</p>
+            <p class="text-[10px] text-stone-400 mt-1">${now}</p>
+            <p class="font-black text-emerald-800 text-xs mt-1 bg-emerald-50 py-1 rounded-md uppercase">${locLabel}</p>
+        </div>
 
-    const { error } = await supabase.from('orders').upsert(updates);
+        <div class="py-2 border-b border-dashed border-stone-300">
+            <p class="text-[10px] font-bold text-stone-500 uppercase mb-2">Atendimento: ${staffLabel}</p>
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-stone-200 text-[10px] text-stone-400 font-bold uppercase">
+                        <th class="py-1">Qtd</th>
+                        <th class="py-1">Item</th>
+                        <th class="py-1 text-right">R$ Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-100">
+                    ${data.items.map(i => `
+                        <tr>
+                            <td class="py-1 font-bold">${i.quantity}x</td>
+                            <td class="py-1 font-medium">${i.product_name}</td>
+                            <td class="py-1 text-right font-bold">R$ ${(i.quantity * i.unit_price).toFixed(2).replace('.',',')}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
 
-    if (error) {
-        console.error('Error closing garcom order:', error);
-        alert('Erro ao fechar comanda. O painel deve estar desatualizado, verifique o banco de dados.');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-lock"></i> CONFIRMAR E FECHAR';
-        return;
-    }
+        <div class="space-y-1 pt-1 text-xs">
+            <div class="flex justify-between">
+                <span class="text-stone-500 font-bold">Subtotal Consumo:</span>
+                <span class="font-bold">R$ ${data.subtotal.toFixed(2).replace('.',',')}</span>
+            </div>
+            <div class="flex justify-between text-emerald-700 font-bold">
+                <span>Taxa de Atendimento Garçons (10%):</span>
+                <span>R$ ${data.serviceFee.toFixed(2).replace('.',',')}</span>
+            </div>
+            <div class="flex justify-between text-sm font-black pt-2 border-t border-stone-300 text-stone-900">
+                <span>TOTAL A PAGAR:</span>
+                <span class="text-emerald-700">R$ ${data.grandTotal.toFixed(2).replace('.',',')}</span>
+            </div>
+        </div>
 
-    // Success
-    window.closePaymentModalGarcom();
-    window.closeExtrato();
-    window.goBackToLocation();
-    
-    if (typeof window.setLocationType === 'function') {
-        window.setLocationType(window.currentLocationType);
-    }
-    
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-lock"></i> CONFIRMAR E FECHAR';
+        <div class="text-center pt-3 border-t border-dashed border-stone-300 text-[10px] text-stone-500">
+            <p class="font-bold mb-1">⚠️ Pagamento realizado exclusivamente no Caixa Central.</p>
+            <p class="italic">A taxa de 10% é destinada integralmente à equipe de atendimento. Obrigado!</p>
+        </div>
+    `;
+}
+
+window.printGuiaCliente = () => {
+    if (!currentGuiaData) return;
+    const bodyContent = document.getElementById('guiaReceiptBody')?.innerHTML || '';
+    const win = window.open('', '', 'width=400,height=600');
+    if (!win) return;
+    win.document.write(`
+        <html>
+        <head>
+            <title>Guia de Conferência - Balneário Rio Preto</title>
+            <style>
+                body { font-family: monospace; font-size: 12px; margin: 0; padding: 10px; }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .font-bold { font-weight: bold; }
+                .font-black { font-weight: 900; }
+                .w-full { width: 100%; }
+                .border-b { border-bottom: 1px dashed #000; }
+                .py-1 { padding-top: 4px; padding-bottom: 4px; }
+                .py-2 { padding-top: 8px; padding-bottom: 8px; }
+                .flex { display: flex; }
+                .justify-between { justify-content: space-between; }
+                @media print { body { margin: 0; } }
+            </style>
+        </head>
+        <body onload="window.print(); window.close();">
+            ${bodyContent}
+        </body>
+        </html>
+    `);
+    win.document.close();
+};
 };
 
 // ====== CANCEL ORDER ======

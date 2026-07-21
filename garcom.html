@@ -363,113 +363,53 @@
         </main>
         
         <!-- Footer Total -->
-        <div class="bg-white p-6 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-gray-100 shrink-0">
-            <div class="flex justify-between items-end mb-4">
-                <span class="text-stone-500 font-bold uppercase tracking-widest text-xs">Total Parcial</span>
-                <span id="extratoTotal" class="text-3xl font-black text-emerald-600">R$ 0,00</span>
+        <div class="bg-white p-5 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-stone-200 shrink-0">
+            <div class="flex justify-between items-end mb-2">
+                <span class="text-stone-500 font-bold uppercase tracking-widest text-xs">Total Consumo</span>
+                <span id="extratoTotal" class="text-3xl font-black text-emerald-700">R$ 0,00</span>
             </div>
-            <div class="flex gap-3">
-                <button onclick="closeExtrato()" class="flex-1 py-4 bg-stone-100 text-stone-600 font-black rounded-xl shadow-sm active:scale-95 transition">
+            
+            <p class="text-[11px] text-amber-800 font-bold text-center mb-3 bg-amber-50 py-1.5 px-3 rounded-xl border border-amber-200">
+                <i class="fa-solid fa-lock mr-1 text-amber-600"></i> Pagamento realizado exclusivamente no Caixa Central.
+            </p>
+
+            <div class="flex gap-2">
+                <button onclick="closeExtrato()" class="flex-1 py-3.5 bg-stone-100 text-stone-600 font-black rounded-xl active:scale-95 transition text-xs">
                     VOLTAR
                 </button>
-                <button onclick="openPaymentModalGarcom()" class="flex-[2] py-4 bg-emerald-600 text-white font-black rounded-xl shadow-lg shadow-emerald-200 active:scale-95 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check text-lg"></i> FECHAR COMANDA
+                <button onclick="openGuiaClienteModal()" class="flex-[2] py-3.5 bg-emerald-700 text-white font-black rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-xs">
+                    <i class="fa-solid fa-receipt text-sm"></i> GUIA DO CLIENTE (10%)
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ====== PAYMENT MODAL ====== -->
-    <div id="paymentModalGarcom" class="fixed inset-0 z-[90] hidden bg-black/60 backdrop-blur-sm flex-col justify-end">
-        <div class="bg-white rounded-t-3xl p-6 relative" style="animation: slideUp 0.3s ease-out forwards; max-height: 90vh; overflow-y: auto;">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-black text-stone-800">Receber Pagamento</h3>
-                <button onclick="closePaymentModalGarcom()" class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <!-- Nome do Cliente -->
-            <div class="mb-4">
-                <label class="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-2 block">Nome do Cliente</label>
-                <input type="text" id="garcomPayCustomerName" placeholder="Ex: João da Mesa 5"
-                    class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:bg-white transition">
-            </div>
-
-            <!-- Resumo dos Valores -->
-            <div class="bg-stone-50 rounded-2xl p-4 mb-4 border border-stone-200">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-stone-500 font-bold text-sm">Subtotal</span>
-                    <span id="garcomPaySubtotal" class="font-bold text-stone-800">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="text-stone-500 font-bold text-sm">Serviço (10%)</span>
-                        <button onclick="toggleGarcomServiceFee()" id="btnGarcomService" class="w-10 h-6 bg-stone-300 rounded-full relative transition-colors duration-300 shadow-inner">
-                            <div id="garcomServiceToggle" class="w-4 h-4 bg-white rounded-full absolute left-1 top-1 transition-transform duration-300 shadow"></div>
-                        </button>
+    <!-- ====== GUIA DE CONFERÊNCIA DO CLIENTE (PRE-BILL MODAL) ====== -->
+    <div id="guiaClienteModal" class="fixed inset-0 z-[90] hidden bg-black/70 backdrop-blur-sm flex-col justify-end p-4">
+        <div class="bg-white rounded-3xl p-6 relative max-w-md mx-auto w-full max-h-[90vh] flex flex-col anim-slide shadow-2xl">
+            <div class="flex justify-between items-center pb-3 border-b border-stone-100 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📄</span>
+                    <div>
+                        <h3 class="text-lg font-black text-stone-800 leading-tight">Guia de Conferência</h3>
+                        <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">Balneário Rio Preto</p>
                     </div>
-                    <span id="garcomPayService" class="font-bold text-stone-800">R$ 0,00</span>
                 </div>
-                <div class="h-px bg-stone-200 w-full mb-3"></div>
-                <div class="flex justify-between items-center">
-                    <span class="text-emerald-700 font-black text-lg">TOTAL A PAGAR</span>
-                    <span id="garcomPayTotal" class="font-black text-2xl text-emerald-600">R$ 0,00</span>
-                </div>
+                <button onclick="closeGuiaClienteModal()" class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Valores Pagos -->
-            <p class="text-[11px] font-bold text-stone-400 mb-2 uppercase tracking-widest">Valores Recebidos</p>
-            <div class="space-y-3 mb-6">
-                <!-- PIX -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center text-lg"><i class="fa-brands fa-pix"></i></div>
-                    <span class="font-bold text-stone-600 flex-1">PIX</span>
-                    <div class="relative w-32">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
-                        <input type="number" id="garcomPayVal_pix" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('pix')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
-                    </div>
-                </div>
-                <!-- Dinheiro -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-money-bill-wave"></i></div>
-                    <span class="font-bold text-stone-600 flex-1">Dinheiro</span>
-                    <div class="relative w-32">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
-                        <input type="number" id="garcomPayVal_dinheiro" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('dinheiro')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
-                    </div>
-                </div>
-                <!-- Crédito -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg"><i class="fa-solid fa-credit-card"></i></div>
-                    <span class="font-bold text-stone-600 flex-1">Crédito</span>
-                    <div class="relative w-32">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
-                        <input type="number" id="garcomPayVal_credito" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('credito')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
-                    </div>
-                </div>
-                <!-- Débito -->
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg"><i class="fa-regular fa-credit-card"></i></div>
-                    <span class="font-bold text-stone-600 flex-1">Débito</span>
-                    <div class="relative w-32">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-sm">R$</span>
-                        <input type="number" id="garcomPayVal_debito" step="0.01" min="0" placeholder="0.00" oninput="calcGarcomSplit()" onfocus="focusGarcomSplit('debito')" class="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl font-bold text-stone-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-right">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex justify-between items-center mb-6 px-2">
-                <span class="text-stone-500 font-bold text-sm" id="garcomPayStatusLabel">Falta Receber</span>
-                <span id="garcomPayRemaining" class="font-black text-amber-500 text-lg">R$ 0,00</span>
+            <div id="guiaReceiptBody" class="flex-1 overflow-y-auto py-4 space-y-3 font-mono text-xs text-stone-800">
+                <!-- Printable receipt injected via JS -->
             </div>
 
-            <style>
-                @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-            </style>
-
-            <button onclick="confirmPaymentGarcom()" id="btnConfirmPaymentGarcom" disabled
-                class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-lg shadow-lg hover:bg-emerald-700 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2">
-                <i class="fa-solid fa-lock"></i> CONFIRMAR E FECHAR
-            </button>
+            <div class="pt-3 border-t border-stone-100 shrink-0 space-y-2">
+                <button onclick="printGuiaCliente()" class="w-full py-3.5 bg-emerald-700 text-white font-black rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-print"></i> IMPRIMIR CUPOM (80mm)
+                </button>
+                <button onclick="closeGuiaClienteModal()" class="w-full py-2.5 bg-stone-100 text-stone-600 font-bold rounded-xl text-xs">
+                    Fechar
+                </button>
+            </div>
         </div>
     </div>
 

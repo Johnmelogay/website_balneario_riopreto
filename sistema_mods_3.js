@@ -251,26 +251,241 @@ window.cmdViewDetails = async (type, id) => {
     `;
 };
 
+import { logAuditAction } from './audit_logger.js';
+
+let cashierActiveOrders = [];
+let cashierBaseTotal = 0;
+let cashierServiceEnabled = true;
+let cashierPayMethod = 'pix';
+
 window.cmdPromptClose = async (type, id) => {
-    if(!confirm(`Confirmar recebimento do pagamento para ${type} ${id}? Todos os pedidos abertos serão marcados como PAGOS e movidos para o Histórico.`)) return;
+    const staff = getCurrentStaff();
+    const { data: openOrders, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*), staff_users(name)')
+        .eq('location_type', type)
+        .eq('location_id', id)
+        .eq('payment_status', 'aberto')
+        .neq('status', 'cancelado');
+
+    if (error || !openOrders || openOrders.length === 0) {
+        alert('Nenhuma comanda em aberto para fechar.');
+        return;
+    }
+
+    cashierActiveOrders = openOrders;
+    cashierBaseTotal = openOrders.reduce((sum, o) => sum + Number(o.total), 0);
+    cashierServiceEnabled = true;
+    cashierPayMethod = 'pix';
+
+    renderCashierModal(type, id);
+};
+
+function renderCashierModal(type, id) {
+    const locLabel = type === 'chale' ? `CHALÉ ${id}` : type === 'mesa' ? `MESA ${id.replace('M','')}` : `BALCÃO ${id}`;
+    const allItems = cashierActiveOrders.flatMap(o => o.order_items || []);
+    const staffNames = Array.from(new Set(cashierActiveOrders.map(o => o.staff_users?.name).filter(Boolean)));
+    const staffLabel = staffNames.length > 0 ? staffNames.join(', ') : 'Equipe Rio Preto';
+
+    document.getElementById('modalContainer').innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this) window.closeMod()">
+            <div class="modal-box anim-fade p-0 overflow-hidden max-w-lg">
+                <!-- Header -->
+                <div class="bg-emerald-900 p-5 text-white flex justify-between items-center relative">
+                    <button onclick="window.closeMod()" class="absolute top-4 right-4 text-emerald-300 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white text-2xl border border-white/20"><i class="fa-solid fa-cash-register"></i></div>
+                        <div>
+                            <h3 class="font-black text-lg leading-tight">Caixa Central • Fechamento</h3>
+                            <p class="text-emerald-300 text-xs font-bold uppercase tracking-wider">${locLabel} • Atendente: ${staffLabel}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
+                <div class="p-6 bg-white space-y-4 max-h-[75vh] overflow-y-auto">
+                    <!-- Items Preview -->
+                    <div class="bg-gray-50 rounded-2xl p-3.5 border border-gray-100 space-y-2 max-h-36 overflow-y-auto text-xs">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Itens da Comanda (${allItems.length})</span>
+                        ${allItems.map(i => `
+                            <div class="flex justify-between font-medium text-gray-700">
+                                <span>${i.quantity}x ${i.product_name}</span>
+                                <span class="font-bold">R$ ${(i.quantity * i.unit_price).toFixed(2).replace('.',',')}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Values Calculation Card -->
+                    <div class="bg-emerald-50/60 rounded-2xl p-4 border border-emerald-100 space-y-2">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-600 font-bold">Consumo dos Produtos</span>
+                            <span class="font-bold text-gray-800">R$ ${cashierBaseTotal.toFixed(2).replace('.',',')}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-emerald-800 font-bold">Taxa de Serviço 10% (Garçons)</span>
+                                <input type="checkbox" id="chkCashier10" checked onchange="window.updateCashierTotals()" class="w-4 h-4 accent-emerald-600 cursor-pointer">
+                            </div>
+                            <span id="cashier10Val" class="font-bold text-emerald-700">R$ ${(cashierBaseTotal * 0.10).toFixed(2).replace('.',',')}</span>
+                        </div>
+
+                        <div class="pt-2 border-t border-emerald-200 flex justify-between items-center">
+                            <span class="text-emerald-950 font-black text-base">TOTAL A RECEBER</span>
+                            <span id="cashierTotalVal" class="text-2xl font-black text-emerald-700">R$ ${(cashierBaseTotal * 1.10).toFixed(2).replace('.',',')}</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selection -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Forma de Pagamento</label>
+                        <div class="grid grid-cols-4 gap-2" id="payMethodGrid">
+                            <button onclick="window.selectCashierPay('pix')" id="btnPay_pix" class="py-2.5 rounded-xl font-bold text-xs border bg-emerald-600 text-white border-emerald-600 flex flex-col items-center gap-1 transition">
+                                <i class="fa-brands fa-pix text-base"></i> PIX
+                            </button>
+                            <button onclick="window.selectCashierPay('dinheiro')" id="btnPay_dinheiro" class="py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition">
+                                <i class="fa-solid fa-money-bill-wave text-base"></i> Dinheiro
+                            </button>
+                            <button onclick="window.selectCashierPay('credito')" id="btnPay_credito" class="py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition">
+                                <i class="fa-solid fa-credit-card text-base"></i> Crédito
+                            </button>
+                            <button onclick="window.selectCashierPay('debito')" id="btnPay_debito" class="py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition">
+                                <i class="fa-regular fa-credit-card text-base"></i> Débito
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cash Given / Troco (Only shown if Dinheiro is selected) -->
+                    <div id="cashChangeContainer" class="hidden bg-amber-50 p-3.5 rounded-2xl border border-amber-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-amber-900">Valor Recebido em Dinheiro (R$)</label>
+                            <input type="number" id="cashGivenInput" placeholder="0.00" oninput="window.calcCashChange()" class="w-32 px-3 py-1.5 bg-white border border-amber-300 rounded-xl font-black text-right text-stone-800 outline-none">
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-amber-200/60">
+                            <span class="text-xs font-bold text-amber-900">Troco a Devolver:</span>
+                            <span id="cashChangeVal" class="font-black text-lg text-amber-700">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <!-- Customer Name (Optional) -->
+                    <div>
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Nome do Cliente (Opcional)</label>
+                        <input type="text" id="cashierCustomerName" placeholder="Ex: João da Silva" class="input-sys py-2">
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="bg-gray-50 p-4 border-t border-gray-100 flex flex-col gap-2">
+                    <button onclick="window.confirmCashierCheckout('${type}', '${id}')" id="btnConfirmCashier"
+                        class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base rounded-2xl shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock"></i> CONFIRMAR RECEBIMENTO E MOVER PARA HISTÓRICO
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.updateCashierTotals = () => {
+    const chk = document.getElementById('chkCashier10');
+    cashierServiceEnabled = chk ? chk.checked : true;
+
+    const serviceVal = cashierServiceEnabled ? cashierBaseTotal * 0.10 : 0;
+    const totalVal = cashierBaseTotal + serviceVal;
+
+    document.getElementById('cashier10Val').textContent = `R$ ${serviceVal.toFixed(2).replace('.',',')}`;
+    document.getElementById('cashierTotalVal').textContent = `R$ ${totalVal.toFixed(2).replace('.',',')}`;
     
+    window.calcCashChange();
+};
+
+window.selectCashierPay = (method) => {
+    cashierPayMethod = method;
+
+    ['pix', 'dinheiro', 'credito', 'debito'].forEach(m => {
+        const btn = document.getElementById(`btnPay_${m}`);
+        if (!btn) return;
+        if (m === method) {
+            btn.className = "py-2.5 rounded-xl font-bold text-xs border bg-emerald-600 text-white border-emerald-600 flex flex-col items-center gap-1 transition shadow-sm";
+        } else {
+            btn.className = "py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition";
+        }
+    });
+
+    const cashContainer = document.getElementById('cashChangeContainer');
+    if (cashContainer) {
+        cashContainer.classList.toggle('hidden', method !== 'dinheiro');
+    }
+};
+
+window.calcCashChange = () => {
+    if (cashierPayMethod !== 'dinheiro') return;
+    const serviceVal = cashierServiceEnabled ? cashierBaseTotal * 0.10 : 0;
+    const totalTarget = cashierBaseTotal + serviceVal;
+    
+    const given = Number(document.getElementById('cashGivenInput')?.value || 0);
+    const change = Math.max(0, given - totalTarget);
+
+    const el = document.getElementById('cashChangeVal');
+    if (el) el.textContent = `R$ ${change.toFixed(2).replace('.',',')}`;
+};
+
+window.confirmCashierCheckout = async (type, id) => {
+    if (cashierActiveOrders.length === 0) return;
+
+    const btn = document.getElementById('btnConfirmCashier');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processando Fechamento...';
+
     try {
         const staff = getCurrentStaff();
-        const { error } = await supabase.from('orders')
-            .update({ 
+        const serviceVal = cashierServiceEnabled ? cashierBaseTotal * 0.10 : 0;
+        const customerName = document.getElementById('cashierCustomerName')?.value?.trim() || null;
+
+        // Update all active orders for this comanda
+        const updates = cashierActiveOrders.map(o => {
+            const ratio = Number(o.total) / cashierBaseTotal;
+            return {
+                ...o,
                 payment_status: 'pago',
+                payment_method: cashierPayMethod,
+                customer_name: customerName || o.customer_name,
+                service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
                 updated_at: new Date().toISOString(),
-                staff_id: staff?.id
-            })
-            .eq('location_type', type)
-            .eq('location_id', id)
-            .eq('payment_status', 'aberto');
-            
-        if(error) throw error;
-        
-        loadComandas(); // reload
-    } catch(e) {
-        alert("Erro ao fechar comanda: " + e.message);
+                staff_id: staff?.id || o.staff_id
+            };
+        });
+
+        const { error } = await supabase.from('orders').upsert(updates);
+        if (error) throw error;
+
+        // Audit Log for Payment Closed
+        try {
+            await logAuditAction('PAYMENT_CLOSED', {
+                comanda: `${type.toUpperCase()} ${id}`,
+                orders_count: cashierActiveOrders.length,
+                order_numbers: cashierActiveOrders.map(o => o.order_number),
+                subtotal: cashierBaseTotal,
+                service_fee: serviceVal,
+                total_amount: cashierBaseTotal + serviceVal,
+                payment_method: cashierPayMethod.toUpperCase(),
+                cashier_staff: staff?.name || 'Caixa Central'
+            }, { type, id });
+        } catch (auditErr) {
+            console.warn('Audit error:', auditErr);
+        }
+
+        window.closeMod();
+        loadComandas(); // Reload dashboard comandas
+
+    } catch (err) {
+        console.error('Checkout error:', err);
+        alert('Erro ao processar fechamento: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> CONFIRMAR RECEBIMENTO E MOVER PARA HISTÓRICO';
+        }
     }
 };
 
