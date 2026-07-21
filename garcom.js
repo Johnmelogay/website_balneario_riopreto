@@ -897,11 +897,179 @@ window.closeError = () => {
     overlay.classList.remove('flex');
 };
 
+// ====== NOTIFICATIONS CENTER ======
+let garcomNotifications = [];
+let notiAudio = null;
+
+function playNotiSound() {
+    try {
+        if (!notiAudio) {
+            notiAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        }
+        notiAudio.play().catch(() => {});
+    } catch(e) {}
+}
+
+window.openNotificationsModal = () => {
+    renderGarcomNotifications();
+    const modal = document.getElementById('notificationsModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    updateNotiBadges(0);
+};
+
+window.closeNotificationsModal = () => {
+    const modal = document.getElementById('notificationsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
+window.clearGarcomNotifications = () => {
+    garcomNotifications = [];
+    renderGarcomNotifications();
+    updateNotiBadges(0);
+};
+
+function updateNotiBadges(count) {
+    const b1 = document.getElementById('notiBadgeLocation');
+    const b2 = document.getElementById('notiBadgeMain');
+    
+    [b1, b2].forEach(b => {
+        if (!b) return;
+        if (count > 0) {
+            b.textContent = count;
+            b.classList.remove('hidden');
+        } else {
+            b.classList.add('hidden');
+        }
+    });
+}
+
+function addGarcomNotification(noti) {
+    if (garcomNotifications.some(n => n.id === noti.id && n.status === noti.status)) return;
+
+    garcomNotifications.unshift(noti);
+    if (garcomNotifications.length > 30) garcomNotifications.pop();
+
+    playNotiSound();
+    showNotiToast(noti);
+
+    const unreadCount = garcomNotifications.filter(n => !n.read).length;
+    updateNotiBadges(unreadCount);
+}
+
+function showNotiToast(noti) {
+    const msg = `Pedido #${noti.orderNumber} (${noti.locLabel}) de ${noti.customerName} está PRONTO!`;
+    const toast = document.getElementById('notiToast');
+    const msgEl = document.getElementById('notiMsg');
+    if (toast && msgEl) {
+        msgEl.textContent = msg;
+        toast.style.transform = 'translateY(0)';
+        setTimeout(() => {
+            toast.style.transform = 'translateY(-150%)';
+        }, 6000);
+    }
+}
+
+window.hideNoti = () => {
+    const toast = document.getElementById('notiToast');
+    if (toast) toast.style.transform = 'translateY(-150%)';
+};
+
+function renderGarcomNotifications() {
+    const container = document.getElementById('notificationsList');
+    if (!container) return;
+
+    if (garcomNotifications.length === 0) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-12 text-stone-400">
+                <i class="fa-solid fa-bell-slash text-4xl mb-3 opacity-30"></i>
+                <p class="font-bold text-xs">Nenhuma notificação recente</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = garcomNotifications.map(n => {
+        n.read = true;
+        const timeAgo = new Date(n.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return `
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-start gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg font-black shrink-0">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-emerald-900 text-xs uppercase tracking-wider">${n.locLabel}</span>
+                        <span class="text-[10px] font-bold text-emerald-600">${timeAgo}</span>
+                    </div>
+                    <p class="font-bold text-stone-800 text-sm mt-0.5">Pedido #${n.orderNumber} • ${n.destLabel}</p>
+                    <p class="text-xs text-stone-600 font-medium">Cliente: <strong class="text-stone-800">${n.customerName}</strong></p>
+                    ${n.itemsSummary ? `<p class="text-[11px] text-stone-500 font-medium mt-1 truncate"><i class="fa-solid fa-utensils mr-1"></i>${n.itemsSummary}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ====== LISTEN FOR READY ORDERS ======
+let readyOrdersChannel = null;
+function listenForReadyOrders() {
+    if (readyOrdersChannel) return;
+
+    readyOrdersChannel = supabase
+        .channel('garcom-ready-orders')
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders'
+        }, async (payload) => {
+            const newStatus = payload.new?.status;
+            if (newStatus === 'pronto') {
+                const { data: fullOrder } = await supabase
+                    .from('orders')
+                    .select('*, order_items(*)')
+                    .eq('id', payload.new.id)
+                    .single();
+
+                if (fullOrder) {
+                    const locLabel = fullOrder.location_type === 'chale' 
+                        ? `Chalé ${fullOrder.location_id}` 
+                        : fullOrder.location_type === 'mesa' 
+                            ? `Mesa ${fullOrder.location_id.replace('M','')}` 
+                            : `Balcão ${fullOrder.location_id}`;
+
+                    const itemsSummary = (fullOrder.order_items || []).map(i => `${i.quantity}x ${i.product_name}`).join(', ');
+                    const customerName = fullOrder.customer_name || 'Cliente Sem Nome';
+                    const destLabel = fullOrder.destination === 'bar' ? 'Bar 🍺' : 'Cozinha 🍳';
+
+                    addGarcomNotification({
+                        id: fullOrder.id,
+                        orderNumber: fullOrder.order_number,
+                        status: 'pronto',
+                        locLabel,
+                        customerName,
+                        destLabel,
+                        itemsSummary,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }
+        })
+        .subscribe();
+}
+
+window.listenForReadyOrders = listenForReadyOrders;
+
 // ====== INIT ======
 document.addEventListener('DOMContentLoaded', () => {
     const staff = getCurrentStaff();
     if (staff) {
         document.getElementById('loginScreen').style.display = 'none';
         showLocationScreen();
+        listenForReadyOrders();
     }
 });

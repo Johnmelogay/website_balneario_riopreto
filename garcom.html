@@ -118,7 +118,10 @@
                 <p class="text-emerald-600 text-[10px] font-black uppercase tracking-widest">Garçom</p>
                 <p id="staffNameDisplay" class="text-stone-800 font-bold text-sm"></p>
             </div>
-            <div class="w-10"></div>
+            <button onclick="openNotificationsModal()" class="relative w-10 h-10 rounded-full bg-white shadow-sm border border-stone-200 flex items-center justify-center text-stone-700 active:scale-95 transition">
+                <i class="fa-solid fa-bell text-base"></i>
+                <span id="notiBadgeLocation" class="hidden absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+            </button>
         </div>
 
         <h2 class="text-2xl font-black text-stone-900 mb-4 text-center">Onde é o pedido?</h2>
@@ -204,9 +207,15 @@
                     <p id="locationLabel" class="text-stone-800 font-black text-sm truncate"></p>
                     <p id="staffNameBar" class="text-emerald-600 text-[10px] font-black uppercase tracking-widest mt-0.5"></p>
                 </div>
-                <button onclick="openExtrato()" class="relative w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 active:scale-95 transition">
-                    <i class="fa-solid fa-list-ul"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openNotificationsModal()" class="relative w-10 h-10 rounded-full bg-stone-100 text-stone-700 active:scale-95 transition">
+                        <i class="fa-solid fa-bell text-base"></i>
+                        <span id="notiBadgeMain" class="hidden absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                    </button>
+                    <button onclick="openExtrato()" class="relative w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 active:scale-95 transition">
+                        <i class="fa-solid fa-list-ul"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Category Tabs -->
@@ -410,6 +419,33 @@
                     Fechar
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ====== NOTIFICATIONS CENTER MODAL ====== -->
+    <div id="notificationsModal" class="fixed inset-0 z-[95] hidden bg-black/70 backdrop-blur-sm flex-col justify-end p-4">
+        <div class="bg-white rounded-3xl p-5 relative max-w-md mx-auto w-full max-h-[85vh] flex flex-col anim-slide shadow-2xl">
+            <div class="flex justify-between items-center pb-3 border-b border-stone-100 shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg"><i class="fa-solid fa-bell"></i></div>
+                    <div>
+                        <h3 class="text-base font-black text-stone-800 leading-tight">Central de Notificações</h3>
+                        <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">Avisos da Cozinha & Bar</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearGarcomNotifications()" class="text-xs font-bold text-stone-400 hover:text-stone-600 px-2.5 py-1 bg-stone-100 rounded-xl">Limpar</button>
+                    <button onclick="closeNotificationsModal()" class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <div id="notificationsList" class="flex-1 overflow-y-auto py-3 space-y-3 font-sans">
+                <div class="text-center py-10 text-stone-400 font-bold text-xs">Nenhuma notificação recente</div>
+            </div>
+
+            <button onclick="closeNotificationsModal()" class="w-full py-3 bg-stone-900 text-white font-bold rounded-2xl text-xs mt-2">
+                Fechar
+            </button>
         </div>
     </div>
 

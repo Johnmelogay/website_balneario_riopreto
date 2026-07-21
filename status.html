@@ -88,20 +88,27 @@
         const locationType = (params.get('tipo') || 'chale').toLowerCase().trim();
         const rawId = (params.get('id') || '1').trim();
 
-        // Build possible location IDs (e.g., 'M1' and '1' for Mesa 1)
-        const possibleLocIds = [rawId];
-        if (locationType === 'mesa') {
-            if (!rawId.toUpperCase().startsWith('M')) possibleLocIds.push(`M${rawId}`);
-            else possibleLocIds.push(rawId.toUpperCase().replace('M', ''));
-        } else if (locationType === 'balcao') {
-            if (!rawId.toUpperCase().startsWith('B')) possibleLocIds.push(`B${rawId}`);
-            else possibleLocIds.push(rawId.toUpperCase().replace('B', ''));
-        }
+        // Build comprehensive location ID matching list
+        const numOnly = rawId.replace(/[^0-9]/g, '');
+        const possibleLocIds = Array.from(new Set([
+            rawId,
+            rawId.toLowerCase(),
+            rawId.toUpperCase(),
+            numOnly,
+            `M${numOnly}`,
+            `m${numOnly}`,
+            `B${numOnly}`,
+            `b${numOnly}`,
+            `Mesa ${numOnly}`,
+            `Mesa${numOnly}`,
+            `Chalé ${numOnly}`,
+            `Chale ${numOnly}`
+        ])).filter(Boolean);
 
         // Set location display
         const icons = { chale: '🏡', mesa: '🪑', balcao: '🏪' };
         const labels = { chale: 'Chalé', mesa: 'Mesa', balcao: 'Balcão' };
-        const displayId = rawId.toUpperCase().replace('M', '').replace('B', '');
+        const displayId = numOnly || rawId.toUpperCase().replace('M', '').replace('B', '');
         document.getElementById('locationIcon').textContent = icons[locationType] || '📍';
         document.getElementById('locationLabel').textContent = `${labels[locationType] || locationType} ${displayId}`;
 
@@ -110,8 +117,8 @@
 
         // ====== LOAD ORDERS ======
         async function loadOrders() {
-            const today = new Date();
-            const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
+            // Last 24 hours range for robust timezone handling
+            const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
             const { data, error } = await supabase
                 .from('orders')
@@ -121,13 +128,12 @@
                 `)
                 .eq('location_type', locationType)
                 .in('location_id', possibleLocIds)
-                .gte('created_at', startOfDay)
+                .gte('created_at', last24h)
                 .neq('status', 'cancelado')
                 .order('created_at', { ascending: false });
 
             if (error) {
                 console.error('Error loading orders:', error);
-                renderError();
                 return;
             }
 
