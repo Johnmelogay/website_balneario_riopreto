@@ -96,13 +96,13 @@ function startGlobalGarcomRealtime() {
 
 // ====== LOCATION STATS ======
 let locationStats = {};
+let currentGridFilter = 'todos';
 
 async function fetchLocationStats() {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
 
-    // Query today's orders (both open created today and paid updated today)
     const { data: orders, error } = await supabase
         .from('orders')
         .select('location_type, location_id, status, payment_status, total, created_at, updated_at, staff_id')
@@ -112,44 +112,93 @@ async function fetchLocationStats() {
     locationStats = {};
     let myTotalSales = 0;
     let totalPending = 0;
+    let totalActiveComandasCount = 0;
     
     const staffId = getCurrentStaff()?.id;
     
     if (orders) {
+        const activeLocationsSet = new Set();
+
         orders.forEach(o => {
             const isTodayPaid = o.payment_status === 'pago' && o.updated_at >= startOfDay && o.updated_at <= endOfDay;
             const isTodayOpen = o.payment_status === 'aberto' && o.created_at >= startOfDay;
 
             if (o.staff_id === staffId && isTodayPaid) {
-                myTotalSales += Number(o.total); // Only sum PAID sales for today's "Minhas Vendas"
+                myTotalSales += Number(o.total);
             }
             if (isTodayOpen) {
-                totalPending += Number(o.total); // Sum all pending for today's "Receber Pendente"
+                totalPending += Number(o.total);
+                activeLocationsSet.add(o.location_type + '-' + o.location_id);
             }
 
             const key = o.location_type + '-' + o.location_id;
             if (!locationStats[key]) {
-                locationStats[key] = { total_open_val: 0, open_orders: 0, delayed: false };
+                locationStats[key] = { 
+                    total_open_val: 0, 
+                    open_orders: 0, 
+                    preparing_orders: 0,
+                    ready_orders: 0,
+                    status_color: 'livre'
+                };
             }
             
             if (isTodayOpen) {
                 locationStats[key].total_open_val += Number(o.total);
-            }
-            if (isTodayOpen && o.status !== 'entregue' && o.status !== 'pronto') {
                 locationStats[key].open_orders++;
-                const elapsed = Date.now() - new Date(o.created_at).getTime();
-                if (elapsed > 30 * 60 * 1000) {
-                    locationStats[key].delayed = true;
+
+                if (o.status === 'pendente' || o.status === 'fazendo') {
+                    locationStats[key].preparing_orders++;
+                } else if (o.status === 'pronto' || o.status === 'entregue') {
+                    locationStats[key].ready_orders++;
                 }
             }
         });
+
+        // Calculate status_color per location key
+        Object.keys(locationStats).forEach(k => {
+            const stat = locationStats[k];
+            if (stat.total_open_val > 0 || stat.open_orders > 0) {
+                if (stat.preparing_orders > 0) {
+                    stat.status_color = 'preparando'; // 🔴 Red
+                } else {
+                    stat.status_color = 'pronto'; // 🟢 Green (Ready for closing / delivered)
+                }
+            } else {
+                stat.status_color = 'livre'; // ⚪ Free
+            }
+        });
+
+        totalActiveComandasCount = activeLocationsSet.size;
     }
 
     const salesEl = document.getElementById('garcomTotalSales');
     const pendingEl = document.getElementById('garcomPendingAmount');
     if (salesEl) salesEl.textContent = `R$ ${myTotalSales.toFixed(2).replace('.', ',')}`;
     if (pendingEl) pendingEl.textContent = `R$ ${totalPending.toFixed(2).replace('.', ',')}`;
+
+    // Update active comandas badge on bottom nav
+    const activeBadge = document.getElementById('navActiveComandasBadge');
+    if (activeBadge) {
+        activeBadge.textContent = totalActiveComandasCount;
+        activeBadge.classList.toggle('hidden', totalActiveComandasCount === 0);
+    }
 }
+
+window.filterLocationGrid = (filterKey) => {
+    currentGridFilter = filterKey;
+    ['todos', 'preparando', 'pronto', 'livre'].forEach(k => {
+        const btn = document.getElementById(`filterGrid_${k}`);
+        if (!btn) return;
+        if (k === filterKey) {
+            btn.className = "px-3 py-1 rounded-full text-[11px] font-black bg-stone-900 text-white shadow-sm transition scale-105";
+        } else {
+            btn.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-white text-stone-600 border border-stone-200 transition opacity-70";
+        }
+    });
+    if (typeof window.setLocationType === 'function') {
+        window.setLocationType(currentLocation.type || 'chale');
+    }
+};
 
 window.setLocationType = async (type) => {
     currentLocation.type = type;
@@ -159,21 +208,23 @@ window.setLocationType = async (type) => {
 
     const grid = document.getElementById('locationGrid');
     const resumo = document.getElementById('resumoContainer');
-    if (resumo) {
-        resumo.classList.add('hidden');
-        resumo.classList.remove('flex');
-    }
+    const comandasAtivas = document.getElementById('comandasAtivasContainer');
+
+    if (resumo) { resumo.classList.add('hidden'); resumo.classList.remove('flex'); }
+    if (comandasAtivas) { comandasAtivas.classList.add('hidden'); comandasAtivas.classList.remove('flex'); }
+    
     grid.classList.remove('hidden');
-    grid.innerHTML = '<div class="col-span-3 text-center py-10"><i class="fa-solid fa-spinner fa-spin text-stone-300 text-2xl"></i></div>';
+    grid.innerHTML = '<div class="col-span-3 text-center py-10"><i class="fa-solid fa-spinner fa-spin text-stone-400 text-2xl"></i></div>';
 
     await fetchLocationStats();
     grid.innerHTML = '';
 
     if (type === 'balcao') {
-        // Single option
         const key = type + '-B1';
-        const btn = createLocationBtn('Balcão', 'B1', '🏪', locationStats[key]);
-        grid.appendChild(btn);
+        const stat = locationStats[key] || { status_color: 'livre' };
+        if (matchesGridFilter(stat)) {
+            grid.appendChild(createLocationBtn('Balcão', 'B1', '🏪', stat));
+        }
         return;
     }
 
@@ -185,36 +236,62 @@ window.setLocationType = async (type) => {
         const label = type === 'chale' ? `Chalé ${i}` : `Mesa ${i}`;
         const id = `${prefix}${i}`;
         const key = type + '-' + id;
-        grid.appendChild(createLocationBtn(label, id, icon, locationStats[key]));
+        const stat = locationStats[key] || { status_color: 'livre' };
+
+        if (matchesGridFilter(stat)) {
+            grid.appendChild(createLocationBtn(label, id, icon, stat));
+        }
+    }
+
+    if (grid.children.length === 0) {
+        grid.innerHTML = `<div class="col-span-3 text-center py-12 text-stone-400 font-bold text-xs">
+            <i class="fa-solid fa-filter text-xl mb-2 block text-stone-300"></i>
+            Nenhum local com o filtro "${currentGridFilter.toUpperCase()}"
+        </div>`;
     }
 };
 
+function matchesGridFilter(stat) {
+    if (currentGridFilter === 'todos') return true;
+    if (currentGridFilter === 'preparando') return stat.status_color === 'preparando';
+    if (currentGridFilter === 'pronto') return stat.status_color === 'pronto';
+    if (currentGridFilter === 'livre') return stat.status_color === 'livre';
+    return true;
+}
+
 function createLocationBtn(label, id, icon, stats) {
     const btn = document.createElement('button');
-    btn.className = 'bg-white border border-stone-200 shadow-sm rounded-2xl p-4 flex flex-col items-center gap-1 hover:bg-stone-50 active:scale-95 transition relative';
     
+    let colorClasses = 'bg-white border border-stone-200 shadow-sm hover:bg-stone-50';
     let badgesHtml = '';
     let amountsHtml = '';
 
-    if (stats) {
-        if (stats.delayed) {
-            badgesHtml += `<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-clock"></i> ATRASO</div>`;
-        } else if (stats.open_orders > 0) {
-            badgesHtml += `<div class="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-sm border-2 border-white">${stats.open_orders}</div>`;
+    if (stats && stats.total_open_val > 0) {
+        if (stats.status_color === 'preparando') {
+            // 🔴 PREPARANDO (Red)
+            colorClasses = 'bg-red-50/90 border-2 border-red-500 shadow-md shadow-red-100/50';
+            badgesHtml = `<div class="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-fire-burner"></i> PREPARANDO</div>`;
+        } else if (stats.status_color === 'pronto') {
+            // 🟢 PRONTO / APTO PARA FECHAMENTO (Green)
+            colorClasses = 'bg-emerald-50/90 border-2 border-emerald-500 shadow-md shadow-emerald-100/50';
+            badgesHtml = `<div class="absolute -top-2 -right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-circle-check"></i> APTO</div>`;
         }
 
-        if (stats.total_open_val > 0) {
-            amountsHtml = `<div class="mt-2 pt-2 border-t border-stone-100 w-full text-center">
-                <span class="text-[9px] font-bold text-stone-400 uppercase block leading-none mb-1">Pendente</span>
-                <span class="text-xs font-black text-emerald-600 block leading-none">R$ ${stats.total_open_val.toFixed(2).replace('.', ',')}</span>
-            </div>`;
-        }
+        amountsHtml = `<div class="mt-2 pt-2 border-t border-stone-200/60 w-full text-center">
+            <span class="text-[9px] font-extrabold text-stone-500 uppercase block leading-none mb-1">Consumo</span>
+            <span class="text-xs font-black ${stats.status_color === 'preparando' ? 'text-red-700' : 'text-emerald-700'} block leading-none">R$ ${stats.total_open_val.toFixed(2).replace('.', ',')}</span>
+        </div>`;
+    } else {
+        // ⚪ LIVRE
+        badgesHtml = `<span class="text-[9px] font-extrabold text-stone-400 uppercase tracking-widest mt-0.5">Livre</span>`;
     }
+
+    btn.className = `${colorClasses} rounded-2xl p-4 flex flex-col items-center gap-0.5 active:scale-95 transition relative`;
 
     btn.innerHTML = `
         ${badgesHtml}
-        <span class="text-3xl drop-shadow-sm">${icon}</span>
-        <span class="text-stone-800 font-bold text-[13px] tracking-tight mt-1">${label}</span>
+        <span class="text-3xl drop-shadow-sm mt-1">${icon}</span>
+        <span class="text-stone-900 font-extrabold text-[13px] tracking-tight mt-1">${label}</span>
         ${amountsHtml}
     `;
     btn.onclick = () => {
@@ -264,17 +341,18 @@ window.switchGarcomTab = (tabKey) => {
     const locScreen = document.getElementById('locationScreen');
     const extratoScreen = document.getElementById('extratoScreen');
     const locGrid = document.getElementById('locationGrid');
+    const comandasAtivas = document.getElementById('comandasAtivasContainer');
     const liveFeed = document.getElementById('liveFeedContainer');
     const resumoCont = document.getElementById('resumoContainer');
-    const tabsRow = document.querySelector('#locationScreen .flex-wrap');
+    const filterRow = document.querySelector('#locationScreen .no-scrollbar');
+    const tabsRow = document.querySelector('#locationScreen .max-w-sm');
 
     // Reset button highlights
     const navItems = [
         { id: 'navBtn_fazerPedido', key: 'fazer_pedido' },
-        { id: 'navBtn_cardapio', key: 'cardapio' },
+        { id: 'navBtn_comandasAtivas', key: 'comandas_ativas' },
         { id: 'navBtn_pedidosFeitos', key: 'pedidos_feitos' },
-        { id: 'navBtn_resumoDia', key: 'resumo_dia' },
-        { id: 'navBtn_notificacoes', key: 'notificacoes' }
+        { id: 'navBtn_resumoDia', key: 'resumo_dia' }
     ];
 
     navItems.forEach(item => {
@@ -306,28 +384,38 @@ window.switchGarcomTab = (tabKey) => {
 
     if (tabKey === 'fazer_pedido') {
         if (locGrid) locGrid.classList.remove('hidden');
+        if (comandasAtivas) { comandasAtivas.classList.add('hidden'); comandasAtivas.classList.remove('flex'); }
         if (liveFeed) { liveFeed.classList.add('hidden'); liveFeed.classList.remove('flex'); }
         if (resumoCont) { resumoCont.classList.add('hidden'); resumoCont.classList.remove('flex'); }
         if (tabsRow) tabsRow.classList.remove('hidden');
+        if (filterRow) filterRow.classList.remove('hidden');
         if (typeof window.setLocationType === 'function') {
             setLocationType(currentLocation.type || 'chale');
         }
+    } else if (tabKey === 'comandas_ativas') {
+        if (locGrid) locGrid.classList.add('hidden');
+        if (comandasAtivas) { comandasAtivas.classList.remove('hidden'); comandasAtivas.classList.add('flex'); }
+        if (liveFeed) { liveFeed.classList.add('hidden'); liveFeed.classList.remove('flex'); }
+        if (resumoCont) { resumoCont.classList.add('hidden'); resumoCont.classList.remove('flex'); }
+        if (tabsRow) tabsRow.classList.add('hidden');
+        if (filterRow) filterRow.classList.add('hidden');
+        window.loadComandasAtivasFeed();
     } else if (tabKey === 'pedidos_feitos') {
         if (locGrid) locGrid.classList.add('hidden');
+        if (comandasAtivas) { comandasAtivas.classList.add('hidden'); comandasAtivas.classList.remove('flex'); }
         if (liveFeed) { liveFeed.classList.remove('hidden'); liveFeed.classList.add('flex'); }
         if (resumoCont) { resumoCont.classList.add('hidden'); resumoCont.classList.remove('flex'); }
         if (tabsRow) tabsRow.classList.add('hidden');
+        if (filterRow) filterRow.classList.add('hidden');
         loadLiveOrdersFeed();
     } else if (tabKey === 'resumo_dia') {
         if (locGrid) locGrid.classList.add('hidden');
+        if (comandasAtivas) { comandasAtivas.classList.add('hidden'); comandasAtivas.classList.remove('flex'); }
         if (liveFeed) { liveFeed.classList.add('hidden'); liveFeed.classList.remove('flex'); }
         if (resumoCont) { resumoCont.classList.remove('hidden'); resumoCont.classList.add('flex'); }
         if (tabsRow) tabsRow.classList.add('hidden');
+        if (filterRow) filterRow.classList.add('hidden');
         if (typeof window.showResumoDia === 'function') window.showResumoDia();
-    } else if (tabKey === 'notificacoes') {
-        if (typeof window.openNotificationsModal === 'function') {
-            window.openNotificationsModal();
-        }
     }
 };
 
@@ -424,6 +512,159 @@ window.loadLiveOrdersFeed = async () => {
             </div>
         `;
     }).join('');
+};
+
+// ====== COMANDAS ATIVAS FEED (ONGOING COMANDAS OVERVIEW) ======
+window.loadComandasAtivasFeed = async () => {
+    const list = document.getElementById('comandasAtivasList');
+    if (!list) return;
+
+    list.innerHTML = '<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-stone-400 text-2xl"></i></div>';
+
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
+
+    const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*), staff_users(name)')
+        .gte('created_at', startOfDay)
+        .eq('payment_status', 'aberto')
+        .neq('status', 'cancelado')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error loading active comandas:', error);
+        list.innerHTML = '<p class="text-center text-red-500 font-bold py-6 text-xs">Erro ao carregar comandas ativas.</p>';
+        return;
+    }
+
+    if (!orders || orders.length === 0) {
+        document.getElementById('comandasAtivasTotalAmount').textContent = 'R$ 0,00';
+        document.getElementById('comandasAtivasCount').textContent = '0 ativas';
+        list.innerHTML = `
+            <div class="text-center py-16 bg-white rounded-3xl border border-stone-200 p-6 shadow-sm">
+                <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h4 class="font-black text-stone-800 text-base">Nenhuma comanda aberta no momento</h4>
+                <p class="text-stone-400 text-xs mt-1">Todos os locais estão livres ou com consumo finalizado.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Group active orders by location
+    const locationMap = {};
+    let grandTotalSum = 0;
+
+    orders.forEach(o => {
+        const key = `${o.location_type}-${o.location_id}`;
+        if (!locationMap[key]) {
+            locationMap[key] = {
+                type: o.location_type,
+                id: o.location_id,
+                customerName: o.customer_name || null,
+                staffName: o.staff_users?.name || 'Garçom',
+                total: 0,
+                firstCreatedAt: o.created_at,
+                orders: []
+            };
+        }
+        locationMap[key].total += Number(o.total || 0);
+        grandTotalSum += Number(o.total || 0);
+        locationMap[key].orders.push(o);
+        if (new Date(o.created_at) < new Date(locationMap[key].firstCreatedAt)) {
+            locationMap[key].firstCreatedAt = o.created_at;
+        }
+    });
+
+    const locationsList = Object.values(locationMap);
+
+    document.getElementById('comandasAtivasTotalAmount').textContent = `R$ ${grandTotalSum.toFixed(2).replace('.', ',')}`;
+    document.getElementById('comandasAtivasCount').textContent = `${locationsList.length} ${locationsList.length === 1 ? 'local ativo' : 'locais ativos'}`;
+
+    list.innerHTML = locationsList.map(loc => {
+        const typeLabel = loc.type === 'chale' ? 'Chalé' : (loc.type === 'mesa' ? 'Mesa' : 'Balcão');
+        const icon = loc.type === 'chale' ? '🏡' : '🪑';
+        const label = `${typeLabel} ${loc.id}`;
+
+        let hasPreparing = false;
+        let totalItemsCount = 0;
+
+        loc.orders.forEach(o => {
+            (o.order_items || []).forEach(i => {
+                totalItemsCount += i.quantity;
+                if (i.status === 'pendente' || i.status === 'fazendo' || o.status === 'pendente' || o.status === 'fazendo') {
+                    hasPreparing = true;
+                }
+            });
+        });
+
+        const now = Date.now();
+        const start = new Date(loc.firstCreatedAt).getTime();
+        const diffMins = Math.floor((now - start) / 60000);
+        const hours = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        const durationStr = hours > 0 ? `${hours}h ${mins}min` : `${mins} min`;
+
+        const statusBadgeHtml = hasPreparing
+            ? `<span class="bg-red-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm animate-pulse"><i class="fa-solid fa-fire-burner"></i> PREPARANDO</span>`
+            : `<span class="bg-emerald-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm"><i class="fa-solid fa-circle-check"></i> APTO / ENTREGUE</span>`;
+
+        return `
+            <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-200 space-y-3 hover:shadow-md transition">
+                <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">${icon}</span>
+                        <div>
+                            <h4 class="font-black text-stone-900 text-base leading-tight">${label}</h4>
+                            <p class="text-[11px] font-bold text-stone-400 mt-0.5">
+                                Abriu há ${durationStr} • ${loc.staffName} ${loc.customerName ? `• ${loc.customerName}` : ''}
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        ${statusBadgeHtml}
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-stone-50 p-3 rounded-2xl border border-stone-100">
+                    <div>
+                        <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Consumo Parcial</span>
+                        <span class="text-xl font-black text-stone-900">R$ ${loc.total.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <span class="text-xs font-bold text-stone-500 bg-white px-3 py-1 rounded-xl border border-stone-200">
+                        ${totalItemsCount} ${totalItemsCount === 1 ? 'item' : 'itens'}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="selectLocationFromOngoing('${loc.type}', '${loc.id}', '${label}')" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-2xl shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-plus-circle"></i> + PEDIDO
+                    </button>
+                    <button onclick="openExtratoForOngoing('${loc.type}', '${loc.id}', '${label}')" class="py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-xs rounded-2xl border border-stone-200 active:scale-95 transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-receipt"></i> VER CONSUMO
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+window.selectLocationFromOngoing = (type, id, label) => {
+    currentLocation.type = type;
+    currentLocation.id = id;
+    openMainApp(label);
+};
+
+window.openExtratoForOngoing = (type, id, label) => {
+    currentLocation.type = type;
+    currentLocation.id = id;
+    window.currentLocationType = type;
+    window.currentLocationId = id;
+    if (typeof window.openExtrato === 'function') {
+        window.openExtrato();
+    }
 };
 
 window.openLocationFromResumo = (type, id, label) => {
