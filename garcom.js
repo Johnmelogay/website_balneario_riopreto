@@ -260,27 +260,9 @@ let currentGarcomNavTab = 'fazer_pedido';
 window.switchGarcomTab = (tabKey) => {
     currentGarcomNavTab = tabKey;
 
-    // If mainApp (catalog) is open, close it to return to location screen
     const mainApp = document.getElementById('mainApp');
-    if (mainApp && !mainApp.classList.contains('hidden')) {
-        mainApp.classList.add('hidden');
-        mainApp.classList.remove('flex');
-    }
-
-    // If extrato is open, close it
-    const extratoScreen = document.getElementById('extratoScreen');
-    if (extratoScreen && !extratoScreen.classList.contains('hidden')) {
-        extratoScreen.classList.add('hidden');
-        extratoScreen.classList.remove('flex');
-    }
-
-    // Ensure locationScreen is visible
     const locScreen = document.getElementById('locationScreen');
-    if (locScreen) {
-        locScreen.classList.remove('hidden');
-        locScreen.style.display = 'flex';
-    }
-
+    const extratoScreen = document.getElementById('extratoScreen');
     const locGrid = document.getElementById('locationGrid');
     const liveFeed = document.getElementById('liveFeedContainer');
     const resumoCont = document.getElementById('resumoContainer');
@@ -289,6 +271,7 @@ window.switchGarcomTab = (tabKey) => {
     // Reset button highlights
     const navItems = [
         { id: 'navBtn_fazerPedido', key: 'fazer_pedido' },
+        { id: 'navBtn_cardapio', key: 'cardapio' },
         { id: 'navBtn_pedidosFeitos', key: 'pedidos_feitos' },
         { id: 'navBtn_resumoDia', key: 'resumo_dia' },
         { id: 'navBtn_notificacoes', key: 'notificacoes' }
@@ -298,11 +281,28 @@ window.switchGarcomTab = (tabKey) => {
         const btn = document.getElementById(item.id);
         if (!btn) return;
         if (item.key === tabKey) {
-            btn.className = "flex flex-col items-center gap-1 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition scale-105";
+            btn.className = "flex flex-col items-center gap-0.5 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition scale-105";
         } else {
-            btn.className = "flex flex-col items-center gap-1 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition";
+            btn.className = "flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition";
         }
     });
+
+    if (tabKey === 'cardapio') {
+        if (!currentLocation.id) {
+            alert('Por favor, selecione uma mesa, chalé ou balcão primeiro.');
+            switchGarcomTab('fazer_pedido');
+            return;
+        }
+        if (locScreen) locScreen.style.display = 'none';
+        if (extratoScreen) { extratoScreen.classList.add('hidden'); extratoScreen.classList.remove('flex'); }
+        if (mainApp) { mainApp.classList.remove('hidden'); mainApp.classList.add('flex'); }
+        return;
+    }
+
+    // Hide catalog when switching to other tabs
+    if (mainApp) { mainApp.classList.add('hidden'); mainApp.classList.remove('flex'); }
+    if (extratoScreen) { extratoScreen.classList.add('hidden'); extratoScreen.classList.remove('flex'); }
+    if (locScreen) { locScreen.classList.remove('hidden'); locScreen.style.display = 'flex'; }
 
     if (tabKey === 'fazer_pedido') {
         if (locGrid) locGrid.classList.remove('hidden');
@@ -329,6 +329,10 @@ window.switchGarcomTab = (tabKey) => {
             window.openNotificationsModal();
         }
     }
+};
+
+window.goBackToLocation = () => {
+    switchGarcomTab('fazer_pedido');
 };
 
 // ====== LIVE ORDERS FEED (COLOR-CODED) ======
@@ -737,12 +741,24 @@ function updateCartUI() {
 
     // Floating bar
     const floating = document.getElementById('floatingCart');
-    floating.classList.toggle('hidden', totalItems === 0);
-    document.getElementById('floatingCount').textContent = `${totalItems} ${totalItems === 1 ? 'item' : 'itens'}`;
-    document.getElementById('floatingTotal').textContent = priceStr;
+    if (floating) {
+        floating.classList.toggle('hidden', totalItems === 0);
+        const countEl = document.getElementById('floatingCount');
+        const totalEl = document.getElementById('floatingTotal');
+        if (countEl) countEl.textContent = `${totalItems} ${totalItems === 1 ? 'item' : 'itens'}`;
+        if (totalEl) totalEl.textContent = priceStr;
+    }
+
+    // Nav bar cart badge
+    const navCartBadge = document.getElementById('navCartBadge');
+    if (navCartBadge) {
+        navCartBadge.textContent = totalItems;
+        navCartBadge.classList.toggle('hidden', totalItems === 0);
+    }
 
     // Cart total
-    document.getElementById('cartTotal').textContent = priceStr;
+    const cartTotalEl = document.getElementById('cartTotal');
+    if (cartTotalEl) cartTotalEl.textContent = priceStr;
 }
 
 function renderCartItems() {
