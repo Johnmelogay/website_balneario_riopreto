@@ -129,6 +129,7 @@
                 .eq('location_type', locationType)
                 .in('location_id', possibleLocIds)
                 .gte('created_at', last24h)
+                .eq('payment_status', 'aberto')
                 .neq('status', 'cancelado')
                 .order('created_at', { ascending: false });
 
