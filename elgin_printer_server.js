@@ -1,5 +1,5 @@
 // elgin_printer_server.js
-// Servidor de Impressão Direta em Alta Resolução (Logo Oficial + Fontes Grandes e Legíveis + Zero Desperdício de Papel)
+// Servidor de Impressão Direta em Alta Resolução (Logo Ampliada + Margem Superior/Inferior Equilibrada)
 
 const http = require('http');
 const usb = require('usb');
@@ -32,14 +32,14 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const width = targetWidth;
     const widthBytes = Math.ceil(width / 8);
 
-    // Encontrar a última linha vertical com pixels pretos para eliminar desperdício de papel
+    // Encontrar a última linha vertical com pixels pretos para ajustar o corte equilibrado no final
     let lastY = 0;
     for (let y = png.height - 1; y >= 0; y--) {
         for (let x = 0; x < png.width; x++) {
             const idx = (y * png.width + x) * 4;
             const a = png.data[idx + 3];
             const lum = png.data[idx] * 0.299 + png.data[idx + 1] * 0.587 + png.data[idx + 2] * 0.114;
-            if (a > 128 && lum < 165) {
+            if (a > 128 && lum < 185) {
                 lastY = y;
                 break;
             }
@@ -47,7 +47,8 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
         if (lastY > 0) break;
     }
 
-    const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 25) : png.height;
+    // Margem equilibrada de 45px no final para combinar com o topo
+    const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 45) : png.height;
     const height = Math.floor(targetWidth * (croppedHeight / png.width));
 
     const rasterData = Buffer.alloc(widthBytes * height);
@@ -63,9 +64,9 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
             const b = png.data[idx + 2];
             const a = png.data[idx + 3];
 
-            // Limiar equilibrado de luminância para caracteres grandes e nítidos
+            // Limiar equilibrado de luminância
             const lum = (r * 0.299 + g * 0.587 + b * 0.114);
-            const isBlack = (a > 128) && (lum < 165);
+            const isBlack = (a > 128) && (lum < 175);
 
             if (isBlack) {
                 const byteIdx = y * widthBytes + Math.floor(x / 8);
@@ -160,7 +161,7 @@ async function printVisualPdfHardware(data) {
             `;
         });
 
-        // HTML Visual Layout with Large Readable Fonts & Official Logo
+        // HTML Visual Layout with Prominent Logo and Balanced Margins
         const receiptHtml = `
             <!DOCTYPE html>
             <html>
@@ -174,11 +175,11 @@ async function printVisualPdfHardware(data) {
                         width: 576px;
                         background: #ffffff;
                         color: #000000;
-                        padding: 12px 14px;
+                        padding: 4px 14px 12px 14px;
                         line-height: 1.35;
                     }
-                    .header { text-align: center; padding-bottom: 12px; border-bottom: 3px solid #000000; }
-                    .logo { width: 84px; height: 84px; margin: 0 auto 6px auto; display: block; object-fit: contain; filter: contrast(180%); }
+                    .header { text-align: center; padding-bottom: 10px; border-bottom: 3px solid #000000; }
+                    .logo { width: 140px; height: 140px; margin: 0 auto 4px auto; display: block; object-fit: contain; filter: contrast(180%); }
                     .brand-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 30px; color: #000000; text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1; }
                     .subtitle { font-size: 15px; font-weight: 900; color: #000000; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
                     
@@ -272,7 +273,7 @@ async function printVisualPdfHardware(data) {
         await dev.claimInterface(0);
 
         const RESET = new Uint8Array([0x1B, 0x40, 0x1B, 0x61, 0x01]);
-        const FEED_CUT = new Uint8Array([0x0A, 0x1D, 0x56, 0x00]); // Single line feed + immediate Auto Cut
+        const FEED_CUT = new Uint8Array([0x0A, 0x0A, 0x1D, 0x56, 0x00]); // Balanced line feed + Auto Cut paper
 
         const payload = Buffer.concat([
             RESET,
@@ -286,7 +287,7 @@ async function printVisualPdfHardware(data) {
             await dev.releaseInterface(0);
         } catch (e) {}
 
-        console.log("🎨 IMPRESSÃO COM LOGO OFICIAL E FONTES AMPLIADAS CONCLUÍDA NA ELGIN i8!");
+        console.log("🎨 IMPRESSÃO COM LOGO AMPLIADA E MARGENS EQUILIBRADAS CONCLUÍDA NA ELGIN i8!");
     } finally {
         if (dev) {
             try {
@@ -298,5 +299,5 @@ async function printVisualPdfHardware(data) {
 }
 
 server.listen(PORT, () => {
-    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Logo + Fontes Grandes) ativo na porta ${PORT}`);
+    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Logo Ampliada + Margens Equilibradas) ativo na porta ${PORT}`);
 });
