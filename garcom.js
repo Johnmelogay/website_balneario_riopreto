@@ -59,6 +59,39 @@ function showLocationScreen() {
     document.getElementById('staffNameDisplay').textContent = staff?.name || '';
     document.getElementById('locationScreen').style.display = 'flex';
     setLocationType('chale');
+    startGlobalGarcomRealtime();
+}
+
+let globalGarcomChannel = null;
+function startGlobalGarcomRealtime() {
+    if (globalGarcomChannel) return;
+
+    // Polling fallback (3s) for dashboard counters
+    setInterval(() => {
+        const locScreen = document.getElementById('locationScreen');
+        if (locScreen && locScreen.style.display !== 'none') {
+            if (document.getElementById('tab_resumo')?.classList.contains('active')) {
+                if (typeof window.filterResumo === 'function') window.filterResumo(window.currentResumoFilter || 'aberto');
+            } else if (currentLocation?.type) {
+                fetchLocationStats();
+            }
+        }
+    }, 3000);
+
+    // Supabase Realtime for instant updates
+    globalGarcomChannel = supabase
+        .channel('garcom-global-stats')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+            const locScreen = document.getElementById('locationScreen');
+            if (locScreen && locScreen.style.display !== 'none') {
+                if (document.getElementById('tab_resumo')?.classList.contains('active')) {
+                    if (typeof window.filterResumo === 'function') window.filterResumo(window.currentResumoFilter || 'aberto');
+                } else if (currentLocation?.type) {
+                    if (typeof window.setLocationType === 'function') window.setLocationType(currentLocation.type);
+                }
+            }
+        })
+        .subscribe();
 }
 
 // ====== LOCATION STATS ======

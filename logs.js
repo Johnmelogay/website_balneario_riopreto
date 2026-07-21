@@ -62,6 +62,17 @@ async function startApp() {
 
     await loadStaffList();
     await loadLogs();
+
+    // Fast 3s Polling Fallback
+    setInterval(loadLogs, 3000);
+
+    // Supabase Realtime for instant log feed
+    supabase
+        .channel('audit-logs-live')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_logs' }, () => {
+            loadLogs();
+        })
+        .subscribe();
 }
 
 // ====== LOAD STAFF ======
@@ -89,15 +100,11 @@ window.loadLogs = async () => {
     if (!selectedDate) return;
 
     const container = document.getElementById('logsContainer');
-    container.innerHTML = `
-        <div class="flex flex-col items-center justify-center h-full text-stone-600">
-            <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 text-blue-500"></i>
-            <p class="font-bold text-sm">Buscando logs de ${selectedDate}...</p>
-        </div>`;
 
-    // Calculate start and end of day in UTC / local
-    const startOfDay = new Date(`${selectedDate}T00:00:00`).toISOString();
-    const endOfDay = new Date(`${selectedDate}T23:59:59.999`).toISOString();
+    // Precise local start/end of day
+    const [yr, mo, dy] = selectedDate.split('-').map(Number);
+    const startOfDay = new Date(yr, mo - 1, dy, 0, 0, 0, 0).toISOString();
+    const endOfDay = new Date(yr, mo - 1, dy, 23, 59, 59, 999).toISOString();
 
     const { data, error } = await supabase
         .from('audit_logs')
@@ -108,11 +115,6 @@ window.loadLogs = async () => {
 
     if (error) {
         console.error('Error loading audit logs:', error);
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-full text-red-400">
-                <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
-                <p class="font-bold">Erro ao carregar logs: ${error.message}</p>
-            </div>`;
         return;
     }
 

@@ -99,11 +99,10 @@ async function startKDS() {
     // Load initial
     await loadOrders();
 
-    // Polling fallback — guarantees kitchen updates even if Realtime drops
-    // This is the same pattern used by professional KDS systems (Toast, Lightspeed)
+    // Polling fallback (3 seconds)
     setInterval(() => {
         loadOrders();
-    }, 15000); // Every 15 seconds
+    }, 3000);
 
     // Realtime subscription (primary — instant updates)
     const channel = supabase
@@ -120,11 +119,9 @@ async function startKDS() {
             schema: 'public',
             table: 'order_items'
         }, () => {
-            // Re-fetch on item changes
             loadOrders();
         })
         .subscribe((status) => {
-            // Visual indicator of connection health
             const indicator = document.getElementById('connectionStatus');
             if (indicator) {
                 if (status === 'SUBSCRIBED') {
@@ -149,6 +146,9 @@ function updateClock() {
 
 // ====== LOAD ORDERS ======
 async function loadOrders() {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
+
     const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -156,7 +156,8 @@ async function loadOrders() {
             order_items(*),
             staff_users(name)
         `)
-        .in('status', ['pendente', 'preparando', 'pronto'])
+        .gte('created_at', startOfDay)
+        .neq('status', 'cancelado')
         .order('created_at', { ascending: true });
 
     if (error) {
@@ -174,10 +175,8 @@ async function loadOrders() {
 }
 
 function handleRealtimeOrder(payload) {
-    // On any change, re-fetch everything for simplicity and data consistency
     loadOrders();
 
-    // Play sound only on INSERT (new order)
     if (payload.eventType === 'INSERT') {
         playNotification();
     }
@@ -191,27 +190,35 @@ function renderOrders() {
     const pending = orders.filter(o => o.status === 'pendente');
     const preparing = orders.filter(o => o.status === 'preparando');
     const ready = orders.filter(o => o.status === 'pronto');
+    const delivered = orders.filter(o => o.status === 'entregue');
 
     // Update counters
-    document.getElementById('countPending').textContent = pending.length;
-    document.getElementById('countPreparing').textContent = preparing.length;
-    document.getElementById('countReady').textContent = ready.length;
+    const pEl = document.getElementById('countPending');
+    const prEl = document.getElementById('countPreparing');
+    const rEl = document.getElementById('countReady');
+    const dEl = document.getElementById('countDelivered');
 
-    if (orders.length === 0) {
+    if (pEl) pEl.textContent = pending.length;
+    if (prEl) prEl.textContent = preparing.length;
+    if (rEl) rEl.textContent = ready.length;
+    if (dEl) dEl.textContent = delivered.length;
+
+    // Active preparation cards (exclude delivered from grid to keep kitchen uncluttered)
+    const activeOrders = [...pending, ...preparing, ...ready];
+
+    if (activeOrders.length === 0) {
         container.innerHTML = `
             <div class="flex flex-col items-center justify-center h-full text-stone-600">
                 <i class="fa-solid fa-kitchen-set text-6xl mb-4 opacity-30"></i>
-                <p class="font-bold text-lg">Nenhum pedido</p>
-                <p class="text-sm text-stone-700">Aguardando novos pedidos...</p>
+                <p class="font-bold text-lg">Nenhum pedido pendente</p>
+                <p class="text-sm text-stone-700">${delivered.length} pedido(s) finalizados hoje</p>
             </div>`;
         return;
     }
 
-    // Render grid: pending first, then preparing, then ready
-    const allSorted = [...pending, ...preparing, ...ready];
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            ${allSorted.map(order => orderCard(order)).join('')}
+            ${activeOrders.map(order => orderCard(order)).join('')}
         </div>
     `;
 }
