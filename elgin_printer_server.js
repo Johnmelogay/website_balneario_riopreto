@@ -11,33 +11,13 @@ const PNG = require('pngjs').PNG;
 const PORT = 3001;
 
 // ====== RENDERIZA HTML E CORTA O ESPAÇO EM BRANCO AUTOMATICAMENTE ======
-function getChromePath() {
-    if (process.platform === 'win32') {
-        const paths = [
-            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-            (process.env.LOCALAPPDATA || '') + '\\Google\\Chrome\\Application\\chrome.exe',
-            (process.env.PROGRAMFILES || '') + '\\Google\\Chrome\\Application\\chrome.exe',
-            (process.env['PROGRAMFILES(X86)'] || '') + '\\Google\\Chrome\\Application\\chrome.exe'
-        ];
-        for (const p of paths) {
-            if (p && fs.existsSync(p)) return p;
-        }
-        return 'chrome.exe';
-    }
-    if (process.platform === 'darwin') {
-        return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    }
-    return 'google-chrome';
-}
-
 function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const tempHtmlPath = path.join(__dirname, 'temp_receipt_render.html');
     const tempPngPath = path.join(__dirname, 'temp_receipt_render.png');
 
     fs.writeFileSync(tempHtmlPath, htmlContent);
 
-    const chromePath = getChromePath();
+    const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
     const cmd = `"${chromePath}" --headless --disable-gpu --screenshot="${tempPngPath}" --window-size=576,1600 "${tempHtmlPath}"`;
     
     execSync(cmd);
