@@ -1,10 +1,9 @@
 // elgin_printer_server.js
-// Micro-servidor em Node.js para comunicação direta via USB com a Elgin i8 no Mac
-// Bypassa 100% o macOS System Settings e drivers gráficos do Mac!
+// Servidor de Impressão Direta Hardware USB para Elgin i8 no Mac (macOS / MacBook Air)
+// Bypassa 100% os drivers e o painel de impressoras do macOS!
 
 const http = require('http');
-const escpos = require('escpos');
-escpos.USB = require('escpos-usb');
+const usb = require('usb');
 
 const PORT = 3001;
 
@@ -21,21 +20,16 @@ const server = http.createServer((req, res) => {
     if (req.url === '/print' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
-        req.on('end', () => {
+        req.on('end', async () => {
             try {
                 const data = JSON.parse(body);
-                printToElgin(data, (err) => {
-                    if (err) {
-                        res.writeHead(500, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ success: false, error: err.message || 'Erro ao comunicar com a impressora USB' }));
-                    } else {
-                        res.writeHead(200, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ success: true }));
-                    }
-                });
+                await printDirectHardware(data);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true }));
             } catch (e) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: false, error: 'JSON Inválido' }));
+                console.error('❌ Erro de impressão USB:', e);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: e.message || 'Erro de hardware USB' }));
             }
         });
         return;
@@ -45,69 +39,66 @@ const server = http.createServer((req, res) => {
     res.end('Not Found');
 });
 
-function printToElgin(data, callback) {
-    try {
-        const device = new escpos.USB();
-        const printer = new escpos.Printer(device);
+async function printDirectHardware(data) {
+    const devices = await usb.usb.getDevices();
+    const dev = devices.find(d => (d.vendorId === 0x1fc9 && d.productId === 0x2016) || d.vendorId === 0x04b8 || d.vendorId === 0x0416 || d.vendorId === 0x0f3d);
 
-        device.open(function (error) {
-            if (error) {
-                console.error("❌ Erro ao abrir a Elgin i8 via USB:", error);
-                return callback(error);
-            }
-
-            console.log("⚡ Imprimindo e cortando recibo na Elgin i8 via Hardware USB Direto...");
-
-            printer
-                .font('a')
-                .align('ct')
-                .style('b')
-                .size(1, 1)
-                .text('BALNEARIO RIO PRETO')
-                .text('CONFERENCIA DE CONSUMO')
-                .style('normal')
-                .size(0, 0)
-                .text('--------------------------------')
-                .align('lt')
-                .text(`LOCAL: ${data.location || 'MESA'}`)
-                .text(`CLIENTE: ${data.customer || 'Nao Informado'}`)
-                .text(`ATENDENTE: ${data.staff || 'Caixa Central'}`)
-                .text(`DATA: ${new Date().toLocaleString('pt-BR')}`)
-                .text('--------------------------------');
-
-            (data.items || []).forEach(item => {
-                const name = (item.name || '').substring(0, 18).padEnd(18, ' ');
-                const qty = `${item.qty}x`.padEnd(4, ' ');
-                const total = `R$ ${Number(item.total || 0).toFixed(2)}`;
-                printer.text(`${qty} ${name} ${total}`);
-            });
-
-            printer
-                .text('--------------------------------')
-                .text(`Subtotal: R$ ${Number(data.subtotal || 0).toFixed(2)}`)
-                .text(`10% Garcons: R$ ${Number(data.serviceFee || 0).toFixed(2)}`)
-                .style('b')
-                .size(1, 1)
-                .text(`TOTAL: R$ ${Number(data.total || 0).toFixed(2)}`)
-                .style('normal')
-                .size(0, 0)
-                .text('================================')
-                .align('ct')
-                .text('*** GUIA DE CONFERENCIA ***')
-                .text('Obrigado pela preferencia!')
-                .feed(3)
-                .cut() // Comando nativo de guilhotina da Elgin i8
-                .close(function () {
-                    console.log("✅ Impresso e cortado com sucesso!");
-                    callback(null);
-                });
-        });
-    } catch (err) {
-        console.error("❌ Exceção na impressão USB:", err);
-        callback(err);
+    if (!dev) {
+        throw new Error("Impressora Elgin i8 USB não encontrada no Mac! Verifique se o cabo USB está conectado e a impressora ligada.");
     }
+
+    await dev.open();
+    await dev.claimInterface(0);
+
+    const encoder = new TextEncoder();
+
+    // ESC/POS Command Buffers
+    const RESET = new Uint8Array([0x1B, 0x40]);
+    const CENTER = new Uint8Array([0x1B, 0x61, 0x01]);
+    const LEFT = new Uint8Array([0x1B, 0x61, 0x00]);
+    const BOLD_ON = new Uint8Array([0x1B, 0x45, 0x01]);
+    const BOLD_OFF = new Uint8Array([0x1B, 0x45, 0x00]);
+    const CUT_FULL = new Uint8Array([0x1D, 0x56, 0x00]); // Elgin Auto Cut paper
+
+    let receiptText = "";
+    receiptText += `LOCAL: ${data.location || 'MESA'}\n`;
+    receiptText += `CLIENTE: ${data.customer || 'Nao Informado'}\n`;
+    receiptText += `ATENDENTE: ${data.staff || 'Caixa Central'}\n`;
+    receiptText += `DATA: ${new Date().toLocaleString('pt-BR')}\n`;
+    receiptText += "--------------------------------\n";
+
+    (data.items || []).forEach(item => {
+        const name = (item.name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").substring(0, 18).padEnd(18, ' ');
+        const qty = `${item.qty}x`.padEnd(4, ' ');
+        const total = `R$ ${Number(item.total || 0).toFixed(2)}`;
+        receiptText += `${qty} ${name} ${total}\n`;
+    });
+
+    receiptText += "--------------------------------\n";
+    receiptText += `Subtotal: R$ ${Number(data.subtotal || 0).toFixed(2)}\n`;
+    receiptText += `10% Garcons: R$ ${Number(data.serviceFee || 0).toFixed(2)}\n`;
+    receiptText += "================================\n";
+    receiptText += `TOTAL A RECEBER: R$ ${Number(data.total || 0).toFixed(2)}\n`;
+    receiptText += "================================\n\n";
+    receiptText += "*** GUIA DE CONFERENCIA ***\n";
+    receiptText += "Obrigado pela preferencia!\n\n\n\n";
+
+    const payload = Buffer.concat([
+        RESET,
+        CENTER,
+        BOLD_ON,
+        encoder.encode("BALNEARIO RIO PRETO\nCONFERENCIA DE CONSUMO\n\n"),
+        BOLD_OFF,
+        LEFT,
+        encoder.encode(receiptText),
+        CUT_FULL
+    ]);
+
+    await dev.transferOut(1, payload);
+    await dev.close();
+    console.log("⚡ Cupom impresso e cortado na Elgin i8 com sucesso via hardware USB!");
 }
 
 server.listen(PORT, () => {
-    console.log(`🖨️ Servidor de Impressão Direta USB Elgin i8 ativo na porta ${PORT}`);
+    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 ativo na porta ${PORT}`);
 });
