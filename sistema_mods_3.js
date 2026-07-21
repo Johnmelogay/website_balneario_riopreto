@@ -3,6 +3,8 @@ import { getCurrentStaff } from './sistema_auth.js';
 
 let currentTab = 'abertas'; // abertas | fechadas
 let filterDate = new Date().toISOString().split('T')[0];
+let selectedStaffId = 'all';
+let allStaffMembers = [];
 
 export async function renderComandas(container) {
     container.innerHTML = `
@@ -12,9 +14,21 @@ export async function renderComandas(container) {
                 <button onclick="window.cmdTab('fechadas')" id="btnCmdFechadas" class="px-6 py-2 rounded-lg text-sm font-bold transition ${currentTab === 'fechadas' ? 'bg-white text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">Fechadas/Histórico</button>
             </div>
             
-            <div id="cmdDateFilterContainer" class="flex items-center gap-3 ${currentTab === 'abertas' ? 'hidden' : ''}">
-                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Filtrar Data</label>
-                <input type="date" id="cmdFilterDate" value="${filterDate}" onchange="window.cmdDateChange(this.value)" class="input-sys w-auto py-2">
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Filter by Staff/Garçom Dropdown -->
+                <div id="cmdStaffFilterContainer" class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm">
+                    <i class="fa-solid fa-user-tie text-gray-400 text-xs"></i>
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Garçom:</label>
+                    <select id="cmdFilterStaff" onchange="window.cmdStaffChange(this.value)" class="bg-transparent text-xs font-bold text-gray-800 outline-none cursor-pointer">
+                        <option value="all" ${selectedStaffId === 'all' ? 'selected' : ''}>Todos os Garçons</option>
+                        ${allStaffMembers.map(s => `<option value="${s.id}" ${selectedStaffId === s.id ? 'selected' : ''}>${s.name} (${s.role})</option>`).join('')}
+                    </select>
+                </div>
+
+                <div id="cmdDateFilterContainer" class="flex items-center gap-2 ${currentTab === 'abertas' ? 'hidden' : ''}">
+                    <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Filtrar Data</label>
+                    <input type="date" id="cmdFilterDate" value="${filterDate}" onchange="window.cmdDateChange(this.value)" class="input-sys w-auto py-2">
+                </div>
             </div>
         </div>
 
@@ -45,9 +59,34 @@ window.cmdDateChange = (date) => {
     loadComandas();
 };
 
+window.cmdStaffChange = (staffId) => {
+    selectedStaffId = staffId;
+    document.getElementById('cmdContent').innerHTML = '<div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-600"></i></div>';
+    loadComandas();
+};
+
 async function loadComandas() {
     const staff = getCurrentStaff();
     if (!staff) return;
+
+    // Fetch staff list if empty
+    if (allStaffMembers.length === 0) {
+        try {
+            const { data: staffData } = await supabase.from('staff_users').select('id, name, role').order('name');
+            if (staffData && staffData.length > 0) {
+                allStaffMembers = staffData;
+                const selectEl = document.getElementById('cmdFilterStaff');
+                if (selectEl) {
+                    selectEl.innerHTML = `
+                        <option value="all" ${selectedStaffId === 'all' ? 'selected' : ''}>Todos os Garçons</option>
+                        ${allStaffMembers.map(s => `<option value="${s.id}" ${selectedStaffId === s.id ? 'selected' : ''}>${s.name} (${s.role})</option>`).join('')}
+                    `;
+                }
+            }
+        } catch(e) {
+            console.warn('Error fetching staff members:', e);
+        }
+    }
 
     // Se o garçom entra, ele só vê as dele (ou admin/caixa vê de todos)
     const isAdminOrCaixa = ['admin', 'caixa'].includes(staff.role);
@@ -68,8 +107,10 @@ async function loadComandas() {
                          .lte('updated_at', endOfDay);
         }
 
-        // Garçom visualizando no sistema -> filtra pelos pedidos dele
-        if (!isAdminOrCaixa && staff.role === 'garcom') {
+        // Apply staff filter
+        if (selectedStaffId !== 'all') {
+            query = query.eq('staff_id', selectedStaffId);
+        } else if (!isAdminOrCaixa && staff.role === 'garcom') {
             query = query.eq('staff_id', staff.id);
         }
 
