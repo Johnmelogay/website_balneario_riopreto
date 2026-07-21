@@ -141,7 +141,7 @@
 
             if (orders.length === 0) {
                 main.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-16 text-stone-400 anim-slide">
+                    <div class="flex flex-col items-center justify-center py-16 text-stone-400">
                         <div class="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center mb-4 text-4xl">
                             🍽️
                         </div>
@@ -209,13 +209,12 @@
             const isReady = status === 'pronto';
 
             return `
-                <div class="bg-white rounded-2xl shadow-sm border ${s.borderColor} mb-4 overflow-hidden anim-slide ${isReady ? 'ring-2 ring-green-400 anim-glow' : ''}" 
-                     style="animation-delay: ${idx * 100}ms">
+                <div class="bg-white rounded-2xl shadow-sm border ${s.borderColor} mb-4 overflow-hidden ${isReady ? 'ring-2 ring-green-400' : ''}">
                     
                     <!-- Status Header -->
                     <div class="${s.bgColor} px-4 py-3 flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="text-xl ${isActive ? 'anim-cooking' : ''}">${s.emoji}</span>
+                            <span class="text-xl">${s.emoji}</span>
                             <div>
                                 <p class="font-black ${s.color} text-sm">${s.label}</p>
                                 <p class="text-stone-500 text-[10px] font-medium">${s.desc}</p>
@@ -229,9 +228,9 @@
 
                     <!-- Progress Bar -->
                     <div class="h-1 bg-stone-100">
-                        <div class="h-full transition-all duration-1000 ${
+                        <div class="h-full transition-all duration-500 ${
                             status === 'pendente' ? 'w-1/4 bg-amber-400' :
-                            status === 'preparando' ? 'w-2/4 bg-orange-400 anim-pulse' :
+                            status === 'preparando' ? 'w-2/4 bg-orange-400' :
                             status === 'pronto' ? 'w-3/4 bg-green-400' :
                             'w-full bg-stone-300'
                         }"></div>
