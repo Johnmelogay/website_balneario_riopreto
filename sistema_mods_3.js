@@ -417,16 +417,10 @@ function renderCashierModal(type, id) {
 
                 <!-- Footer Actions -->
                 <div class="bg-gray-50 p-4 border-t border-gray-100 flex flex-col gap-2">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-1">
-                        <button onclick="window.printCashierReceipt('${type}', '${id}')" id="btnPrintCashierReceipt"
-                            class="w-full py-3 bg-stone-800 hover:bg-stone-900 text-white font-black text-xs rounded-xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-print text-emerald-400"></i> IMPRIMIR VIA NAVEGADOR
-                        </button>
-                        <button onclick="window.printDirectUSB('${type}', '${id}')" id="btnPrintDirectUSB"
-                            class="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-black text-xs rounded-xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-bolt text-amber-300"></i> IMPRIMIR DIRETO USB (ELGIN i8)
-                        </button>
-                    </div>
+                    <button onclick="window.printCashierReceipt('${type}', '${id}')" id="btnPrintCashierReceipt"
+                        class="w-full py-3.5 bg-stone-900 hover:bg-black text-white font-black text-sm rounded-2xl shadow transition active:scale-[0.98] flex items-center justify-center gap-2 mb-1">
+                        <i class="fa-solid fa-print text-emerald-400 text-base"></i> IMPRIMIR GUIA DO CLIENTE (80mm)
+                    </button>
 
                     <button onclick="window.confirmCashierCheckout('${type}', '${id}')" id="btnConfirmCashier"
                         class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base rounded-2xl shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
