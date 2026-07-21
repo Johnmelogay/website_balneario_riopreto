@@ -492,6 +492,8 @@ window.toggleCart = () => {
 };
 
 // ====== SEND ORDER ======
+let lastOrderMeta = null; // Store last order info for retry/WhatsApp
+
 window.sendOrder = async () => {
     if (cart.length === 0) return;
 
@@ -518,6 +520,8 @@ window.sendOrder = async () => {
             const d = c.product.categories?.destination === 'bar' ? 'bar' : 'cozinha';
             cartByDest[d].push(c);
         });
+
+        const createdOrders = []; // Track created order numbers
 
         // 2. Process each destination
         for (const dest of ['cozinha', 'bar']) {
@@ -546,6 +550,8 @@ window.sendOrder = async () => {
 
             if (orderError) throw orderError;
 
+            createdOrders.push({ number: order.order_number, dest, id: order.id });
+
             // Insert Order Items
             const items = destItems.map(c => ({
                 order_id: order.id,
@@ -564,58 +570,159 @@ window.sendOrder = async () => {
 
             if (itemsError) throw itemsError;
 
-            // Deduct Stock
+            // Deduct Stock (atomic — prevents race conditions)
             for (const c of destItems) {
                 if (c.product.is_stock_controlled) {
-                    const newQty = Math.max(0, Number(c.product.stock_qty) - c.qty);
-                    await supabase.from('products').update({ stock_qty: newQty }).eq('id', c.product.id);
-                    await supabase.from('stock_movements').insert({
-                        product_id: c.product.id,
-                        type: 'saida',
-                        quantity: c.qty,
-                        previous_qty: c.product.stock_qty,
-                        new_qty: newQty,
-                        reason: `Venda - Pedido #${order.order_number}`,
-                        order_id: order.id,
-                        staff_id: staff.id
-                    });
+                    // Try atomic RPC first (prevents two waiters selling the last item)
+                    let deducted = false;
+                    try {
+                        const { data: rpcResult, error: rpcError } = await supabase
+                            .rpc('deduct_stock', { p_product_id: c.product.id, p_qty: c.qty });
+                        
+                        if (!rpcError && rpcResult === true) {
+                            deducted = true;
+                        } else if (!rpcError && rpcResult === false) {
+                            // Stock insufficient — item sold out while order was being placed
+                            console.warn(`Estoque insuficiente para ${c.product.name}`);
+                        }
+                    } catch (rpcErr) {
+                        // RPC not available yet — fallback to old method
+                        console.warn('deduct_stock RPC not available, using fallback:', rpcErr);
+                        const newQty = Math.max(0, Number(c.product.stock_qty) - c.qty);
+                        await supabase.from('products').update({ stock_qty: newQty }).eq('id', c.product.id);
+                        deducted = true;
+                    }
+
+                    if (deducted) {
+                        const newQty = Math.max(0, Number(c.product.stock_qty) - c.qty);
+                        await supabase.from('stock_movements').insert({
+                            product_id: c.product.id,
+                            type: 'saida',
+                            quantity: c.qty,
+                            previous_qty: c.product.stock_qty,
+                            new_qty: newQty,
+                            reason: `Venda - Pedido #${order.order_number}`,
+                            order_id: order.id,
+                            staff_id: staff.id
+                        });
+                    }
                 }
             }
         }
 
+        // 3. Store order metadata for WhatsApp
+        lastOrderMeta = {
+            orders: createdOrders,
+            locationType: currentLocation.type,
+            locationId: currentLocation.id,
+            customerName,
+            customerPhone,
+            total
+        };
+
         // 4. Success!
         toggleCart();
-        showSuccess('Pedido enviado com sucesso!');
+        showSuccess(createdOrders);
 
         // Reset
-        // Clean & close
         cart = [];
         document.getElementById('orderNotes').value = '';
         document.getElementById('customerName').value = '';
         document.getElementById('customerPhone').value = '';
 
         updateCartUI();
-        // Reload products (updated stock)
         await loadCatalog();
 
     } catch (err) {
         console.error('Order error:', err);
-        alert('Erro ao enviar pedido: ' + err.message);
+        showError(err.message || 'Erro de conexão. Verifique o Wi-Fi.');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ENVIAR PEDIDO';
     }
 };
 
-function showSuccess(msg) {
-    document.getElementById('successMsg').textContent = msg;
+function showSuccess(createdOrders) {
+    // Render order numbers
+    const numbersContainer = document.getElementById('successOrderNumbers');
+    numbersContainer.innerHTML = createdOrders.map(o => {
+        const destLabel = o.dest === 'bar' ? '🍺 Bar' : '🍳 Cozinha';
+        return `<div class="bg-white/20 rounded-xl px-4 py-2 inline-block mx-1">
+            <span class="text-white/70 text-xs font-bold">${destLabel}</span>
+            <span class="text-white font-black text-2xl block">#${o.number}</span>
+        </div>`;
+    }).join('');
+
+    document.getElementById('successMsg').textContent = 
+        `${currentLocation.type.toUpperCase()} ${currentLocation.id}`;
+
+    // Generate QR Code for client tracking
+    const qrContainer = document.getElementById('successQrCode');
+    qrContainer.innerHTML = ''; // Clear previous
+    const statusUrl = `https://balnearioriopreto.com.br/status.html?tipo=${currentLocation.type}&id=${currentLocation.id}`;
+    
+    try {
+        new QRCode(qrContainer, {
+            text: statusUrl,
+            width: 140,
+            height: 140,
+            colorDark: '#064e3b',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    } catch(e) {
+        console.warn('QR generation failed:', e);
+        qrContainer.innerHTML = '<p class="text-sm text-stone-500 p-4">QR indisponível</p>';
+    }
+
+    // Show/hide WhatsApp button based on whether we have a phone number
+    const whatsBtn = document.getElementById('btnWhatsAppLink');
+    if (lastOrderMeta?.customerPhone) {
+        whatsBtn.classList.remove('hidden');
+    } else {
+        whatsBtn.classList.add('hidden');
+    }
+
     const overlay = document.getElementById('successOverlay');
     overlay.classList.remove('hidden');
     overlay.classList.add('flex');
 }
 
+window.sendWhatsAppLink = () => {
+    if (!lastOrderMeta?.customerPhone) return;
+    
+    const phone = lastOrderMeta.customerPhone.replace(/\D/g, '');
+    const fullPhone = phone.startsWith('55') ? phone : '55' + phone;
+    const statusUrl = `https://balnearioriopreto.com.br/status.html?tipo=${lastOrderMeta.locationType}&id=${lastOrderMeta.locationId}`;
+    const orderNums = lastOrderMeta.orders.map(o => `#${o.number}`).join(', ');
+    const name = lastOrderMeta.customerName ? ` ${lastOrderMeta.customerName}` : '';
+    
+    const message = `Olá${name}! 🌿\n\nSeu pedido ${orderNums} foi enviado para a cozinha do Balneário Rio Preto.\n\n📱 Acompanhe em tempo real:\n${statusUrl}\n\nBom apetite! 🍽️`;
+    
+    const waUrl = `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+};
+
 window.closeSuccess = () => {
     const overlay = document.getElementById('successOverlay');
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+};
+
+function showError(msg) {
+    document.getElementById('errorMsg').textContent = msg;
+    const overlay = document.getElementById('errorOverlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+}
+
+window.retryOrder = () => {
+    closeError();
+    window.sendOrder();
+};
+
+window.closeError = () => {
+    const overlay = document.getElementById('errorOverlay');
     overlay.classList.add('hidden');
     overlay.classList.remove('flex');
 };

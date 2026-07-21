@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Acompanhe seu Pedido • Balneário Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#064e3b">
+    <meta name="description" content="Acompanhe o status do seu pedido em tempo real no Balneário Rio Preto">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #f5f5f4; }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); } 70% { box-shadow: 0 0 0 12px rgba(34,197,94,0); } }
+        @keyframes cookingBounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        @keyframes progressPulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        .anim-slide { animation: slideUp 0.4s ease-out; }
+        .anim-cooking { animation: cookingBounce 1.5s ease-in-out infinite; }
+        .anim-glow { animation: pulseGlow 2s infinite; }
+        .anim-pulse { animation: progressPulse 2s ease-in-out infinite; }
+
+        .status-line::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 36px;
+            bottom: 0;
+            width: 2px;
+            background: #e7e5e4;
+        }
+        .status-line:last-child::before { display: none; }
+        .status-line.active::before { background: #22c55e; }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- ====== HEADER ====== -->
+    <header class="bg-gradient-to-b from-emerald-900 to-emerald-800 px-5 pt-8 pb-6 text-center">
+        <div class="flex items-center justify-center gap-2 mb-1">
+            <img src="images/logo_opt.png" alt="Logo" class="w-8 h-8 rounded-lg" onerror="this.style.display='none'">
+            <h1 class="text-white font-black text-lg tracking-tight">Balneário Rio Preto</h1>
+        </div>
+        <p class="text-emerald-300 text-xs font-bold uppercase tracking-widest">Acompanhamento de Pedido</p>
+
+        <!-- Location Badge -->
+        <div id="locationBadge" class="mt-4 inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+            <span id="locationIcon" class="text-lg">🏡</span>
+            <span id="locationLabel" class="text-white font-bold text-sm"></span>
+        </div>
+    </header>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main class="px-4 py-6 max-w-lg mx-auto" id="mainContent">
+        <!-- Will be populated by JS -->
+        <div class="flex flex-col items-center justify-center py-16 text-stone-400">
+            <i class="fa-solid fa-spinner fa-spin text-3xl mb-4 text-emerald-600"></i>
+            <p class="font-bold text-sm">Carregando pedidos...</p>
+        </div>
+    </main>
+
+    <!-- ====== CONNECTION STATUS ====== -->
+    <div id="connectionBar" class="fixed bottom-0 left-0 right-0 bg-emerald-700 text-white text-center text-xs font-bold py-2 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-wifi"></i>
+        <span id="connectionText">Conectado em tempo real</span>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.1';
+
+        const SUPABASE_URL = 'https://hihaipaslnpaqnqotrwm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpaGFpcGFzbG5wYXFucW90cndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNjE1OTIsImV4cCI6MjA3OTgzNzU5Mn0.zwPHKlcYNQnlQbQdf83qbH3mk4Dsc8fVF4NfWDBs_LA';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ====== PARSE URL PARAMS ======
+        const params = new URLSearchParams(window.location.search);
+        const locationType = params.get('tipo') || 'chale';
+        const locationId = params.get('id') || '1';
+
+        // Set location display
+        const icons = { chale: '🏡', mesa: '🪑', balcao: '🏪' };
+        const labels = { chale: 'Chalé', mesa: 'Mesa', balcao: 'Balcão' };
+        document.getElementById('locationIcon').textContent = icons[locationType] || '📍';
+        document.getElementById('locationLabel').textContent = `${labels[locationType] || locationType} ${locationId}`;
+
+        // ====== STATE ======
+        let orders = [];
+
+        // ====== LOAD ORDERS ======
+        async function loadOrders() {
+            const today = new Date();
+            const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+
+            const { data, error } = await supabase
+                .from('orders')
+                .select(`
+                    *,
+                    order_items(*)
+                `)
+                .eq('location_type', locationType)
+                .eq('location_id', locationId)
+                .gte('created_at', startOfDay)
+                .neq('status', 'cancelado')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading orders:', error);
+                renderError();
+                return;
+            }
+
+            orders = data || [];
+            renderOrders();
+        }
+
+        // ====== RENDER ======
+        function renderOrders() {
+            const main = document.getElementById('mainContent');
+
+            if (orders.length === 0) {
+                main.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-16 text-stone-400 anim-slide">
+                        <div class="w-20 h-20 bg-stone-200 rounded-full flex items-center justify-center mb-4 text-4xl">
+                            🍽️
+                        </div>
+                        <h2 class="font-black text-stone-600 text-lg mb-1">Nenhum pedido ainda</h2>
+                        <p class="text-sm text-stone-400 text-center">Seus pedidos aparecerão aqui automaticamente<br>assim que forem enviados para a cozinha.</p>
+                    </div>`;
+                return;
+            }
+
+            main.innerHTML = orders.map((order, idx) => orderCard(order, idx)).join('');
+        }
+
+        function orderCard(order, idx) {
+            const items = order.order_items || [];
+            const elapsed = Date.now() - new Date(order.created_at).getTime();
+            const minutes = Math.floor(elapsed / 60000);
+            const timeStr = new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const status = order.status;
+            const destIcon = order.destination === 'bar' ? '🍺' : '🍳';
+            const destLabel = order.destination === 'bar' ? 'Bar' : 'Cozinha';
+
+            // Status config
+            const statusConfig = {
+                'pendente': {
+                    label: 'Pedido Recebido',
+                    icon: 'fa-clock',
+                    color: 'text-amber-500',
+                    bgColor: 'bg-amber-50',
+                    borderColor: 'border-amber-200',
+                    emoji: '🟡',
+                    desc: 'Seu pedido foi recebido e está na fila'
+                },
+                'preparando': {
+                    label: 'Preparando',
+                    icon: 'fa-fire-burner',
+                    color: 'text-orange-500',
+                    bgColor: 'bg-orange-50',
+                    borderColor: 'border-orange-200',
+                    emoji: '🔥',
+                    desc: 'A cozinha está preparando seu pedido'
+                },
+                'pronto': {
+                    label: 'Pronto!',
+                    icon: 'fa-check-circle',
+                    color: 'text-green-500',
+                    bgColor: 'bg-green-50',
+                    borderColor: 'border-green-200',
+                    emoji: '✅',
+                    desc: 'Seu pedido está pronto! A caminho da mesa.'
+                },
+                'entregue': {
+                    label: 'Entregue',
+                    icon: 'fa-circle-check',
+                    color: 'text-stone-400',
+                    bgColor: 'bg-stone-50',
+                    borderColor: 'border-stone-200',
+                    emoji: '✔️',
+                    desc: 'Pedido entregue com sucesso'
+                }
+            };
+
+            const s = statusConfig[status] || statusConfig['pendente'];
+            const isActive = status === 'preparando';
+            const isReady = status === 'pronto';
+
+            return `
+                <div class="bg-white rounded-2xl shadow-sm border ${s.borderColor} mb-4 overflow-hidden anim-slide ${isReady ? 'ring-2 ring-green-400 anim-glow' : ''}" 
+                     style="animation-delay: ${idx * 100}ms">
+                    
+                    <!-- Status Header -->
+                    <div class="${s.bgColor} px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl ${isActive ? 'anim-cooking' : ''}">${s.emoji}</span>
+                            <div>
+                                <p class="font-black ${s.color} text-sm">${s.label}</p>
+                                <p class="text-stone-500 text-[10px] font-medium">${s.desc}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-stone-400 text-[10px] font-bold">${timeStr}</p>
+                            <p class="text-stone-500 text-xs font-bold">${minutes}min</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="h-1 bg-stone-100">
+                        <div class="h-full transition-all duration-1000 ${
+                            status === 'pendente' ? 'w-1/4 bg-amber-400' :
+                            status === 'preparando' ? 'w-2/4 bg-orange-400 anim-pulse' :
+                            status === 'pronto' ? 'w-3/4 bg-green-400' :
+                            'w-full bg-stone-300'
+                        }"></div>
+                    </div>
+
+                    <!-- Items -->
+                    <div class="px-4 py-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm">${destIcon}</span>
+                            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">${destLabel}</span>
+                            ${order.order_number ? `<span class="text-[10px] font-bold text-stone-300 ml-auto">#${order.order_number}</span>` : ''}
+                        </div>
+                        ${items.map(item => `
+                            <div class="flex items-center justify-between py-1.5 border-b border-stone-50 last:border-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-stone-400 font-black text-xs w-5 text-center">${item.quantity}×</span>
+                                    <span class="text-stone-700 font-medium text-sm">${item.product_name}</span>
+                                </div>
+                                ${item.notes ? `<span class="text-[10px] text-amber-600 font-medium italic">${item.notes}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderError() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 text-red-400 anim-slide">
+                    <i class="fa-solid fa-exclamation-triangle text-4xl mb-4"></i>
+                    <h2 class="font-black text-stone-600 text-lg mb-1">Erro de Conexão</h2>
+                    <p class="text-sm text-stone-400 text-center mb-4">Não foi possível carregar os pedidos.</p>
+                    <button onclick="location.reload()" class="px-6 py-2 bg-emerald-600 text-white font-bold rounded-xl">
+                        Tentar Novamente
+                    </button>
+                </div>`;
+        }
+
+        // ====== REALTIME ======
+        function startRealtime() {
+            supabase
+                .channel('client-status')
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'orders'
+                }, () => {
+                    loadOrders();
+                })
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'order_items'
+                }, () => {
+                    loadOrders();
+                })
+                .subscribe((status) => {
+                    const bar = document.getElementById('connectionBar');
+                    const text = document.getElementById('connectionText');
+                    if (status === 'SUBSCRIBED') {
+                        bar.className = 'fixed bottom-0 left-0 right-0 bg-emerald-700 text-white text-center text-xs font-bold py-2 flex items-center justify-center gap-2';
+                        text.textContent = 'Conectado em tempo real';
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        bar.className = 'fixed bottom-0 left-0 right-0 bg-red-600 text-white text-center text-xs font-bold py-2 flex items-center justify-center gap-2';
+                        text.textContent = 'Reconectando...';
+                    }
+                });
+        }
+
+        // ====== POLLING FALLBACK ======
+        setInterval(loadOrders, 15000);
+
+        // ====== AUTO-REFRESH TIMERS ======
+        setInterval(() => {
+            // Re-render to update elapsed time
+            if (orders.length > 0) renderOrders();
+        }, 30000); // Every 30 seconds
+
+        // ====== INIT ======
+        loadOrders();
+        startRealtime();
+    </script>
+</body>
+
+</html>

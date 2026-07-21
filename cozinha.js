@@ -98,8 +98,14 @@ async function startKDS() {
     // Load initial
     await loadOrders();
 
-    // Realtime subscription
-    supabase
+    // Polling fallback — guarantees kitchen updates even if Realtime drops
+    // This is the same pattern used by professional KDS systems (Toast, Lightspeed)
+    setInterval(() => {
+        loadOrders();
+    }, 15000); // Every 15 seconds
+
+    // Realtime subscription (primary — instant updates)
+    const channel = supabase
         .channel('kds-orders')
         .on('postgres_changes', {
             event: '*',
@@ -116,7 +122,22 @@ async function startKDS() {
             // Re-fetch on item changes
             loadOrders();
         })
-        .subscribe();
+        .subscribe((status) => {
+            // Visual indicator of connection health
+            const indicator = document.getElementById('connectionStatus');
+            if (indicator) {
+                if (status === 'SUBSCRIBED') {
+                    indicator.innerHTML = '<i class="fa-solid fa-wifi text-green-400"></i>';
+                    indicator.title = 'Conexão em tempo real ativa';
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    indicator.innerHTML = '<i class="fa-solid fa-wifi text-red-400 animate-pulse"></i>';
+                    indicator.title = 'Conexão perdida — usando polling automático';
+                } else {
+                    indicator.innerHTML = '<i class="fa-solid fa-wifi text-yellow-400"></i>';
+                    indicator.title = 'Reconectando...';
+                }
+            }
+        });
 }
 
 function updateClock() {

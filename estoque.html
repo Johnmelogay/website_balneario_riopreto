@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Estoque • Rio Preto</title>
+    <link rel="icon" type="image/png" href="images/logo_opt.png">
+    <meta name="theme-color" content="#1e1b18">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #1c1917; }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        .pin-dot { width: 14px; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.15); transition: all 0.2s; }
+        .pin-dot.filled { background: #f59e0b; transform: scale(1.2); }
+        .numpad-btn { width: 56px; height: 56px; border-radius: 16px; background: rgba(255,255,255,0.06);
+            color: white; font-size: 22px; font-weight: 800; display: flex; align-items: center;
+            justify-content: center; transition: all 0.15s; border: 1px solid rgba(255,255,255,0.06); }
+        .numpad-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.92); }
+
+        .stock-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+        
+        @keyframes saveFlash { 
+            0% { background-color: rgba(34,197,94,0.3); }
+            100% { background-color: transparent; }
+        }
+        .save-flash { animation: saveFlash 1s ease-out; }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- ====== LOGIN ====== -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-gradient-to-b from-stone-900 to-stone-950 flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-amber-900/30 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl">📦</div>
+            <h1 class="text-2xl font-black text-white">Estoque do Dia</h1>
+            <p class="text-amber-500 text-xs font-bold mt-1">Balneário Rio Preto</p>
+        </div>
+        <div class="w-full max-w-xs space-y-5">
+            <div class="flex justify-center gap-3" id="pinDots">
+                <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            </div>
+            <p id="loginError" class="text-red-400 text-xs font-bold text-center hidden">PIN inválido</p>
+            <div class="grid grid-cols-3 gap-3 max-w-[220px] mx-auto">
+                <button onclick="pinInput('1')" class="numpad-btn">1</button>
+                <button onclick="pinInput('2')" class="numpad-btn">2</button>
+                <button onclick="pinInput('3')" class="numpad-btn">3</button>
+                <button onclick="pinInput('4')" class="numpad-btn">4</button>
+                <button onclick="pinInput('5')" class="numpad-btn">5</button>
+                <button onclick="pinInput('6')" class="numpad-btn">6</button>
+                <button onclick="pinInput('7')" class="numpad-btn">7</button>
+                <button onclick="pinInput('8')" class="numpad-btn">8</button>
+                <button onclick="pinInput('9')" class="numpad-btn">9</button>
+                <button onclick="pinClear()" class="numpad-btn text-red-400 text-sm">CLR</button>
+                <button onclick="pinInput('0')" class="numpad-btn">0</button>
+                <button onclick="pinDelete()" class="numpad-btn text-amber-400 text-sm"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== MAIN STOCK SCREEN ====== -->
+    <div id="mainScreen" class="hidden flex-col h-screen">
+
+        <!-- Header -->
+        <header class="bg-stone-900 border-b border-stone-800 px-4 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">📦</span>
+                <div>
+                    <h1 class="text-white font-black text-lg leading-tight">Estoque do Dia</h1>
+                    <p class="text-stone-500 text-[10px] font-bold uppercase tracking-widest">Ajustar quantidades antes de abrir</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="staffName" class="text-stone-400 text-xs font-bold"></span>
+                <button onclick="saveAllStock()" id="btnSaveAll"
+                    class="px-4 py-2 bg-amber-500 text-stone-900 font-black text-sm rounded-xl hover:bg-amber-400 active:scale-95 transition flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> SALVAR TUDO
+                </button>
+            </div>
+        </header>
+
+        <!-- Search -->
+        <div class="bg-stone-900 px-4 pb-3">
+            <div class="relative">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-sm"></i>
+                <input type="text" id="searchInput" placeholder="Buscar produto..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-stone-800 border border-stone-700 rounded-xl text-white text-sm font-medium outline-none focus:border-amber-500 transition">
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="bg-stone-900 px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar" id="categoryTabs"></div>
+
+        <!-- Product List -->
+        <main class="flex-1 overflow-y-auto p-4 space-y-2" id="productsContainer">
+            <div class="flex flex-col items-center justify-center h-full text-stone-600">
+                <i class="fa-solid fa-spinner fa-spin text-2xl mb-3"></i>
+                <p class="font-bold">Carregando produtos...</p>
+            </div>
+        </main>
+
+        <!-- Footer Status -->
+        <footer class="bg-stone-900 border-t border-stone-800 px-4 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="text-center">
+                    <p class="text-amber-500 font-black text-lg" id="countControlled">0</p>
+                    <p class="text-stone-600 text-[9px] font-bold uppercase">Controlados</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-red-500 font-black text-lg" id="countZero">0</p>
+                    <p class="text-stone-600 text-[9px] font-bold uppercase">Zerados</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-green-500 font-black text-lg" id="countReady">0</p>
+                    <p class="text-stone-600 text-[9px] font-bold uppercase">Prontos</p>
+                </div>
+            </div>
+            <div id="saveStatus" class="text-stone-500 text-xs font-bold"></div>
+        </footer>
+    </div>
+
+    <script type="module" src="estoque.js"></script>
+</body>
+
+</html>
