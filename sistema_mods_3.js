@@ -541,7 +541,7 @@ window.closeMod = () => {
 };
 
 // ====== THERMAL RECEIPT PRINTING (80mm) ======
-window.printCashierReceipt = async (type, id) => {
+window.printCashierReceipt = (type, id) => {
     if (!cashierActiveOrders || cashierActiveOrders.length === 0) return;
 
     const staff = getCurrentStaff();
@@ -568,38 +568,6 @@ window.printCashierReceipt = async (type, id) => {
             itemMap[name].total += Number(item.unit_price || 0) * Number(item.quantity || 1);
         });
     });
-
-    const itemList = Object.keys(itemMap).map(name => ({
-        name: name,
-        qty: itemMap[name].qty,
-        total: itemMap[name].total,
-        notes: itemMap[name].notes
-    }));
-
-    // ====== TRY DIRECT USB HARDWARE PRINTING (Node.js Server Port 3001) ======
-    try {
-        const directRes = await fetch('http://localhost:3001/print', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                location: `${type.toUpperCase()}: ${id}`,
-                customer: customerName,
-                staff: staffName,
-                subtotal: subtotal,
-                serviceFee: serviceFee,
-                total: total,
-                items: itemList
-            })
-        });
-
-        const resData = await directRes.json();
-        if (resData && resData.success) {
-            console.log('⚡ Cupom impresso e cortado via Servidor USB Direto Node.js!');
-            return;
-        }
-    } catch (err) {
-        console.log('Local USB print server not running on port 3001, falling back to browser window...');
-    }
 
     const nowStr = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     const locLabel = `${type.toUpperCase()}: ${id}`;
