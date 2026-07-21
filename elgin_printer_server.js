@@ -59,6 +59,12 @@ function getLogoRasterBuffer(targetWidth = 192) {
     }
 }
 
+function removeAccents(str) {
+    return (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+let isPrinting = false;
+
 const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', '*');
@@ -79,7 +85,7 @@ const server = http.createServer((req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true }));
             } catch (e) {
-                console.error('❌ Erro de impressão USB:', e);
+                console.error('❌ Erro de impressão USB:', e.message || e);
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: false, error: e.message || 'Erro de hardware USB' }));
             }
@@ -91,135 +97,146 @@ const server = http.createServer((req, res) => {
     res.end('Not Found');
 });
 
-function removeAccents(str) {
-    return (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
 async function printDirectHardware(data) {
-    const devices = await usb.usb.getDevices();
-    const dev = devices.find(d => (d.vendorId === 0x1fc9 && d.productId === 0x2016) || d.vendorId === 0x04b8 || d.vendorId === 0x0416 || d.vendorId === 0x0f3d);
-
-    if (!dev) {
-        throw new Error("Impressora Elgin i8 USB não encontrada no Mac! Verifique se o cabo USB está conectado e a impressora ligada.");
+    if (isPrinting) {
+        throw new Error("Impressão em andamento, aguarde um instante...");
     }
+    isPrinting = true;
 
-    await dev.open();
-    await dev.claimInterface(0);
+    let dev = null;
+    try {
+        const devices = await usb.usb.getDevices();
+        dev = devices.find(d => (d.vendorId === 0x1fc9 && d.productId === 0x2016) || d.vendorId === 0x04b8 || d.vendorId === 0x0416 || d.vendorId === 0x0f3d);
 
-    const encoder = new TextEncoder();
-
-    // ESC/POS Command Buffers
-    const RESET = new Uint8Array([0x1B, 0x40]);
-    const ALIGN_CENTER = new Uint8Array([0x1B, 0x61, 0x01]);
-    const ALIGN_LEFT = new Uint8Array([0x1B, 0x61, 0x00]);
-    const ALIGN_RIGHT = new Uint8Array([0x1B, 0x61, 0x02]);
-    
-    const MODE_NORMAL = new Uint8Array([0x1B, 0x21, 0x00]);
-    const MODE_BOLD = new Uint8Array([0x1B, 0x21, 0x08]);
-    const MODE_DOUBLE_HEIGHT = new Uint8Array([0x1B, 0x21, 0x10]);
-    const MODE_DOUBLE_WIDTH = new Uint8Array([0x1B, 0x21, 0x20]);
-    const MODE_LARGE_HEADER = new Uint8Array([0x1B, 0x21, 0x38]); // Double Width + Height + Bold
-    const MODE_MEDIUM_HEADER = new Uint8Array([0x1B, 0x21, 0x18]); // Double Height + Bold
-
-    const CUT_FULL = new Uint8Array([0x1D, 0x56, 0x00]); // Elgin Auto Cut paper
-
-    // 1. Logo Bitmap Buffer
-    const logoBuffer = getLogoRasterBuffer(192);
-
-    // 2. Build ESC/POS Byte Stream
-    const chunks = [];
-    chunks.push(RESET);
-
-    // --- HEADER WITH REAL LOGO ---
-    if (logoBuffer.length > 0) {
-        chunks.push(ALIGN_CENTER);
-        chunks.push(logoBuffer);
-        chunks.push(encoder.encode("\n"));
-    }
-
-    chunks.push(ALIGN_CENTER);
-    chunks.push(MODE_LARGE_HEADER);
-    chunks.push(encoder.encode("BALNEARIO RIO PRETO\n"));
-    chunks.push(MODE_NORMAL);
-    chunks.push(MODE_BOLD);
-    chunks.push(encoder.encode("CONFERENCIA DE CONSUMO\n"));
-    chunks.push(MODE_NORMAL);
-    chunks.push(encoder.encode("==========================================\n\n"));
-
-    // --- METADATA BOX ---
-    chunks.push(ALIGN_LEFT);
-    chunks.push(MODE_BOLD);
-    const locStr = removeAccents(data.location || 'MESA');
-    const custStr = removeAccents(data.customer || 'Nao Informado');
-    const staffStr = removeAccents(data.staff || 'Caixa Central');
-    const dateStr = new Date().toLocaleString('pt-BR');
-
-    chunks.push(encoder.encode(` LOCAL / COMANDA: ${locStr}\n`));
-    chunks.push(MODE_NORMAL);
-    chunks.push(encoder.encode(` CLIENTE:         ${custStr}\n`));
-    chunks.push(encoder.encode(` ATENDENTE:       ${staffStr}\n`));
-    chunks.push(encoder.encode(` DATA & HORA:     ${dateStr}\n`));
-    chunks.push(encoder.encode("------------------------------------------\n"));
-
-    // --- TABLE HEADER ---
-    chunks.push(MODE_BOLD);
-    chunks.push(encoder.encode(" QTD  ITEM / DESCRICAO               VALOR \n"));
-    chunks.push(encoder.encode(" ------------------------------------------ \n"));
-    chunks.push(MODE_NORMAL);
-
-    // --- ITEMS ---
-    (data.items || []).forEach(item => {
-        const name = removeAccents(item.name || '').substring(0, 24).padEnd(24, ' ');
-        const qty = `[${item.qty}x]`.padEnd(5, ' ');
-        const total = `R$ ${Number(item.total || 0).toFixed(2).replace('.', ',')}`.padStart(10, ' ');
-        
-        chunks.push(MODE_BOLD);
-        chunks.push(encoder.encode(` ${qty} `));
-        chunks.push(MODE_NORMAL);
-        chunks.push(encoder.encode(`${name} ${total}\n`));
-        if (item.notes) {
-            chunks.push(encoder.encode(`       * Obs: ${removeAccents(item.notes)}\n`));
+        if (!dev) {
+            throw new Error("Impressora Elgin i8 USB não encontrada no Mac! Verifique se o cabo USB está conectado e a impressora ligada.");
         }
-    });
 
-    chunks.push(encoder.encode("------------------------------------------\n"));
+        await dev.open();
+        await dev.claimInterface(0);
 
-    // --- FINANCIAL SUMMARY BOX ---
-    const subtotal = Number(data.subtotal || 0).toFixed(2).replace('.', ',');
-    const serviceFee = Number(data.serviceFee || 0).toFixed(2).replace('.', ',');
-    const grandTotal = Number(data.total || 0).toFixed(2).replace('.', ',');
+        const encoder = new TextEncoder();
 
-    chunks.push(encoder.encode(` Consumo de Produtos:        R$ ${subtotal.padStart(9, ' ')}\n`));
-    chunks.push(encoder.encode(` Taxa de Servico 10% (Garcon):R$ ${serviceFee.padStart(9, ' ')}\n`));
-    chunks.push(encoder.encode("==========================================\n"));
-    
-    // GRAND TOTAL IN LARGE BOLD
-    chunks.push(ALIGN_CENTER);
-    chunks.push(MODE_LARGE_HEADER);
-    chunks.push(encoder.encode(`TOTAL: R$ ${grandTotal}\n`));
-    chunks.push(MODE_NORMAL);
-    chunks.push(ALIGN_LEFT);
-    chunks.push(encoder.encode("==========================================\n\n"));
+        // ESC/POS Command Buffers
+        const RESET = new Uint8Array([0x1B, 0x40]);
+        const ALIGN_CENTER = new Uint8Array([0x1B, 0x61, 0x01]);
+        const ALIGN_LEFT = new Uint8Array([0x1B, 0x61, 0x00]);
+        
+        const MODE_NORMAL = new Uint8Array([0x1B, 0x21, 0x00]);
+        const MODE_BOLD = new Uint8Array([0x1B, 0x21, 0x08]);
+        const MODE_LARGE_HEADER = new Uint8Array([0x1B, 0x21, 0x38]); // Double Width + Height + Bold
 
-    // --- FOOTER BRAND TAGLINE ---
-    chunks.push(ALIGN_CENTER);
-    chunks.push(MODE_BOLD);
-    chunks.push(encoder.encode("*** GUIA DE CONFERENCIA DO CLIENTE ***\n"));
-    chunks.push(MODE_NORMAL);
-    chunks.push(encoder.encode("A taxa de servico de 10% e opcional aos garcons.\n"));
-    chunks.push(MODE_BOLD);
-    chunks.push(encoder.encode("Obrigado pela preferencia e volte sempre!\n"));
-    chunks.push(MODE_NORMAL);
-    chunks.push(encoder.encode("balnearioriopreto.com.br\n\n\n\n"));
+        const CUT_FULL = new Uint8Array([0x1D, 0x56, 0x00]); // Elgin Auto Cut paper
 
-    // --- AUTO CUT ---
-    chunks.push(CUT_FULL);
+        // 1. Logo Bitmap Buffer
+        const logoBuffer = getLogoRasterBuffer(192);
 
-    const payload = Buffer.concat(chunks);
+        // 2. Build ESC/POS Byte Stream
+        const chunks = [];
+        chunks.push(RESET);
 
-    await dev.transferOut(1, payload);
-    await dev.close();
-    console.log("🎨 Cupom com LOGO REAL e DESIGN PROFISSIONAL impresso e cortado na Elgin i8!");
+        // --- HEADER WITH REAL LOGO ---
+        if (logoBuffer.length > 0) {
+            chunks.push(ALIGN_CENTER);
+            chunks.push(logoBuffer);
+            chunks.push(encoder.encode("\n"));
+        }
+
+        chunks.push(ALIGN_CENTER);
+        chunks.push(MODE_LARGE_HEADER);
+        chunks.push(encoder.encode("BALNEARIO RIO PRETO\n"));
+        chunks.push(MODE_NORMAL);
+        chunks.push(MODE_BOLD);
+        chunks.push(encoder.encode("CONFERENCIA DE CONSUMO\n"));
+        chunks.push(MODE_NORMAL);
+        chunks.push(encoder.encode("==========================================\n\n"));
+
+        // --- METADATA BOX ---
+        chunks.push(ALIGN_LEFT);
+        chunks.push(MODE_BOLD);
+        const locStr = removeAccents(data.location || 'MESA');
+        const custStr = removeAccents(data.customer || 'Nao Informado');
+        const staffStr = removeAccents(data.staff || 'Caixa Central');
+        const dateStr = new Date().toLocaleString('pt-BR');
+
+        chunks.push(encoder.encode(` LOCAL / COMANDA: ${locStr}\n`));
+        chunks.push(MODE_NORMAL);
+        chunks.push(encoder.encode(` CLIENTE:         ${custStr}\n`));
+        chunks.push(encoder.encode(` ATENDENTE:       ${staffStr}\n`));
+        chunks.push(encoder.encode(` DATA & HORA:     ${dateStr}\n`));
+        chunks.push(encoder.encode("------------------------------------------\n"));
+
+        // --- TABLE HEADER ---
+        chunks.push(MODE_BOLD);
+        chunks.push(encoder.encode(" QTD  ITEM / DESCRICAO               VALOR \n"));
+        chunks.push(encoder.encode(" ------------------------------------------ \n"));
+        chunks.push(MODE_NORMAL);
+
+        // --- ITEMS ---
+        (data.items || []).forEach(item => {
+            const name = removeAccents(item.name || '').substring(0, 24).padEnd(24, ' ');
+            const qty = `[${item.qty}x]`.padEnd(5, ' ');
+            const total = `R$ ${Number(item.total || 0).toFixed(2).replace('.', ',')}`.padStart(10, ' ');
+            
+            chunks.push(MODE_BOLD);
+            chunks.push(encoder.encode(` ${qty} `));
+            chunks.push(MODE_NORMAL);
+            chunks.push(encoder.encode(`${name} ${total}\n`));
+            if (item.notes) {
+                chunks.push(encoder.encode(`       * Obs: ${removeAccents(item.notes)}\n`));
+            }
+        });
+
+        chunks.push(encoder.encode("------------------------------------------\n"));
+
+        // --- FINANCIAL SUMMARY BOX ---
+        const subtotal = Number(data.subtotal || 0).toFixed(2).replace('.', ',');
+        const serviceFee = Number(data.serviceFee || 0).toFixed(2).replace('.', ',');
+        const grandTotal = Number(data.total || 0).toFixed(2).replace('.', ',');
+
+        chunks.push(encoder.encode(` Consumo de Produtos:        R$ ${subtotal.padStart(9, ' ')}\n`));
+        chunks.push(encoder.encode(` Taxa de Servico 10% (Garcon):R$ ${serviceFee.padStart(9, ' ')}\n`));
+        chunks.push(encoder.encode("==========================================\n"));
+        
+        // GRAND TOTAL IN LARGE BOLD
+        chunks.push(ALIGN_CENTER);
+        chunks.push(MODE_LARGE_HEADER);
+        chunks.push(encoder.encode(`TOTAL: R$ ${grandTotal}\n`));
+        chunks.push(MODE_NORMAL);
+        chunks.push(ALIGN_LEFT);
+        chunks.push(encoder.encode("==========================================\n\n"));
+
+        // --- FOOTER BRAND TAGLINE ---
+        chunks.push(ALIGN_CENTER);
+        chunks.push(MODE_BOLD);
+        chunks.push(encoder.encode("*** GUIA DE CONFERENCIA DO CLIENTE ***\n"));
+        chunks.push(MODE_NORMAL);
+        chunks.push(encoder.encode("A taxa de servico de 10% e opcional aos garcons.\n"));
+        chunks.push(MODE_BOLD);
+        chunks.push(encoder.encode("Obrigado pela preferencia e volte sempre!\n"));
+        chunks.push(MODE_NORMAL);
+        chunks.push(encoder.encode("balnearioriopreto.com.br\n\n\n\n"));
+
+        // --- AUTO CUT ---
+        chunks.push(CUT_FULL);
+
+        const payload = Buffer.concat(chunks);
+
+        await dev.transferOut(1, payload);
+        
+        try {
+            await dev.releaseInterface(0);
+        } catch (e) {}
+
+        console.log("🎨 Cupom com LOGO REAL e DESIGN PROFISSIONAL impresso e cortado na Elgin i8!");
+    } finally {
+        if (dev) {
+            try {
+                await dev.close();
+            } catch (e) {}
+        }
+        isPrinting = false;
+    }
 }
 
 server.listen(PORT, () => {
