@@ -157,7 +157,21 @@
                 return;
             }
 
-            main.innerHTML = orders.map((order, idx) => orderCard(order, idx)).join('');
+            const hasReady = orders.some(o => o.status === 'pronto');
+            let bannerHtml = '';
+            if (hasReady) {
+                bannerHtml = `
+                    <div class="mb-4 p-4 rounded-2xl bg-emerald-600 text-white shadow-lg flex items-center gap-3 border border-emerald-500">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shrink-0">🍽️</div>
+                        <div>
+                            <h3 class="font-black text-base leading-tight">Seu pedido está pronto!</h3>
+                            <p class="text-emerald-100 text-xs font-bold mt-0.5">Pode subir para o restaurante que estará esperando por você.</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            main.innerHTML = bannerHtml + orders.map((order, idx) => orderCard(order, idx)).join('');
         }
 
         function orderCard(order, idx) {
@@ -197,7 +211,7 @@
                     bgColor: 'bg-green-50',
                     borderColor: 'border-green-200',
                     emoji: '✅',
-                    desc: 'Seu pedido está pronto! A caminho da mesa.'
+                    desc: 'Seu pedido está pronto, pode subir para o restaurante que estará esperando por você.'
                 },
                 'entregue': {
                     label: 'Entregue',
