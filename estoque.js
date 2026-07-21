@@ -5,6 +5,7 @@
  */
 import { supabase } from './scripts.js';
 import { loginStaff, getCurrentStaff, logoutStaff } from './sistema_auth.js';
+import { logAuditAction } from './audit_logger.js';
 
 // ====== STATE ======
 let currentPin = '';
@@ -258,7 +259,11 @@ window.saveAllStock = async () => {
 
     try {
         let saved = 0;
+        const auditItems = [];
+
         for (const [productId, changes] of pendingChanges) {
+            const product = products.find(p => p.id === productId);
+            
             const { error } = await supabase
                 .from('products')
                 .update({
@@ -269,23 +274,25 @@ window.saveAllStock = async () => {
 
             if (error) throw error;
 
-            // Update local state
-            const product = products.find(p => p.id === productId);
             if (product) {
+                auditItems.push({
+                    name: product.name,
+                    old_qty: product.stock_qty || 0,
+                    new_qty: changes.stock_qty,
+                    is_controlled: changes.is_stock_controlled
+                });
+                // Update local state
                 product.stock_qty = changes.stock_qty;
                 product.is_stock_controlled = changes.is_stock_controlled;
             }
             saved++;
         }
 
-        // Audit Log
-        try {
-            import('./audit_logger.js').then(({ logAuditAction }) => {
-                logAuditAction('STOCK_UPDATED', {
-                    products_updated_count: saved
-                }, { type: 'cozinha', id: 'estoque' });
-            }).catch(() => {});
-        } catch(e) {}
+        // Detailed Audit Log
+        await logAuditAction('STOCK_UPDATED', {
+            updated_count: saved,
+            items: auditItems
+        }, { type: 'cozinha', id: 'estoque' });
 
         pendingChanges.clear();
         renderProducts();

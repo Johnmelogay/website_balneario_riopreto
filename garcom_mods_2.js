@@ -1,6 +1,11 @@
+/**
+ * Resumo do Dia / Gestão de Tickets de Comanda - Balneário Rio Preto
+ * Trata cada comanda como um Ticket individual com data de abertura, encerramento e duração.
+ */
 import { supabase } from './scripts.js';
 
-let currentResumoFilter = 'aberto';
+let currentResumoFilter = 'aberto'; // 'aberto' | 'pago'
+let currentResumoScope = 'mine';   // 'mine' | 'all'
 
 window.showResumoDia = async () => {
     // 1. Update Tabs
@@ -18,7 +23,31 @@ window.showResumoDia = async () => {
         resumo.classList.add('flex');
     }
 
+    // Set Date Picker default to today if not set
+    const datePicker = document.getElementById('resumoDatePicker');
+    if (datePicker && !datePicker.value) {
+        datePicker.value = new Date().toISOString().split('T')[0];
+        datePicker.onchange = () => window.filterResumo(currentResumoFilter);
+    }
+
     // 3. Load Data
+    await window.filterResumo(currentResumoFilter);
+};
+
+window.setResumoScope = async (scope) => {
+    currentResumoScope = scope;
+    const btnMine = document.getElementById('btnScopeMine');
+    const btnAll = document.getElementById('btnScopeAll');
+    
+    if (btnMine && btnAll) {
+        if (scope === 'mine') {
+            btnMine.className = "flex-1 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-sm transition";
+            btnAll.className = "flex-1 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition";
+        } else {
+            btnAll.className = "flex-1 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-sm transition";
+            btnMine.className = "flex-1 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition";
+        }
+    }
     await window.filterResumo(currentResumoFilter);
 };
 
@@ -29,46 +58,53 @@ window.filterResumo = async (status) => {
     const btnAberto = document.getElementById('btnResumoAberto');
     const btnPago = document.getElementById('btnResumoPago');
     
-    if (!btnAberto || !btnPago) return;
-    
-    // Reset classes
-    btnAberto.className = "flex-1 py-1.5 rounded-lg text-xs font-bold border transition";
-    btnPago.className = "flex-1 py-1.5 rounded-lg text-xs font-bold border transition";
-    
-    if (status === 'aberto') {
-        btnAberto.classList.add('bg-amber-100', 'text-amber-700', 'border-amber-200');
-        btnPago.classList.add('bg-stone-200', 'text-stone-500', 'border-stone-300', 'hover:bg-stone-300');
-    } else {
-        btnPago.classList.add('bg-emerald-100', 'text-emerald-700', 'border-emerald-200');
-        btnAberto.classList.add('bg-stone-200', 'text-stone-500', 'border-stone-300', 'hover:bg-stone-300');
+    if (btnAberto && btnPago) {
+        btnAberto.className = "flex-1 py-2 rounded-xl text-xs font-bold border transition";
+        btnPago.className = "flex-1 py-2 rounded-xl text-xs font-bold border transition";
+        
+        if (status === 'aberto') {
+            btnAberto.classList.add('bg-amber-100', 'text-amber-800', 'border-amber-300', 'shadow-sm');
+            btnPago.classList.add('bg-stone-200', 'text-stone-500', 'border-stone-300');
+        } else {
+            btnPago.classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300', 'shadow-sm');
+            btnAberto.classList.add('bg-stone-200', 'text-stone-500', 'border-stone-300');
+        }
     }
 
     const list = document.getElementById('resumoList');
-    list.innerHTML = '<div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-stone-300 text-2xl"></i></div>';
+    list.innerHTML = '<div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-stone-400 text-2xl"></i></div>';
     
-    // Import current staff from window
-    // (fallback just in case)
+    // Staff filtering
     let staffId = null;
-    if (window.currentStaff && window.currentStaff.id) {
+    if (currentResumoScope === 'mine' && window.currentStaff && window.currentStaff.id) {
         staffId = window.currentStaff.id;
     }
 
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    // Selected Date bounds
+    const datePicker = document.getElementById('resumoDatePicker');
+    const selectedDateStr = datePicker?.value || new Date().toISOString().split('T')[0];
+    
+    const startOfDay = new Date(`${selectedDateStr}T00:00:00`).toISOString();
+    const endOfDay = new Date(`${selectedDateStr}T23:59:59.999`).toISOString();
 
     let query = supabase
         .from('orders')
-        .select('*')
+        .select(`
+            *,
+            order_items(*),
+            staff_users(name)
+        `)
         .eq('payment_status', status)
         .neq('status', 'cancelado');
 
     if (status === 'pago') {
-        query = query.gte('updated_at', startOfDay).order('updated_at', { ascending: false });
+        // Closed tickets paid within the selected date
+        query = query.gte('updated_at', startOfDay).lte('updated_at', endOfDay).order('updated_at', { ascending: false });
     } else {
-        query = query.gte('created_at', startOfDay).order('created_at', { ascending: false });
+        // Open tickets created within the selected date
+        query = query.gte('created_at', startOfDay).lte('created_at', endOfDay).order('created_at', { ascending: false });
     }
         
-    // Optionally filter by this garcom if staffId is true
     if (staffId) {
         query = query.eq('staff_id', staffId);
     }
@@ -77,68 +113,122 @@ window.filterResumo = async (status) => {
 
     if (error) {
         console.error('Erro Resumo:', error);
-        list.innerHTML = '<p class="text-center text-red-500 text-sm">Erro ao carregar dados.</p>';
+        list.innerHTML = '<p class="text-center text-red-500 text-xs font-bold py-8">Erro ao carregar tickets.</p>';
         return;
     }
 
     if (!orders || orders.length === 0) {
-        list.innerHTML = '<p class="text-center text-stone-400 text-sm py-10 font-bold">Nenhuma comanda encontrada.</p>';
+        list.innerHTML = `
+            <div class="text-center py-12 text-stone-400">
+                <i class="fa-solid fa-ticket text-3xl mb-2 opacity-30"></i>
+                <p class="font-bold text-xs">Nenhum ticket ${status === 'pago' ? 'finalizado' : 'em aberto'} para esta data.</p>
+            </div>`;
+        
+        document.getElementById('resumoTotalAmount').textContent = 'R$ 0,00';
+        document.getElementById('resumoTicketCount').textContent = '0 tickets';
         return;
     }
 
-    // Group by location
-    const grouped = {};
-    orders.forEach(o => {
-        const key = `${o.location_type.toUpperCase()}: ${o.location_id}`;
-        if (!grouped[key]) grouped[key] = { total: 0, orders: [] };
-        grouped[key].total += Number(o.total);
-        grouped[key].orders.push(o);
-    });
+    // Update Summary Header
+    const totalSum = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    document.getElementById('resumoTotalAmount').textContent = `R$ ${totalSum.toFixed(2).replace('.', ',')}`;
+    document.getElementById('resumoTicketCount').textContent = `${orders.length} ticket${orders.length > 1 ? 's' : ''}`;
 
-    list.innerHTML = Object.keys(grouped).map(key => {
-        const group = grouped[key];
-        const valStr = `R$ ${group.total.toFixed(2).replace('.', ',')}`;
-        
-        const firstOrder = group.orders[0];
-        const locType = firstOrder.location_type;
-        const locId = firstOrder.location_id;
-        
-        // Assemble proper label (e.g., 'Chalé 7', 'Mesa 3', 'Balcão')
-        let label = '';
-        if (locType === 'chale') label = 'Chalé ' + locId;
-        else if (locType === 'mesa') label = 'Mesa ' + locId.replace('M', '');
-        else label = 'Balcão';
-        
-        let paymentBadge = '';
-        if (status === 'pago') {
-            const pMethod = firstOrder.payment_method ? firstOrder.payment_method.toUpperCase() : 'PAGO';
-            let icon = 'fa-check';
-            if (pMethod === 'PIX') icon = 'fa-pix text-teal-600';
-            else if (pMethod === 'DINHEIRO') icon = 'fa-money-bill-wave text-emerald-600';
-            else if (pMethod === 'CREDITO' || pMethod === 'DEBITO') icon = 'fa-credit-card text-blue-600';
+    // Render individual Comanda Tickets
+    list.innerHTML = orders.map(order => renderComandaTicket(order)).join('');
+};
+
+function renderComandaTicket(order) {
+    const createdAt = new Date(order.created_at);
+    const openTime = createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const openDate = createdAt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+    const isPaid = order.payment_status === 'pago';
+    const updatedAt = order.updated_at ? new Date(order.updated_at) : new Date();
+    const closeTime = isPaid ? updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+
+    // Calculate duration
+    const elapsedMs = (isPaid ? updatedAt.getTime() : Date.now()) - createdAt.getTime();
+    const totalMins = Math.floor(elapsedMs / 60000);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    const durationStr = hrs > 0 ? `${hrs}h ${mins}min` : `${mins}min`;
+
+    // Location label
+    const locType = order.location_type;
+    const locId = order.location_id;
+    let locLabel = '';
+    if (locType === 'chale') locLabel = '🏡 Chalé ' + locId;
+    else if (locType === 'mesa') locLabel = '🪑 Mesa ' + locId.replace('M', '');
+    else locLabel = '🏪 Balcão';
+
+    // Staff & Customer info
+    const staffName = order.staff_users?.name || 'Garçom';
+    const customerInfo = order.customer_name ? ` • Cliente: ${order.customer_name}` : '';
+
+    // Items summary
+    const items = order.order_items || [];
+    const itemsCount = items.reduce((s, i) => s + (i.quantity || 1), 0);
+
+    // Payment Badge
+    let paymentBadge = '';
+    if (isPaid) {
+        const method = order.payment_method ? order.payment_method.toUpperCase() : 'PAGO';
+        paymentBadge = `<span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> ${method}
+        </span>`;
+    } else {
+        paymentBadge = `<span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px] font-black flex items-center gap-1">
+            <i class="fa-solid fa-clock"></i> EM ABERTO
+        </span>`;
+    }
+
+    return `
+        <div onclick="openLocationFromResumo('${locType}', '${locId}', '${locLabel}')" 
+             class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition active:scale-[0.98] space-y-3">
             
-            paymentBadge = `<span class="flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-black"><i class="fa-solid ${icon}"></i> ${pMethod}</span>`;
-        } else {
-            paymentBadge = `<span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-black">PENDENTE</span>`;
-        }
-
-        return `
-            <div onclick="openLocationFromResumo('${locType}', '${locId}', '${label}')" class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition active:scale-[0.98]">
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="font-black text-stone-800 text-sm">${key}</h4>
-                    ${paymentBadge}
+            <!-- Ticket Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-stone-800 font-mono bg-stone-100 px-2 py-0.5 rounded-md">
+                        #${order.order_number || order.id.slice(0, 5)}
+                    </span>
+                    <span class="text-xs font-bold text-stone-700">${locLabel}</span>
                 </div>
-                <div class="flex flex-col gap-1 mt-3 pt-3 border-t border-stone-100">
-                    <div class="flex justify-between items-end">
-                        <span class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Total Consumido</span>
-                        <p class="text-[#10b981] font-black text-lg">${valStr}</p>
-                    </div>
-                    <div class="flex justify-between items-end">
-                        <span class="text-[10px] uppercase font-bold text-stone-400 tracking-wider">Lançamentos</span>
-                        <p class="text-xs text-stone-500 font-bold">${group.orders.length} pedido(s)</p>
-                    </div>
+                ${paymentBadge}
+            </div>
+
+            <!-- Time & Duration Ticket Section -->
+            <div class="bg-stone-50 rounded-xl p-2.5 grid grid-cols-3 text-center text-xs">
+                <div>
+                    <span class="text-[9px] text-stone-400 font-bold uppercase block">Abertura</span>
+                    <span class="font-bold text-stone-700 font-mono">${openTime}</span>
+                </div>
+                <div class="border-x border-stone-200">
+                    <span class="text-[9px] text-stone-400 font-bold uppercase block">Encerramento</span>
+                    <span class="font-bold text-stone-700 font-mono">${closeTime || 'Em andamento'}</span>
+                </div>
+                <div>
+                    <span class="text-[9px] text-stone-400 font-bold uppercase block">Duração</span>
+                    <span class="font-bold text-emerald-700 font-mono">${durationStr}</span>
                 </div>
             </div>
-        `;
-    }).join('');
-};
+
+            <!-- Items & Info -->
+            <div class="flex items-center justify-between text-xs pt-1">
+                <div class="min-w-0 flex-1">
+                    <p class="text-stone-500 text-[11px] font-medium truncate">
+                        <i class="fa-solid fa-user text-stone-400 mr-1"></i>${staffName}${customerInfo}
+                    </p>
+                    <p class="text-stone-400 text-[10px] font-bold mt-0.5">
+                        ${itemsCount} item(s) no ticket
+                    </p>
+                </div>
+                <div class="text-right shrink-0">
+                    <span class="text-[9px] text-stone-400 font-bold uppercase block">Total</span>
+                    <span class="text-base font-black text-emerald-700">R$ ${Number(order.total || 0).toFixed(2).replace('.', ',')}</span>
+                </div>
+            </div>
+        </div>
+    `;
+}

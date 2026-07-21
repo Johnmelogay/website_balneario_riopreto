@@ -190,9 +190,12 @@ function logCard(log, idx) {
     // Format summary details
     let summaryText = '';
     if (log.details) {
-        if (log.details.orders) summaryText = `Pedidos: ${log.details.orders.join(', ')} • R$ ${Number(log.details.total_amount || 0).toFixed(2)}`;
+        if (log.details.orders) summaryText = `Pedidos: ${log.details.orders.map(n => '#' + n).join(', ')} • R$ ${Number(log.details.total_amount || 0).toFixed(2)}`;
         else if (log.details.new_status) summaryText = `Pedido #${log.details.order_number || ''} ➔ ${log.details.new_status.toUpperCase()}`;
-        else if (log.details.products_updated_count) summaryText = `${log.details.products_updated_count} produtos salvos no estoque`;
+        else if (log.details.items && Array.isArray(log.details.items)) {
+            summaryText = log.details.items.map(i => `${i.name}: ${i.old_qty} ➔ ${i.new_qty}`).join(' | ');
+        }
+        else if (log.details.updated_count) summaryText = `${log.details.updated_count} produtos salvos no estoque`;
         else summaryText = JSON.stringify(log.details);
     }
 

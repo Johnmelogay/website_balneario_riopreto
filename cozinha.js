@@ -6,6 +6,7 @@
  */
 import { supabase } from './scripts.js';
 import { loginStaff, getCurrentStaff, logoutStaff } from './sistema_auth.js';
+import { logAuditAction } from './audit_logger.js';
 
 // ====== CONFIG ======
 const isBar = window.location.pathname.includes('bar');
@@ -371,13 +372,11 @@ window.markDelivered = async (orderId) => {
 function logKitchenAudit(orderId, newStatus) {
     try {
         const order = orders.find(o => o.id === orderId);
-        import('./audit_logger.js').then(({ logAuditAction }) => {
-            logAuditAction('STATUS_CHANGED', {
-                order_id: orderId,
-                order_number: order?.order_number || null,
-                new_status: newStatus
-            }, { type: order?.location_type, id: order?.location_id });
-        }).catch(() => {});
+        logAuditAction('STATUS_CHANGED', {
+            order_id: orderId,
+            order_number: order?.order_number || null,
+            new_status: newStatus
+        }, { type: order?.location_type, id: order?.location_id });
     } catch(e) {}
 }
 

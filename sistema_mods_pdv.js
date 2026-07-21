@@ -1,5 +1,6 @@
 import { supabase } from './scripts.js';
 import { getCurrentStaff } from './sistema_auth.js';
+import { logAuditAction } from './audit_logger.js';
 
 // State
 let products = [];
@@ -538,6 +539,17 @@ async function submitOrder(destination, paymentStatus, orderStatus, method, rece
             }
         }
         
+        // Audit Log
+        try {
+            await logAuditAction('PAYMENT_CLOSED', {
+                order_number: order.order_number,
+                total_amount: total,
+                payment_method: method,
+                payment_status: paymentStatus,
+                items_count: cart.reduce((s, c) => s + c.qty, 0)
+            }, { type: destination.split('-')[0], id: destination.split('-')[1] || destination });
+        } catch(e) {}
+
         alert("Pedido Finalizado com Sucesso!");
         
         // Reset

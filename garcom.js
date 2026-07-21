@@ -4,6 +4,7 @@
  */
 import { supabase } from './scripts.js';
 import { loginStaff, getCurrentStaff, logoutStaff } from './sistema_auth.js';
+import { logAuditAction } from './audit_logger.js';
 
 // ====== STATE ======
 let currentPin = '';
@@ -65,12 +66,14 @@ let locationStats = {};
 
 async function fetchLocationStats() {
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
 
+    // Query today's orders (both open created today and paid updated today)
     const { data: orders, error } = await supabase
         .from('orders')
-        .select('location_type, location_id, status, payment_status, total, created_at, staff_id')
-        .gte('created_at', startOfDay)
+        .select('location_type, location_id, status, payment_status, total, created_at, updated_at, staff_id')
+        .or(`created_at.gte.${startOfDay},updated_at.gte.${startOfDay}`)
         .neq('status', 'cancelado');
         
     locationStats = {};
@@ -81,11 +84,14 @@ async function fetchLocationStats() {
     
     if (orders) {
         orders.forEach(o => {
-            if (o.staff_id === staffId && o.payment_status === 'pago') {
-                myTotalSales += Number(o.total); // Only sum PAID sales for "Minhas Vendas"
+            const isTodayPaid = o.payment_status === 'pago' && o.updated_at >= startOfDay && o.updated_at <= endOfDay;
+            const isTodayOpen = o.payment_status === 'aberto' && o.created_at >= startOfDay;
+
+            if (o.staff_id === staffId && isTodayPaid) {
+                myTotalSales += Number(o.total); // Only sum PAID sales for today's "Minhas Vendas"
             }
-            if (o.payment_status === 'aberto') {
-                totalPending += Number(o.total); // Sum all pending for "Receber Pendente"
+            if (isTodayOpen) {
+                totalPending += Number(o.total); // Sum all pending for today's "Receber Pendente"
             }
 
             const key = o.location_type + '-' + o.location_id;
@@ -93,10 +99,10 @@ async function fetchLocationStats() {
                 locationStats[key] = { total_open_val: 0, open_orders: 0, delayed: false };
             }
             
-            if (o.payment_status === 'aberto') {
+            if (isTodayOpen) {
                 locationStats[key].total_open_val += Number(o.total);
             }
-            if (o.status !== 'entregue' && o.status !== 'pronto') {
+            if (isTodayOpen && o.status !== 'entregue' && o.status !== 'pronto') {
                 locationStats[key].open_orders++;
                 const elapsed = Date.now() - new Date(o.created_at).getTime();
                 if (elapsed > 30 * 60 * 1000) {
@@ -621,17 +627,13 @@ window.sendOrder = async () => {
         };
 
         // 4. Audit Log
-        try {
-            import('./audit_logger.js').then(({ logAuditAction }) => {
-                logAuditAction('ORDER_CREATED', {
-                    orders: createdOrders.map(o => o.number),
-                    total_amount: total,
-                    items_count: cart.reduce((s, c) => s + c.qty, 0),
-                    customer_name: customerName,
-                    customer_phone: customerPhone
-                }, currentLocation);
-            }).catch(() => {});
-        } catch(e) {}
+        await logAuditAction('ORDER_CREATED', {
+            orders: createdOrders.map(o => o.number),
+            total_amount: total,
+            items_count: cart.reduce((s, c) => s + c.qty, 0),
+            customer_name: customerName,
+            customer_phone: customerPhone
+        }, currentLocation);
 
         // 5. Success!
         toggleCart();
