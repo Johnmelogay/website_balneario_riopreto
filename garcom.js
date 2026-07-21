@@ -352,23 +352,44 @@ function renderProducts(list) {
 function productCard(product) {
     const inCart = cart.find(c => c.product.id === product.id);
     const qtyInCart = inCart ? inCart.qty : 0;
-    const lowStock = product.is_stock_controlled && product.stock_qty <= product.min_stock;
-    const outOfStock = product.is_stock_controlled && product.stock_qty <= 0;
+    const isControlled = product.is_stock_controlled;
+    const stockQty = isControlled ? (product.stock_qty || 0) : null;
+    const lowStock = isControlled && stockQty > 0 && stockQty <= (product.min_stock || 3);
+    const outOfStock = isControlled && stockQty <= 0;
     const destination = product.categories?.destination || 'cozinha';
     const destIcon = destination === 'bar' ? '🍺' : '🍳';
 
+    // Stock badge
+    let stockBadge = '';
+    if (outOfStock) {
+        stockBadge = `<span class="bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 animate-pulse"><i class="fa-solid fa-ban"></i> ESGOTADO (0)</span>`;
+    } else if (lowStock) {
+        stockBadge = `<span class="bg-amber-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Restam ${stockQty}</span>`;
+    } else if (isControlled) {
+        stockBadge = `<span class="bg-emerald-100 text-emerald-800 font-bold text-[10px] px-2 py-0.5 rounded-full border border-emerald-200">${stockQty} un</span>`;
+    } else {
+        stockBadge = `<span class="bg-stone-100 text-stone-500 font-bold text-[10px] px-1.5 py-0.5 rounded-full">Livre</span>`;
+    }
+
+    // Card styling for outOfStock (prominent RED)
+    const cardStyle = outOfStock 
+        ? 'bg-red-50 border-2 border-red-500 shadow-md opacity-80 cursor-not-allowed' 
+        : 'bg-white border border-stone-200 shadow-sm active:scale-95 hover:border-emerald-500';
+
     return `
-        <div class="product-card bg-white rounded-2xl p-3 border border-gray-100 shadow-sm ${outOfStock ? 'opacity-50 grayscale' : ''}"
-            onclick="${outOfStock ? '' : `addToCart('${product.id}')`}">
-            <div class="flex items-start justify-between mb-2">
-                <span class="text-lg">${destIcon}</span>
-                ${lowStock && !outOfStock ? '<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">BAIXO</span>' : ''}
-                ${outOfStock ? '<span class="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">ESGOTADO</span>' : ''}
+        <div class="product-card rounded-2xl p-3 flex flex-col justify-between transition relative ${cardStyle}"
+            onclick="${outOfStock ? `alert('⚠️ Item ESGOTADO no estoque! Fale com a cozinha.')` : `addToCart('${product.id}')`}">
+            
+            <div class="flex items-start justify-between gap-1 mb-1.5">
+                <span class="text-base">${destIcon}</span>
+                ${stockBadge}
             </div>
-            <p class="font-bold text-gray-800 text-sm leading-tight mb-1 line-clamp-2">${product.name}</p>
-            <div class="flex items-end justify-between mt-auto">
-                <p class="font-black text-emerald-700 text-base">R$ ${Number(product.price).toFixed(2).replace('.', ',')}</p>
-                ${qtyInCart > 0 ? `<span class="bg-emerald-600 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center">${qtyInCart}</span>` : ''}
+
+            <p class="font-bold text-stone-800 text-xs leading-tight mb-2 line-clamp-2">${product.name}</p>
+            
+            <div class="flex items-end justify-between mt-auto pt-1.5 border-t border-stone-100">
+                <p class="font-black ${outOfStock ? 'text-red-600' : 'text-emerald-700'} text-sm">R$ ${Number(product.price).toFixed(2).replace('.', ',')}</p>
+                ${qtyInCart > 0 ? `<span class="bg-emerald-600 text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center shadow">${qtyInCart}</span>` : ''}
             </div>
         </div>
     `;
@@ -392,7 +413,19 @@ window.addToCart = (productId) => {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
+    if (product.is_stock_controlled && product.stock_qty <= 0) {
+        alert(`⚠️ O item "${product.name}" está ESGOTADO no estoque!`);
+        return;
+    }
+
     const existing = cart.find(c => c.product.id === productId);
+    const currentQtyInCart = existing ? existing.qty : 0;
+
+    if (product.is_stock_controlled && (currentQtyInCart + 1) > product.stock_qty) {
+        alert(`⚠️ Estoque insuficiente! Restam apenas ${product.stock_qty} unidade(s) de "${product.name}".`);
+        return;
+    }
+
     if (existing) {
         existing.qty++;
     } else {
