@@ -57,7 +57,7 @@ export async function renderFechamentoSemanal(container){
     // Group by day using ORDER ITEMS for accurate bar/cozinha split
     const dayMap={};
     ordersData.forEach(o=>{
-      const day=new Date(o.created_at).toLocaleDateString('pt-BR',{weekday:'long'});
+      const day=new Date(o.created_at).toLocaleDateString('pt-BR',{ timeZone: 'America/Porto_Velho', weekday:'long'});
       const dayKey=day.charAt(0).toUpperCase()+day.slice(1);
       if(!dayMap[dayKey]) dayMap[dayKey]={cozinha:0,bar:0,orders:[],cozinha_items:[],bar_items:[]};
       dayMap[dayKey].orders.push(o);
@@ -67,7 +67,7 @@ export async function renderFechamentoSemanal(container){
     itemsData.forEach(item=>{
       const orderDate=item.orders?.created_at;
       if(!orderDate) return;
-      const day=new Date(orderDate).toLocaleDateString('pt-BR',{weekday:'long'});
+      const day=new Date(orderDate).toLocaleDateString('pt-BR',{ timeZone: 'America/Porto_Velho', weekday:'long'});
       const dayKey=day.charAt(0).toUpperCase()+day.slice(1);
       if(!dayMap[dayKey]) dayMap[dayKey]={cozinha:0,bar:0,orders:[],cozinha_items:[],bar_items:[]};
       const dest=(item.destination||'').toLowerCase();
@@ -85,7 +85,7 @@ export async function renderFechamentoSemanal(container){
     const gateDayMap={};
     let totalPortaria=0;
     gateData.forEach(g=>{
-      const day=new Date(g.created_at).toLocaleDateString('pt-BR',{weekday:'long'});
+      const day=new Date(g.created_at).toLocaleDateString('pt-BR',{ timeZone: 'America/Porto_Velho', weekday:'long'});
       const dayKey=day.charAt(0).toUpperCase()+day.slice(1);
       if(!gateDayMap[dayKey]) gateDayMap[dayKey]={total:0,entries:[]};
       const val=Number(g.amount_paid||g.total_amount||0);
@@ -94,21 +94,22 @@ export async function renderFechamentoSemanal(container){
       totalPortaria+=val;
     });
 
-    // Payment method totals — use split columns when available
+    // Payment method totals
     const payMethods={dinheiro:0,pix:0,cartao_debito:0,cartao_credito:0,cartao:0};
     ordersData.forEach(o=>{
-      const pm=(o.payment_method||'').toLowerCase();
-      if(pm==='split'){
-        // Use individual split columns
+      if (Number(o.split_pix||0) > 0 || Number(o.split_dinheiro||0) > 0 || Number(o.split_credito||0) > 0 || Number(o.split_debito||0) > 0) {
         payMethods.pix+=Number(o.split_pix||0);
         payMethods.dinheiro+=Number(o.split_dinheiro||0);
         payMethods.cartao_credito+=Number(o.split_credito||0);
         payMethods.cartao_debito+=Number(o.split_debito||0);
-      } else if(pm.includes('dinheiro')) payMethods.dinheiro+=Number(o.total||0);
-      else if(pm.includes('pix')) payMethods.pix+=Number(o.total||0);
-      else if(pm.includes('deb')) payMethods.cartao_debito+=Number(o.total||0);
-      else if(pm.includes('cred')) payMethods.cartao_credito+=Number(o.total||0);
-      else if(pm.includes('cart')) payMethods.cartao+=Number(o.total||0);
+      } else {
+        const pm=(o.payment_method||'').toLowerCase();
+        if(pm.includes('dinheiro')) payMethods.dinheiro+=Number(o.total||0);
+        else if(pm.includes('pix')) payMethods.pix+=Number(o.total||0);
+        else if(pm.includes('deb')) payMethods.cartao_debito+=Number(o.total||0);
+        else if(pm.includes('cred')) payMethods.cartao_credito+=Number(o.total||0);
+        else if(pm.includes('cart')) payMethods.cartao+=Number(o.total||0);
+      }
     });
 
     // Garcom tips calculation (sum of service_fee collected at checkout)
@@ -260,42 +261,70 @@ export async function renderFechamentoSemanal(container){
         let html = `
             <html>
             <head>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
                 <style>
-                    body { font-family: monospace; width: 576px; font-size: 16px; margin: 0; padding: 10px; color: black; background: white; }
-                    h2 { text-align: center; margin-bottom: 10px; border-bottom: 2px dashed black; padding-bottom: 5px; font-size: 24px; font-weight: bold; }
-                    h3 { font-size: 18px; margin-top: 15px; margin-bottom: 5px; text-decoration: underline; }
-                    .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-                    .bold { font-weight: bold; }
-                    .total-box { border: 2px solid black; padding: 10px; margin-top: 10px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; }
+                    * { box-sizing: border-box; }
+                    body { font-family: 'Inter', monospace; width: 576px; margin: 0; padding: 12px 16px 20px 16px; color: black; background: white; font-size: 18px; line-height: 1.3; }
+                    h2 { text-align: center; margin: 0 0 10px 0; border-bottom: 3px solid black; padding-bottom: 8px; font-size: 28px; font-weight: 900; }
+                    h3 { font-size: 20px; font-weight: 900; margin: 16px 0 6px 0; text-transform: uppercase; border-bottom: 1px solid black; padding-bottom: 2px; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+                    .row.sub { font-size: 16px; color: #333; }
+                    .total-box { border: 3px solid black; padding: 12px; margin-top: 12px; font-size: 24px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 8px; }
+                    
+                    .order-item { border-bottom: 1px dashed #666; padding: 8px 0; font-size: 16px; }
+                    .order-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; }
+                    .order-meta { font-size: 14px; color: #444; }
                 </style>
             </head>
             <body>
-                <h2>RELATÓRIO FINANCEIRO</h2>
-                <div class="row"><span>Período:</span><span>${r.startDate} a ${r.endDate}</span></div>
-                <div class="row"><span>Gerado em:</span><span>${new Date().toLocaleString('pt-BR')}</span></div>
+                <h2>FECHAMENTO DETALHADO</h2>
+                <div class="row"><b>Início:</b><span>${r.startDate}</span></div>
+                <div class="row"><b>Fim:</b><span>${r.endDate}</span></div>
+                <div class="row"><b>Emissão:</b><span>${new Date().toLocaleString('pt-BR', { timeZone: 'America/Porto_Velho' })}</span></div>
                 
-                <h3>RESUMO GERAL</h3>
-                <div class="row"><span>Cozinha:</span><span>R$ ${r.totalCozinha.toFixed(2)}</span></div>
-                <div class="row"><span>Bar:</span><span>R$ ${r.totalBar.toFixed(2)}</span></div>
-                <div class="row"><span>Portaria:</span><span>R$ ${r.totalPortaria.toFixed(2)}</span></div>
-                <div class="row"><span>Chalés:</span><span>R$ ${r.totalChalets.toFixed(2)}</span></div>
+                <h3>RESUMO FINANCEIRO</h3>
+                <div class="row"><span>Cozinha (Restaurante):</span><b>R$ ${r.totalCozinha.toFixed(2)}</b></div>
+                <div class="row"><span>Bar (Bebidas):</span><b>R$ ${r.totalBar.toFixed(2)}</b></div>
+                <div class="row"><span>Portaria:</span><b>R$ ${r.totalPortaria.toFixed(2)}</b></div>
+                <div class="row"><span>Chalés (Aluguéis):</span><b>R$ ${r.totalChalets.toFixed(2)}</b></div>
                 <div class="total-box"><span>TOTAL BRUTO:</span><span>R$ ${r.totalBruto.toFixed(2)}</span></div>
 
-                <h3>FORMAS DE PAGAMENTO</h3>
-                <div class="row"><span>Dinheiro:</span><span>R$ ${r.payMethods.dinheiro.toFixed(2)}</span></div>
-                <div class="row"><span>PIX:</span><span>R$ ${r.payMethods.pix.toFixed(2)}</span></div>
-                <div class="row"><span>C. Débito:</span><span>R$ ${r.payMethods.cartao_debito.toFixed(2)}</span></div>
-                <div class="row"><span>C. Crédito:</span><span>R$ ${r.payMethods.cartao_credito.toFixed(2)}</span></div>
-
-                <h3>GARÇONS (10%)</h3>
-                ${Object.entries(r.garcomMap).map(([n,v]) => `
-                    <div class="row" style="border-bottom: 1px dotted #000;">
-                        <span>${n.substring(0,20)}</span>
-                        <span>Acumulado: <b style="font-size:18px;">R$ ${v.serviceFee.toFixed(2)}</b></span>
-                    </div>
-                `).join('') || '<div class="row">Sem dados.</div>'}
+                <h3>RECEBIMENTOS POR TIPO</h3>
+                <div class="row"><span>Dinheiro:</span><b>R$ ${r.payMethods.dinheiro.toFixed(2)}</b></div>
+                <div class="row"><span>PIX:</span><b>R$ ${r.payMethods.pix.toFixed(2)}</b></div>
+                <div class="row"><span>Cartão Débito:</span><b>R$ ${r.payMethods.cartao_debito.toFixed(2)}</b></div>
+                <div class="row"><span>Cartão Crédito:</span><b>R$ ${r.payMethods.cartao_credito.toFixed(2)}</b></div>
                 
-                <div style="margin-top: 30px; text-align: center; font-size: 14px;">=============================</div>
+                <h3>COMISSÕES DE GARÇONS (10%)</h3>
+                ${Object.entries(r.garcomMap).map(([n,v]) => `
+                    <div class="row">
+                        <span>${n.substring(0,20)}</span>
+                        <b>R$ ${v.serviceFee.toFixed(2)}</b>
+                    </div>
+                `).join('') || '<div class="row">Nenhuma comissão.</div>'}
+
+                <h3>DETALHAMENTO DE PEDIDOS</h3>
+                ${r.ordersData.map(o => `
+                    <div class="order-item">
+                        <div class="order-header">
+                            <span>#${o.order_number || o.id.substring(0,5)} • ${(o.location_type || 'Mesa').toUpperCase()} ${o.location_id}</span>
+                            <span>R$ ${Number(o.total).toFixed(2)}</span>
+                        </div>
+                        <div class="order-meta">Cliente: ${o.customer_name || 'Não informado'}</div>
+                        <div class="order-meta">Abertura: ${new Date(o.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho', hour:'2-digit', minute:'2-digit'})} • Garçom: ${o.staff_users?.name || 'Sistema'}</div>
+                        <div class="order-meta">
+                            Pago via: ${ [
+                                o.split_pix > 0 ? 'Pix' : '', 
+                                o.split_dinheiro > 0 ? 'Dinheiro' : '', 
+                                o.split_credito > 0 ? 'Crédito' : '', 
+                                o.split_debito > 0 ? 'Débito' : ''
+                            ].filter(Boolean).join(', ') || String(o.payment_method).toUpperCase() }
+                            ${ o.service_fee > 0 ? `(+ 10% R$ ${Number(o.service_fee).toFixed(2)})` : '' }
+                        </div>
+                    </div>
+                `).join('') || '<div>Sem pedidos.</div>'}
+                
+                <div style="text-align: center; font-size: 16px; margin-top: 20px; font-weight: bold;">-- FIM DO RELATÓRIO --</div>
             </body>
             </html>
         `;

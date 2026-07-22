@@ -478,7 +478,7 @@ window.loadLiveOrdersFeed = async () => {
         const itemsSummary = items.map(i => `${i.quantity}x ${i.product_name}`).join(', ');
         const customerName = o.customer_name || 'Sem Nome';
         const destIcon = o.destination === 'bar' ? '🍺' : '🍳';
-        const timeAgo = new Date(o.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const timeAgo = new Date(o.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
 
         // Color-Coded Badges & Card Styles
         let statusBadge = '';
@@ -1510,7 +1510,7 @@ function renderGarcomNotifications() {
 
     container.innerHTML = garcomNotifications.map(n => {
         n.read = true;
-        const timeAgo = new Date(n.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const timeAgo = new Date(n.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
         return `
             <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-start gap-3 shadow-sm">
                 <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg font-black shrink-0">

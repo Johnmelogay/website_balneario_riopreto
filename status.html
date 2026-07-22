@@ -188,7 +188,7 @@
             const items = order.order_items || [];
             const elapsed = Date.now() - new Date(order.created_at).getTime();
             const minutes = Math.floor(elapsed / 60000);
-            const timeStr = new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const timeStr = new Date(order.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
             
             const status = order.status;
             const destIcon = order.destination === 'bar' ? '🍺' : '🍳';

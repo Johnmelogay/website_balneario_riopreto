@@ -456,7 +456,7 @@
       const [detalhesEvento, setDetalhesEvento] = useState('');
 
       const sim = calcular({ dataInicio, dataFim, tipoLocacao, incluiCozinha });
-      const hoje = new Date().toLocaleDateString('pt-BR');
+      const hoje = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho' });
 
       // WhatsApp Integration
       const WP_NUMBER = "5511988531007"; // Format: Country Code + Area Code + Number

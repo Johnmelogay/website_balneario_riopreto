@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             data.forEach(post => {
                 const div = document.createElement('div');
                 div.className = 'group cursor-pointer flex flex-col h-full bg-white rounded-3xl border-2 border-orange-100 hover:border-accent-orange p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1';
-                const date = new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+                const date = new Date(post.published_at).toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: 'short' });
 
                 div.innerHTML = `
                    <div class="relative h-48 mb-4 overflow-hidden rounded-2xl shadow-sm">

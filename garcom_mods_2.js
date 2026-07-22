@@ -140,12 +140,12 @@ window.filterResumo = async (status) => {
 
 function renderComandaTicket(order) {
     const createdAt = new Date(order.created_at);
-    const openTime = createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const openDate = createdAt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const openTime = createdAt.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
+    const openDate = createdAt.toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: '2-digit' });
 
     const isPaid = order.payment_status === 'pago';
     const updatedAt = order.updated_at ? new Date(order.updated_at) : new Date();
-    const closeTime = isPaid ? updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+    const closeTime = isPaid ? updatedAt.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' }) : null;
 
     // Calculate duration
     const elapsedMs = (isPaid ? updatedAt.getTime() : Date.now()) - createdAt.getTime();

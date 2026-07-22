@@ -34,7 +34,7 @@ window.openExtrato = async () => {
     
     list.innerHTML = orders.map(o => {
         grandTotal += Number(o.total);
-        const time = new Date(o.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        const time = new Date(o.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho', hour: '2-digit', minute:'2-digit'});
         
         let statusBadge = '';
         if(o.status === 'pendente') statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-0.5 rounded font-black uppercase">Pendente</span>';

@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ====== TIME ======
 function updateClock() {
     const el = document.getElementById('clockDisplay');
-    if (el) el.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    if (el) el.textContent = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
 }
 
 // ====== PIN AUTENTICACAO ======
@@ -301,7 +301,7 @@ function fillDashboardLists(orders, portaria) {
                     </span>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] text-gray-400 font-bold mb-0.5">${new Date(o.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</p>
+                    <p class="text-[10px] text-gray-400 font-bold mb-0.5">${new Date(o.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho', hour:'2-digit', minute:'2-digit'})}</p>
                     <span class="font-black text-emerald-600">R$ ${Number(o.total).toFixed(2).replace('.',',')}</span>
                 </div>
             </div>
@@ -340,7 +340,7 @@ window.openOrderDetails = async (orderId) => {
     const { data: order } = await supabase.from('orders').select('*, order_items(*)').eq('id', orderId).single();
     if(!order) return closeMod();
 
-    const time = new Date(order.created_at).toLocaleTimeString('pt-BR');
+    const time = new Date(order.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho' });
     const itemsHtml = order.order_items.map(i => `
         <div class="flex justify-between items-start py-2 border-b border-gray-100 last:border-0">
             <div>

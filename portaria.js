@@ -427,7 +427,7 @@ window.portLoadHistory = async () => {
     let tLiquid = 0;
     
     tbody.innerHTML = entries.map(e => {
-        const time = new Date(e.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const time = new Date(e.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
         
         // Status checks
         const isCancelled = e.payment_status === 'cancelled';

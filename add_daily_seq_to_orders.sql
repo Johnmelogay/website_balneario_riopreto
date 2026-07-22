@@ -12,10 +12,9 @@ DECLARE
     today_start TIMESTAMP WITH TIME ZONE;
     today_end TIMESTAMP WITH TIME ZONE;
 BEGIN
-    -- Define the start and end of the day based on the order's created_at (adjusted to Brazil timezone if needed)
-    -- Using the timezone of the server (or UTC if preferred, but usually local date is better)
-    -- We will truncate to DAY at the 'America/Sao_Paulo' timezone
-    today_start := date_trunc('day', NEW.created_at AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo';
+    -- Define the start and end of the day based on the order's created_at
+    -- We will truncate to DAY at the 'America/Porto_Velho' timezone
+    today_start := date_trunc('day', NEW.created_at AT TIME ZONE 'America/Porto_Velho') AT TIME ZONE 'America/Porto_Velho';
     today_end := today_start + interval '1 day';
 
     -- Find the highest daily_seq for today
@@ -27,6 +26,7 @@ BEGIN
 
     -- Assign the calculated sequence
     NEW.daily_seq := next_seq;
+    NEW.order_number := next_seq;
 
     RETURN NEW;
 END;
@@ -43,7 +43,7 @@ EXECUTE FUNCTION public.assign_daily_seq();
 -- 4. Backfill existing orders for today (so the UI doesn't break for orders already placed today)
 DO $$
 DECLARE
-    today_start TIMESTAMP WITH TIME ZONE := date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo';
+    today_start TIMESTAMP WITH TIME ZONE := date_trunc('day', now() AT TIME ZONE 'America/Porto_Velho') AT TIME ZONE 'America/Porto_Velho';
     rec RECORD;
     curr_seq INTEGER := 1;
 BEGIN

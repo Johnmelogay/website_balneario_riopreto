@@ -152,7 +152,7 @@ async function startKDS() {
 function updateClock() {
     const now = new Date();
     document.getElementById('currentTime').textContent =
-        now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        now.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
 }
 
 // ====== LOAD ORDERS ======

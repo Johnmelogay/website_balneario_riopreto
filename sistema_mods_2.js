@@ -264,7 +264,7 @@ async function renderFechamento(container) {
             <div class="flex items-center justify-between mb-8">
                 <div>
                     <h2 class="text-3xl font-black text-gray-800">Fechamento do Dia</h2>
-                    <p class="text-gray-500 font-bold mt-1">${today.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p class="text-gray-500 font-bold mt-1">${today.toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <button onclick="window.print()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold hover:bg-gray-200 transition">
                     <i class="fa-solid fa-print mr-1"></i> Imprimir

@@ -173,7 +173,7 @@ function renderLogs() {
 }
 
 function logCard(log, idx) {
-    const timeStr = new Date(log.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const timeStr = new Date(log.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const dev = log.device_info || {};
     const devIcon = dev.device === 'Mobile' ? '📱' : dev.device === 'Tablet' ? '📱' : '💻';
     const locStr = log.location_type ? `${log.location_type.toUpperCase()} ${log.location_id || ''}` : 'Geral';

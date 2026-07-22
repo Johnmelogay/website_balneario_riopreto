@@ -36,7 +36,7 @@ function renderGrid(posts) {
     }
 
     grid.innerHTML = posts.map(post => {
-        const date = new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        const date = new Date(post.published_at).toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: 'short' });
         const imageUrl = post.cover_image_url || 'https://placehold.co/600x400/2E7D32/FFFFFF?text=Blog';
         const titleEscaped = post.title.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
 

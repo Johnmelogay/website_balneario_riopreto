@@ -29,16 +29,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const date = new Date(isoString);
 
-        const weekday = date.toLocaleDateString('pt-BR', { weekday: 'long' });
-        const fullDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-        const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const weekday = date.toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  weekday: 'long' });
+        const fullDate = date.toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: 'long', year: 'numeric' });
+        const time = date.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
 
         return { weekday, fullDate, time };
     }
 
     function formatShortDate(isoString) {
         if (!isoString) return '';
-        return new Date(isoString).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        return new Date(isoString).toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
     async function loadRelatedPosts(currentSlug) {

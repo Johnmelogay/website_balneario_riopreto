@@ -413,7 +413,7 @@
             const now = new Date();
             
             // Format Time (HH:MM:SS)
-            timeEl.textContent = now.toLocaleTimeString('pt-BR', {
+            timeEl.textContent = now.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho', 
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'

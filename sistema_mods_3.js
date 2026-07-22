@@ -412,41 +412,53 @@ function renderCashierModal(type, id) {
                         </div>
                     </div>
 
-                    <!-- Payment Method Selection -->
+                    <!-- Split Payment Methods -->
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Forma de Pagamento</label>
-                        <div class="grid grid-cols-4 gap-2" id="payMethodGrid">
-                            <button onclick="window.selectCashierPay('pix')" id="btnPay_pix" class="py-2.5 rounded-xl font-bold text-xs border bg-emerald-600 text-white border-emerald-600 flex flex-col items-center gap-1 transition">
-                                <i class="fa-brands fa-pix text-base"></i> PIX
-                            </button>
-                            <button onclick="window.selectCashierPay('dinheiro')" id="btnPay_dinheiro" class="py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition">
-                                <i class="fa-solid fa-money-bill-wave text-base"></i> Dinheiro
-                            </button>
-                            <button onclick="window.selectCashierPay('credito')" id="btnPay_credito" class="py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition">
-                                <i class="fa-solid fa-credit-card text-base"></i> Crédito
-                            </button>
-                            <button onclick="window.selectCashierPay('debito')" id="btnPay_debito" class="py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition">
-                                <i class="fa-regular fa-credit-card text-base"></i> Débito
-                            </button>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Pagamento (Opcional dividir)</label>
+                            <button onclick="window.fillSplit('pix')" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase hover:bg-emerald-100">Pix Total</button>
+                            <button onclick="window.fillSplit('dinheiro')" class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase hover:bg-gray-200">Din Total</button>
+                            <button onclick="window.fillSplit('credito')" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase hover:bg-blue-100">Créd Total</button>
+                            <button onclick="window.fillSplit('debito')" class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded uppercase hover:bg-orange-100">Déb Total</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2" id="splitPayGrid">
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-2 flex justify-between items-center">
+                                <label class="text-xs font-bold text-gray-600"><i class="fa-brands fa-pix text-emerald-600"></i> PIX</label>
+                                <input type="number" id="split_pix" placeholder="0.00" oninput="window.calcCashChange()" class="w-24 bg-white border border-gray-300 rounded-lg text-right font-black text-sm outline-none px-2 py-1 focus:border-emerald-500">
+                            </div>
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-2 flex justify-between items-center">
+                                <label class="text-xs font-bold text-gray-600"><i class="fa-solid fa-money-bill-wave text-green-600"></i> Dinheiro</label>
+                                <input type="number" id="split_dinheiro" placeholder="0.00" oninput="window.calcCashChange()" class="w-24 bg-white border border-gray-300 rounded-lg text-right font-black text-sm outline-none px-2 py-1 focus:border-emerald-500">
+                            </div>
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-2 flex justify-between items-center">
+                                <label class="text-xs font-bold text-gray-600"><i class="fa-solid fa-credit-card text-blue-600"></i> Crédito</label>
+                                <input type="number" id="split_credito" placeholder="0.00" oninput="window.calcCashChange()" class="w-24 bg-white border border-gray-300 rounded-lg text-right font-black text-sm outline-none px-2 py-1 focus:border-emerald-500">
+                            </div>
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-2 flex justify-between items-center">
+                                <label class="text-xs font-bold text-gray-600"><i class="fa-regular fa-credit-card text-orange-600"></i> Débito</label>
+                                <input type="number" id="split_debito" placeholder="0.00" oninput="window.calcCashChange()" class="w-24 bg-white border border-gray-300 rounded-lg text-right font-black text-sm outline-none px-2 py-1 focus:border-emerald-500">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Cash Given / Troco (Only shown if Dinheiro is selected) -->
-                    <div id="cashChangeContainer" class="hidden bg-amber-50 p-3.5 rounded-2xl border border-amber-200 space-y-2">
+                    <!-- Pending / Troco -->
+                    <div id="cashChangeContainer" class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 space-y-2 hidden">
                         <div class="flex justify-between items-center">
-                            <label class="text-xs font-bold text-amber-900">Valor Recebido em Dinheiro (R$)</label>
-                            <input type="number" id="cashGivenInput" placeholder="0.00" oninput="window.calcCashChange()" class="w-32 px-3 py-1.5 bg-white border border-amber-300 rounded-xl font-black text-right text-stone-800 outline-none">
-                        </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-amber-200/60">
-                            <span class="text-xs font-bold text-amber-900">Troco a Devolver:</span>
+                            <span class="text-xs font-bold text-amber-900" id="pendingLabel">Falta Pagar / Troco:</span>
                             <span id="cashChangeVal" class="font-black text-lg text-amber-700">R$ 0,00</span>
                         </div>
                     </div>
 
-                    <!-- Customer Name (Optional) -->
-                    <div>
-                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Nome do Cliente (Opcional)</label>
-                        <input type="text" id="cashierCustomerName" placeholder="Ex: João da Silva" class="input-sys py-2">
+                    <!-- Customer Name & Phone (Optional) -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Nome do Cliente</label>
+                            <input type="text" id="cashierCustomerName" placeholder="Opcional" class="input-sys py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Telefone / Whats</label>
+                            <input type="text" id="cashierCustomerPhone" placeholder="Opcional" class="input-sys py-2 text-xs">
+                        </div>
                     </div>
                 </div>
 
@@ -480,35 +492,55 @@ window.updateCashierTotals = () => {
     window.calcCashChange();
 };
 
-window.selectCashierPay = (method) => {
-    cashierPayMethod = method;
-
+window.fillSplit = (method) => {
     ['pix', 'dinheiro', 'credito', 'debito'].forEach(m => {
-        const btn = document.getElementById(`btnPay_${m}`);
-        if (!btn) return;
-        if (m === method) {
-            btn.className = "py-2.5 rounded-xl font-bold text-xs border bg-emerald-600 text-white border-emerald-600 flex flex-col items-center gap-1 transition shadow-sm";
-        } else {
-            btn.className = "py-2.5 rounded-xl font-bold text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 flex flex-col items-center gap-1 transition";
-        }
+        const el = document.getElementById(`split_${m}`);
+        if(el) el.value = '';
     });
-
-    const cashContainer = document.getElementById('cashChangeContainer');
-    if (cashContainer) {
-        cashContainer.classList.toggle('hidden', method !== 'dinheiro');
+    const target = document.getElementById(`split_${method}`);
+    if (target) {
+        const serviceVal = cashierServiceEnabled ? cashierBaseTotal * 0.10 : 0;
+        const totalVal = cashierBaseTotal + serviceVal;
+        target.value = totalVal.toFixed(2);
     }
+    window.calcCashChange();
 };
 
 window.calcCashChange = () => {
-    if (cashierPayMethod !== 'dinheiro') return;
     const serviceVal = cashierServiceEnabled ? cashierBaseTotal * 0.10 : 0;
     const totalTarget = cashierBaseTotal + serviceVal;
     
-    const given = Number(document.getElementById('cashGivenInput')?.value || 0);
-    const change = Math.max(0, given - totalTarget);
+    const pix = Number(document.getElementById('split_pix')?.value || 0);
+    const din = Number(document.getElementById('split_dinheiro')?.value || 0);
+    const cre = Number(document.getElementById('split_credito')?.value || 0);
+    const deb = Number(document.getElementById('split_debito')?.value || 0);
+    
+    const totalGiven = pix + din + cre + deb;
+    const diff = totalGiven - totalTarget;
 
-    const el = document.getElementById('cashChangeVal');
-    if (el) el.textContent = `R$ ${change.toFixed(2).replace('.',',')}`;
+    const container = document.getElementById('cashChangeContainer');
+    const label = document.getElementById('pendingLabel');
+    const val = document.getElementById('cashChangeVal');
+
+    if (container && label && val) {
+        container.classList.remove('hidden');
+        if (diff > 0.01) {
+            label.textContent = "Troco a Devolver (Dinheiro):";
+            val.textContent = `R$ ${diff.toFixed(2).replace('.',',')}`;
+            val.className = "font-black text-lg text-emerald-600";
+            container.className = "bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 space-y-2";
+        } else if (diff < -0.01) {
+            label.textContent = "Falta Pagar:";
+            val.textContent = `R$ ${Math.abs(diff).toFixed(2).replace('.',',')}`;
+            val.className = "font-black text-lg text-red-600";
+            container.className = "bg-red-50 p-3.5 rounded-2xl border border-red-200 space-y-2";
+        } else {
+            label.textContent = "Pagamento Exato:";
+            val.textContent = "R$ 0,00";
+            val.className = "font-black text-lg text-emerald-600";
+            container.className = "bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 space-y-2";
+        }
+    }
 };
 
 window.confirmCashierCheckout = async (type, id) => {
@@ -521,18 +553,49 @@ window.confirmCashierCheckout = async (type, id) => {
     try {
         const staff = getCurrentStaff();
         const serviceVal = cashierServiceEnabled ? cashierBaseTotal * 0.10 : 0;
+        const totalTarget = cashierBaseTotal + serviceVal;
+        
         const customerName = document.getElementById('cashierCustomerName')?.value?.trim() || null;
+        const customerPhone = document.getElementById('cashierCustomerPhone')?.value?.trim() || null;
+        
+        let pix = Number(document.getElementById('split_pix')?.value || 0);
+        let din = Number(document.getElementById('split_dinheiro')?.value || 0);
+        let cre = Number(document.getElementById('split_credito')?.value || 0);
+        let deb = Number(document.getElementById('split_debito')?.value || 0);
+        
+        const totalGiven = pix + din + cre + deb;
+
+        // Ensure total target is met or ask for confirmation? We allow underpay/overpay but troco is deducted from dinheiro
+        if (totalGiven > totalTarget) {
+            const troco = totalGiven - totalTarget;
+            if (din >= troco) {
+                din -= troco; // Troco is returned from physical cash
+            }
+        }
+
+        // Determine primary payment method name just for simple tracking/reporting backwards compatibility
+        let primaryMethod = 'múltiplo';
+        if (pix > 0 && din === 0 && cre === 0 && deb === 0) primaryMethod = 'pix';
+        else if (din > 0 && pix === 0 && cre === 0 && deb === 0) primaryMethod = 'dinheiro';
+        else if (cre > 0 && pix === 0 && din === 0 && deb === 0) primaryMethod = 'credito';
+        else if (deb > 0 && pix === 0 && din === 0 && cre === 0) primaryMethod = 'debito';
 
         // Update all active orders for this comanda
         for (const o of cashierActiveOrders) {
-            const ratio = Number(o.total) / cashierBaseTotal;
+            const ratio = Number(o.total) / cashierBaseTotal; // proportional split among sub-orders
+            
             const { error: updateErr } = await supabase
                 .from('orders')
                 .update({
                     payment_status: 'pago',
-                    payment_method: cashierPayMethod,
+                    payment_method: primaryMethod,
                     customer_name: customerName || o.customer_name,
+                    customer_phone: customerPhone || o.customer_phone,
                     service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
+                    split_pix: parseFloat((pix * ratio).toFixed(2)),
+                    split_dinheiro: parseFloat((din * ratio).toFixed(2)),
+                    split_credito: parseFloat((cre * ratio).toFixed(2)),
+                    split_debito: parseFloat((deb * ratio).toFixed(2)),
                     updated_at: new Date().toISOString(),
                     staff_id: o.staff_id || staff?.id
                 })
