@@ -565,6 +565,13 @@ window.confirmCashierCheckout = async (type, id) => {
         
         const totalGiven = pix + din + cre + deb;
 
+        if (totalGiven < totalTarget - 0.01) {
+            alert('Atenção: O valor pago (R$ ' + totalGiven.toFixed(2).replace('.',',') + ') é menor que o TOTAL A RECEBER (R$ ' + totalTarget.toFixed(2).replace('.',',') + '). Por favor, informe os valores recebidos antes de confirmar.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-lock"></i> CONFIRMAR RECEBIMENTO E MOVER PARA HISTÓRICO';
+            return;
+        }
+
         // Ensure total target is met or ask for confirmation? We allow underpay/overpay but troco is deducted from dinheiro
         if (totalGiven > totalTarget) {
             const troco = totalGiven - totalTarget;
