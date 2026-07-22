@@ -22,65 +22,166 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;900&display=swap"
+        rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', sans-serif; background: #064e3b; overscroll-behavior: none; }
-        h1, h2, h3, button { font-family: 'Outfit', sans-serif; }
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #064e3b;
+            overscroll-behavior: none;
+        }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-green { 0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); } 70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); } }
-        .anim-slide { animation: slideUp 0.3s ease-out; }
-        .anim-pulse { animation: pulse-green 2s infinite; }
+        h1,
+        h2,
+        h3,
+        button {
+            font-family: 'Outfit', sans-serif;
+        }
 
-        .cart-badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px;
-            background: #ef4444; color: white; border-radius: 999px; display: flex; align-items: center;
-            justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #064e3b; }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
 
-        .product-card { transition: all 0.15s ease; }
-        .product-card:active { transform: scale(0.96); }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-        .qty-btn { width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center;
-            justify-content: center; font-weight: 900; font-size: 18px; transition: all 0.15s; }
-        .qty-btn:active { transform: scale(0.9); }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-green {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+            }
+        }
+
+        .anim-slide {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .anim-pulse {
+            animation: pulse-green 2s infinite;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 20px;
+            height: 20px;
+            background: #ef4444;
+            color: white;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            border: 2px solid #064e3b;
+        }
+
+        .product-card {
+            transition: all 0.15s ease;
+        }
+
+        .product-card:active {
+            transform: scale(0.96);
+        }
+
+        .qty-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            transition: all 0.15s;
+        }
+
+        .qty-btn:active {
+            transform: scale(0.9);
+        }
 
         /* Pin input */
-        .pin-dot { width: 16px; height: 16px; border-radius: 999px; background: rgba(255,255,255,0.2);
-            transition: all 0.2s; }
-        .pin-dot.filled { background: #22c55e; transform: scale(1.2); }
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: #22c55e;
+            transform: scale(1.2);
+        }
 
         /* Category Tab */
-        .cat-tab { transition: all 0.2s; white-space: nowrap; }
-        .cat-tab.active { background: white; color: #064e3b; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .cat-tab {
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .cat-tab.active {
+            background: white;
+            color: #064e3b;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col bg-stone-100 font-sans selection:bg-emerald-500 selection:text-white pb-safe overflow-hidden">
+<body
+    class="min-h-screen flex flex-col bg-stone-100 font-sans selection:bg-emerald-500 selection:text-white pb-safe overflow-hidden">
 
     <!-- ====== OFFLINE / ÁREA CEGA BANNER ====== -->
-    <div id="garcomOfflineBanner" class="fixed top-0 left-0 right-0 z-[99999] bg-gradient-to-r from-red-600 to-amber-600 text-white px-4 py-2.5 shadow-xl flex items-center justify-between hidden transition-all duration-300">
+    <div id="garcomOfflineBanner"
+        class="fixed top-0 left-0 right-0 z-[99999] bg-gradient-to-r from-red-600 to-amber-600 text-white px-4 py-2.5 shadow-xl flex items-center justify-between hidden transition-all duration-300">
         <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center animate-pulse shrink-0">
                 <i class="fa-solid fa-wifi-slash text-xs"></i>
             </div>
             <div>
                 <p class="text-xs font-black tracking-tight leading-tight">SEM INTERNET (ÁREA CEGA)</p>
-                <p class="text-[10px] font-bold text-red-100 leading-tight">Itens salvos no carrinho. Aproxime-se do Wi-Fi.</p>
+                <p class="text-[10px] font-bold text-red-100 leading-tight">Itens salvos no carrinho. Aproxime-se do
+                    Wi-Fi.</p>
             </div>
         </div>
-        <span class="text-[9px] font-black uppercase tracking-widest bg-white/20 px-2 py-1 rounded-lg border border-white/20">Offline</span>
+        <span
+            class="text-[9px] font-black uppercase tracking-widest bg-white/20 px-2 py-1 rounded-lg border border-white/20">Offline</span>
     </div>
 
     <!-- ====== LOGIN SCREEN ====== -->
-    <div id="loginScreen" class="flex-1 flex flex-col items-center justify-center p-6 bg-emerald-950 fixed inset-0 z-50">
+    <div id="loginScreen"
+        class="flex-1 flex flex-col items-center justify-center p-6 bg-emerald-950 fixed inset-0 z-50">
         <div class="text-center mb-10 anim-slide">
-            <div class="w-20 h-20 bg-emerald-800/50 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl backdrop-blur">
+            <div
+                class="w-20 h-20 bg-emerald-800/50 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl backdrop-blur">
                 🍽️
             </div>
             <h1 class="text-3xl font-black text-white tracking-tight">Comanda</h1>
@@ -108,40 +209,63 @@
                 <button onclick="pinInput('7')" class="numpad-btn">7</button>
                 <button onclick="pinInput('8')" class="numpad-btn">8</button>
                 <button onclick="pinInput('9')" class="numpad-btn">9</button>
-                <button onclick="pinClear()" class="numpad-btn text-red-400 text-sm"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="pinClear()" class="numpad-btn text-red-400 text-sm"><i
+                        class="fa-solid fa-xmark"></i></button>
                 <button onclick="pinInput('0')" class="numpad-btn">0</button>
-                <button onclick="pinDelete()" class="numpad-btn text-yellow-400 text-sm"><i class="fa-solid fa-delete-left"></i></button>
+                <button onclick="pinDelete()" class="numpad-btn text-yellow-400 text-sm"><i
+                        class="fa-solid fa-delete-left"></i></button>
             </div>
         </div>
 
         <style>
-            .numpad-btn { width: 64px; height: 64px; border-radius: 20px; background: rgba(255,255,255,0.08);
-                color: white; font-size: 24px; font-weight: 800; display: flex; align-items: center;
-                justify-content: center; transition: all 0.15s; border: 1px solid rgba(255,255,255,0.08); }
-            .numpad-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.92); }
+            .numpad-btn {
+                width: 64px;
+                height: 64px;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.08);
+                color: white;
+                font-size: 24px;
+                font-weight: 800;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.15s;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .numpad-btn:active {
+                background: rgba(255, 255, 255, 0.2);
+                transform: scale(0.92);
+            }
         </style>
     </div>
 
     <!-- ====== LOCATION SELECT ====== -->
     <div id="locationScreen" class="fixed inset-0 z-40 bg-stone-100 hidden flex-col p-4 sm:p-6">
-        <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border border-stone-200">
-            <button onclick="if(confirm('Deseja realmente sair da sua conta?')) logoutAndGoLogin()" class="w-10 h-10 rounded-xl bg-stone-100 hover:bg-red-50 hover:text-red-600 text-stone-500 flex items-center justify-center active:scale-95 transition shadow-sm" title="Sair do Sistema">
+        <div
+            class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border border-stone-200">
+            <button onclick="if(confirm('Deseja realmente sair da sua conta?')) logoutAndGoLogin()"
+                class="w-10 h-10 rounded-xl bg-stone-100 hover:bg-red-50 hover:text-red-600 text-stone-500 flex items-center justify-center active:scale-95 transition shadow-sm"
+                title="Sair do Sistema">
                 <i class="fa-solid fa-power-off text-base"></i>
             </button>
             <div class="text-center">
-                <p class="text-emerald-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
+                <p
+                    class="text-emerald-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Atendimento
                 </p>
                 <p id="staffNameDisplay" class="text-stone-800 font-extrabold text-sm"></p>
             </div>
-            <button onclick="openNotificationsModal()" class="relative w-10 h-10 rounded-xl bg-stone-100 text-stone-700 active:scale-95 transition flex items-center justify-center shadow-sm">
+            <button onclick="openNotificationsModal()"
+                class="relative w-10 h-10 rounded-xl bg-stone-100 text-stone-700 active:scale-95 transition flex items-center justify-center shadow-sm">
                 <i class="fa-solid fa-bell text-base"></i>
-                <span id="notiBadgeLocation" class="hidden absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                <span id="notiBadgeLocation"
+                    class="hidden absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
             </button>
         </div>
 
         <h2 class="text-2xl font-black text-stone-900 mb-4 text-center">Onde é o pedido?</h2>
-        
+
         <!-- Stats Summary -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 mb-6 flex justify-between items-center">
             <div class="flex flex-col">
@@ -157,54 +281,77 @@
 
         <!-- Location Type Tabs -->
         <div class="flex gap-2 mb-3 justify-center max-w-sm mx-auto">
-            <button onclick="setLocationType('chale')" id="tab_chale" class="loc-tab flex-1 py-2.5 rounded-2xl font-black text-xs bg-emerald-600 text-white shadow shadow-emerald-200 transition">Chalés</button>
-            <button onclick="setLocationType('mesa')" id="tab_mesa" class="loc-tab flex-1 py-2.5 rounded-2xl font-extrabold text-xs text-stone-600 bg-white border border-stone-200 hover:bg-stone-200 transition">Mesas</button>
-            <button onclick="setLocationType('balcao')" id="tab_balcao" class="loc-tab flex-1 py-2.5 rounded-2xl font-extrabold text-xs text-stone-600 bg-white border border-stone-200 hover:bg-stone-200 transition">Balcão</button>
+            <button onclick="setLocationType('chale')" id="tab_chale"
+                class="loc-tab flex-1 py-2.5 rounded-2xl font-black text-xs bg-emerald-600 text-white shadow shadow-emerald-200 transition">Chalés</button>
+            <button onclick="setLocationType('mesa')" id="tab_mesa"
+                class="loc-tab flex-1 py-2.5 rounded-2xl font-extrabold text-xs text-stone-600 bg-white border border-stone-200 hover:bg-stone-200 transition">Mesas</button>
+            <button onclick="setLocationType('balcao')" id="tab_balcao"
+                class="loc-tab flex-1 py-2.5 rounded-2xl font-extrabold text-xs text-stone-600 bg-white border border-stone-200 hover:bg-stone-200 transition">Balcão</button>
         </div>
 
         <!-- Status Filter Chips for Grid -->
         <div class="flex items-center justify-center gap-1.5 mb-4 overflow-x-auto no-scrollbar py-1">
-            <button onclick="filterLocationGrid('todos')" id="filterGrid_todos" class="px-3 py-1 rounded-full text-[11px] font-black bg-stone-800 text-white shadow-sm transition">Todos</button>
-            <button onclick="filterLocationGrid('preparando')" id="filterGrid_preparando" class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-red-100 text-red-700 border border-red-200 transition flex items-center gap-1">
+            <button onclick="filterLocationGrid('todos')" id="filterGrid_todos"
+                class="px-3 py-1 rounded-full text-[11px] font-black bg-stone-800 text-white shadow-sm transition">Todos</button>
+            <button onclick="filterLocationGrid('preparando')" id="filterGrid_preparando"
+                class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-red-100 text-red-700 border border-red-200 transition flex items-center gap-1">
                 <span class="w-2 h-2 rounded-full bg-red-500"></span> Preparando
             </button>
-            <button onclick="filterLocationGrid('pronto')" id="filterGrid_pronto" class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-green-100 text-green-700 border border-green-200 transition flex items-center gap-1">
+            <button onclick="filterLocationGrid('pronto')" id="filterGrid_pronto"
+                class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-green-100 text-green-700 border border-green-200 transition flex items-center gap-1">
                 <span class="w-2 h-2 rounded-full bg-green-500"></span> Apto / Entregue
             </button>
-            <button onclick="filterLocationGrid('livre')" id="filterGrid_livre" class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-stone-200 text-stone-600 transition flex items-center gap-1">
+            <button onclick="filterLocationGrid('livre')" id="filterGrid_livre"
+                class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-stone-200 text-stone-600 transition flex items-center gap-1">
                 <span class="w-2 h-2 rounded-full bg-stone-400"></span> Livre
             </button>
         </div>
 
         <style>
-            .loc-tab { transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-            .loc-tab.active { background: #064e3b; color: white; border-color: #064e3b; }
+            .loc-tab {
+                transition: all 0.2s;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+
+            .loc-tab.active {
+                background: #064e3b;
+                color: white;
+                border-color: #064e3b;
+            }
         </style>
 
         <!-- Location Grid -->
-        <div id="locationGrid" class="grid grid-cols-3 gap-3 flex-1 content-start overflow-y-auto p-4 no-scrollbar pb-32">
+        <div id="locationGrid"
+            class="grid grid-cols-3 gap-3 flex-1 content-start overflow-y-auto p-4 no-scrollbar pb-32">
         </div>
 
         <!-- ====== COMANDAS ATIVAS (ONGOING COMANDAS OVERVIEW) ====== -->
-        <div id="comandasAtivasContainer" class="hidden flex-col flex-1 p-4 overflow-y-auto no-scrollbar bg-stone-50 pb-32 space-y-3">
+        <div id="comandasAtivasContainer"
+            class="hidden flex-col flex-1 p-4 overflow-y-auto no-scrollbar bg-stone-50 pb-32 space-y-3">
             <div class="flex items-center justify-between mb-2">
                 <div>
                     <h3 class="font-black text-stone-900 text-base">Comandas em Andamento</h3>
-                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Locais abertos com consumo em tempo real</p>
+                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Locais abertos com consumo
+                        em tempo real</p>
                 </div>
-                <button onclick="loadComandasAtivasFeed()" class="w-8 h-8 rounded-xl bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs shadow-sm active:scale-95">
+                <button onclick="loadComandasAtivasFeed()"
+                    class="w-8 h-8 rounded-xl bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs shadow-sm active:scale-95">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
             </div>
 
             <!-- Total Active Summary Card -->
-            <div class="bg-gradient-to-r from-emerald-900 to-emerald-950 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
+            <div
+                class="bg-gradient-to-r from-emerald-900 to-emerald-950 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] text-emerald-300 font-extrabold uppercase tracking-wider block">Total em Aberto (Hoje)</span>
+                    <span class="text-[10px] text-emerald-300 font-extrabold uppercase tracking-wider block">Total em
+                        Aberto (Hoje)</span>
                     <span id="comandasAtivasTotalAmount" class="text-2xl font-black">R$ 0,00</span>
                 </div>
                 <div class="text-right">
-                    <span id="comandasAtivasCount" class="text-xs font-black bg-emerald-800 text-emerald-200 px-3 py-1 rounded-full border border-emerald-700">0 ativas</span>
+                    <span id="comandasAtivasCount"
+                        class="text-xs font-black bg-emerald-800 text-emerald-200 px-3 py-1 rounded-full border border-emerald-700">0
+                        ativas</span>
                 </div>
             </div>
 
@@ -212,25 +359,33 @@
                 <!-- Injected dynamically via JS -->
             </div>
         </div>
-        
+
         <!-- Pedidos Feitos Ao Vivo (Color-Coded Live Feed) -->
-        <div id="liveFeedContainer" class="hidden flex-col flex-1 p-4 overflow-y-auto no-scrollbar bg-stone-50 pb-24 space-y-3">
+        <div id="liveFeedContainer"
+            class="hidden flex-col flex-1 p-4 overflow-y-auto no-scrollbar bg-stone-50 pb-24 space-y-3">
             <div class="flex items-center justify-between mb-2">
                 <div>
                     <h3 class="font-black text-stone-800 text-base">Pedidos em Tempo Real</h3>
-                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Atualizado ao vivo pela cozinha & bar</p>
+                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Atualizado ao vivo pela
+                        cozinha & bar</p>
                 </div>
-                <button onclick="loadLiveOrdersFeed()" class="w-8 h-8 rounded-full bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs shadow-sm active:scale-95">
+                <button onclick="loadLiveOrdersFeed()"
+                    class="w-8 h-8 rounded-full bg-white border border-stone-200 text-stone-600 flex items-center justify-center text-xs shadow-sm active:scale-95">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
             </div>
 
             <!-- Status Color Legend -->
-            <div class="flex items-center justify-between bg-white p-2 rounded-xl border border-stone-200 text-[10px] font-bold text-stone-600">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Pendente</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Fazendo</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Pronto</span>
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-stone-400"></span> Entregue</span>
+            <div
+                class="flex items-center justify-between bg-white p-2 rounded-xl border border-stone-200 text-[10px] font-bold text-stone-600">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Pendente</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    Fazendo</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    Pronto</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-stone-400"></span>
+                    Entregue</span>
             </div>
 
             <div id="liveFeedList" class="space-y-3">
@@ -242,30 +397,42 @@
         <div id="resumoContainer" class="hidden flex-col flex-1 p-4 overflow-y-auto no-scrollbar bg-stone-50 pb-24">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="font-black text-stone-800 text-base">Tickets & Comandas</h3>
-                <input type="date" id="resumoDatePicker" class="bg-white border border-stone-200 text-stone-800 text-xs font-bold rounded-xl px-2.5 py-1.5 outline-none shadow-sm focus:border-emerald-500">
+                <input type="date" id="resumoDatePicker"
+                    class="bg-white border border-stone-200 text-stone-800 text-xs font-bold rounded-xl px-2.5 py-1.5 outline-none shadow-sm focus:border-emerald-500">
             </div>
 
             <!-- Scope Toggle: Meus vs Todos -->
             <div class="flex gap-2 mb-3 bg-stone-200/60 p-1 rounded-xl">
-                <button onclick="setResumoScope('mine')" id="btnScopeMine" class="flex-1 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-sm transition">Meus Tickets</button>
-                <button onclick="setResumoScope('all')" id="btnScopeAll" class="flex-1 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition">Toda a Equipe</button>
+                <button onclick="setResumoScope('mine')" id="btnScopeMine"
+                    class="flex-1 py-1 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-sm transition">Meus
+                    Tickets</button>
+                <button onclick="setResumoScope('all')" id="btnScopeAll"
+                    class="flex-1 py-1 rounded-lg text-xs font-bold text-stone-500 hover:text-stone-800 transition">Toda
+                    a Equipe</button>
             </div>
 
             <!-- Total Card Summary -->
             <div class="bg-emerald-900 text-white rounded-2xl p-3.5 mb-3 shadow-md flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">Total no Período</span>
+                    <span class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">Total no
+                        Período</span>
                     <span id="resumoTotalAmount" class="text-xl font-black">R$ 0,00</span>
                 </div>
                 <div class="text-right">
-                    <span id="resumoTicketCount" class="text-xs font-bold bg-emerald-800 px-2.5 py-1 rounded-full text-emerald-200">0 tickets</span>
+                    <span id="resumoTicketCount"
+                        class="text-xs font-bold bg-emerald-800 px-2.5 py-1 rounded-full text-emerald-200">0
+                        tickets</span>
                 </div>
             </div>
 
             <!-- Status Filter -->
             <div class="flex gap-2 mb-3">
-                <button onclick="filterResumo('aberto')" id="btnResumoAberto" class="flex-1 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 transition">Em Aberto</button>
-                <button onclick="filterResumo('pago')" id="btnResumoPago" class="flex-1 py-2 rounded-xl text-xs font-bold bg-stone-200 text-stone-500 border border-stone-300 transition">Finalizadas (Pagas)</button>
+                <button onclick="filterResumo('aberto')" id="btnResumoAberto"
+                    class="flex-1 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 transition">Em
+                    Aberto</button>
+                <button onclick="filterResumo('pago')" id="btnResumoPago"
+                    class="flex-1 py-2 rounded-xl text-xs font-bold bg-stone-200 text-stone-500 border border-stone-300 transition">Finalizadas
+                    (Pagas)</button>
             </div>
 
             <div id="resumoList" class="space-y-3">
@@ -275,24 +442,30 @@
     </div>
 
     <!-- ====== MAIN APP (Catálogo + Carrinho) ====== -->
-    <div id="mainApp" class="fixed inset-0 z-30 bg-stone-100 hidden flex-col h-screen h-[100dvh] w-full overflow-hidden">
+    <div id="mainApp"
+        class="fixed inset-0 z-30 bg-stone-100 hidden flex-col h-screen h-[100dvh] w-full overflow-hidden">
 
         <!-- Top Bar -->
         <header class="bg-white sticky top-0 z-30 px-4 py-3 shadow-sm border-b border-stone-200 shrink-0">
             <div class="flex items-center justify-between">
-                <button onclick="goBackToLocation()" class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 active:scale-95 transition">
+                <button onclick="goBackToLocation()"
+                    class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 active:scale-95 transition">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <div class="text-center flex-1 mx-3 flex flex-col items-center">
                     <p id="locationLabel" class="text-stone-800 font-black text-sm truncate"></p>
-                    <p id="staffNameBar" class="text-emerald-600 text-[10px] font-black uppercase tracking-widest mt-0.5"></p>
+                    <p id="staffNameBar"
+                        class="text-emerald-600 text-[10px] font-black uppercase tracking-widest mt-0.5"></p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="openNotificationsModal()" class="relative w-10 h-10 rounded-full bg-stone-100 text-stone-700 active:scale-95 transition">
+                    <button onclick="openNotificationsModal()"
+                        class="relative w-10 h-10 rounded-full bg-stone-100 text-stone-700 active:scale-95 transition">
                         <i class="fa-solid fa-bell text-base"></i>
-                        <span id="notiBadgeMain" class="hidden absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                        <span id="notiBadgeMain"
+                            class="hidden absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
                     </button>
-                    <button onclick="openExtrato()" class="relative w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 active:scale-95 transition">
+                    <button onclick="openExtrato()"
+                        class="relative w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 active:scale-95 transition">
                         <i class="fa-solid fa-list-ul"></i>
                     </button>
                 </div>
@@ -322,7 +495,8 @@
         </header>
 
         <!-- Products Grid (Scrollable) -->
-        <main class="flex-1 bg-stone-100 p-4 overflow-y-auto pb-36" id="productsContainer" style="-webkit-overflow-scrolling: touch;">
+        <main class="flex-1 bg-stone-100 p-4 overflow-y-auto pb-36" id="productsContainer"
+            style="-webkit-overflow-scrolling: touch;">
             <!-- Skeleton Loading -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-white rounded-2xl h-36 animate-pulse border border-stone-100"></div>
@@ -335,14 +509,16 @@
         <!-- Cart Drawer -->
         <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
             <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
-            <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-3xl shadow-2xl flex flex-col anim-slide">
+            <div
+                class="absolute bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-3xl shadow-2xl flex flex-col anim-slide">
                 <!-- Cart Header -->
                 <div class="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
                     <div>
                         <h2 class="text-lg font-black text-gray-800">Comanda</h2>
                         <p id="cartLocation" class="text-xs text-gray-400 font-bold"></p>
                     </div>
-                    <button onclick="toggleCart()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <button onclick="toggleCart()"
+                        class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                         <i class="fa-solid fa-xmark text-gray-500"></i>
                     </button>
                 </div>
@@ -386,30 +562,35 @@
     </div>
 
     <!-- ====== SUCCESS OVERLAY ====== -->
-    <div id="successOverlay" class="fixed inset-0 z-[9999] hidden bg-emerald-600 flex-col items-center justify-center p-6 overflow-y-auto">
+    <div id="successOverlay"
+        class="fixed inset-0 z-[9999] hidden bg-emerald-600 flex-col items-center justify-center p-6 overflow-y-auto">
         <div class="text-center anim-slide w-full max-w-sm">
             <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
                 ✅
             </div>
             <h2 class="text-3xl font-black text-white mb-1">Pedido Enviado!</h2>
             <p id="successMsg" class="text-emerald-100 font-medium text-base mb-4"></p>
-            
+
             <!-- Order Number (big & clear for confirmation) -->
             <div id="successOrderNumbers" class="space-y-2 mb-6"></div>
 
             <!-- QR Code for client tracking -->
             <div id="successQrSection" class="bg-white/15 backdrop-blur-sm rounded-2xl p-4 mb-4">
-                <p class="text-white/80 text-xs font-bold uppercase tracking-wider mb-3">📱 Mostre ao cliente para acompanhar</p>
+                <p class="text-white/80 text-xs font-bold uppercase tracking-wider mb-3">📱 Mostre ao cliente para
+                    acompanhar</p>
                 <div id="successQrCode" class="bg-white rounded-xl p-3 inline-block mx-auto"></div>
-                <p class="text-emerald-100 text-[11px] mt-2 font-medium">Cliente escaneia para ver o status em tempo real</p>
+                <p class="text-emerald-100 text-[11px] mt-2 font-medium">Cliente escaneia para ver o status em tempo
+                    real</p>
             </div>
 
             <!-- WhatsApp Button -->
-            <button id="btnWhatsAppLink" onclick="sendWhatsAppLink()" class="w-full py-3 bg-[#25D366] text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 mb-3 active:scale-[0.97] transition">
+            <button id="btnWhatsAppLink" onclick="sendWhatsAppLink()"
+                class="w-full py-3 bg-[#25D366] text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-2 mb-3 active:scale-[0.97] transition">
                 <i class="fa-brands fa-whatsapp text-xl"></i> Enviar Link por WhatsApp
             </button>
 
-            <button onclick="closeSuccess()" class="w-full py-3 bg-white text-emerald-700 font-bold rounded-2xl shadow-lg active:scale-[0.97] transition">
+            <button onclick="closeSuccess()"
+                class="w-full py-3 bg-white text-emerald-700 font-bold rounded-2xl shadow-lg active:scale-[0.97] transition">
                 NOVO PEDIDO
             </button>
         </div>
@@ -423,20 +604,23 @@
             </div>
             <h2 class="text-2xl font-black text-white mb-2">Falha ao Enviar</h2>
             <p id="errorMsg" class="text-red-100 font-medium text-sm mb-6"></p>
-            <button onclick="retryOrder()" class="w-full py-4 bg-white text-red-700 font-black text-lg rounded-2xl shadow-lg mb-3 active:scale-[0.97] transition">
+            <button onclick="retryOrder()"
+                class="w-full py-4 bg-white text-red-700 font-black text-lg rounded-2xl shadow-lg mb-3 active:scale-[0.97] transition">
                 <i class="fa-solid fa-rotate-right mr-2"></i> TENTAR NOVAMENTE
             </button>
-            <button onclick="closeError()" class="w-full py-3 bg-white/20 text-white font-bold rounded-2xl active:scale-[0.97] transition">
+            <button onclick="closeError()"
+                class="w-full py-3 bg-white/20 text-white font-bold rounded-2xl active:scale-[0.97] transition">
                 Cancelar
             </button>
         </div>
     </div>
-    
+
     <!-- ====== CONSUMPTION HISTORY (Extrato) ====== -->
     <div id="extratoScreen" class="fixed inset-0 z-[80] bg-gray-50 hidden flex-col anim-slide">
         <!-- Header -->
         <header class="bg-gray-900 px-4 py-4 flex items-center justify-between shadow-md shrink-0">
-            <button onclick="closeExtrato()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+            <button onclick="closeExtrato()"
+                class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <div class="text-center">
@@ -448,28 +632,35 @@
 
         <!-- Content -->
         <main class="flex-1 overflow-y-auto p-4 pb-32" id="extratoList">
-            <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl text-gray-300"></i></div>
+            <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl text-gray-300"></i>
+            </div>
         </main>
-        
+
         <!-- Footer Total -->
-        <div class="bg-white p-5 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-stone-200 shrink-0">
+        <div
+            class="bg-white p-5 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)] border-t border-stone-200 shrink-0">
             <div class="flex justify-between items-end mb-2">
                 <span class="text-stone-500 font-bold uppercase tracking-widest text-xs">Total Consumo</span>
                 <span id="extratoTotal" class="text-3xl font-black text-emerald-700">R$ 0,00</span>
             </div>
-            
-            <p class="text-[11px] text-amber-800 font-bold text-center mb-3 bg-amber-50 py-1.5 px-3 rounded-xl border border-amber-200">
-                <i class="fa-solid fa-lock mr-1 text-amber-600"></i> Pagamento realizado exclusivamente no Caixa Central.
+
+            <p
+                class="text-[11px] text-amber-800 font-bold text-center mb-3 bg-amber-50 py-1.5 px-3 rounded-xl border border-amber-200">
+                <i class="fa-solid fa-lock mr-1 text-amber-600"></i> Pagamento realizado exclusivamente no Caixa
+                Central.
             </p>
 
             <div class="flex gap-2">
-                <button onclick="closeExtrato(); openMainAppFromExtrato();" class="flex-[2] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
+                <button onclick="closeExtrato(); openMainAppFromExtrato();"
+                    class="flex-[2] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
                     <i class="fa-solid fa-cart-plus"></i> + PEDIDO
                 </button>
-                <button onclick="openGuiaClienteModal()" class="flex-[2] py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
+                <button onclick="openGuiaClienteModal()"
+                    class="flex-[2] py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-1 text-[11px]">
                     <i class="fa-solid fa-print"></i> GUIA CLIENTE
                 </button>
-                <button onclick="closeExtrato()" class="flex-1 py-3.5 bg-stone-100 text-stone-600 font-bold rounded-xl active:scale-95 transition text-[11px]">
+                <button onclick="closeExtrato()"
+                    class="flex-1 py-3.5 bg-stone-100 text-stone-600 font-bold rounded-xl active:scale-95 transition text-[11px]">
                     VOLTAR
                 </button>
             </div>
@@ -477,17 +668,22 @@
     </div>
 
     <!-- ====== GUIA DE CONFERÊNCIA DO CLIENTE (PRE-BILL MODAL) ====== -->
-    <div id="guiaClienteModal" class="fixed inset-0 z-[90] hidden bg-black/70 backdrop-blur-sm flex-col justify-end p-4">
-        <div class="bg-white rounded-3xl p-6 relative max-w-md mx-auto w-full max-h-[90vh] flex flex-col anim-slide shadow-2xl">
+    <div id="guiaClienteModal"
+        class="fixed inset-0 z-[90] hidden bg-black/70 backdrop-blur-sm flex-col justify-end p-4">
+        <div
+            class="bg-white rounded-3xl p-6 relative max-w-md mx-auto w-full max-h-[90vh] flex flex-col anim-slide shadow-2xl">
             <div class="flex justify-between items-center pb-3 border-b border-stone-100 shrink-0">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">📄</span>
                     <div>
                         <h3 class="text-lg font-black text-stone-800 leading-tight">Guia de Conferência</h3>
-                        <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">Balneário Rio Preto</p>
+                        <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">Balneário Rio Preto
+                        </p>
                     </div>
                 </div>
-                <button onclick="closeGuiaClienteModal()" class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeGuiaClienteModal()"
+                    class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div id="guiaReceiptBody" class="flex-1 overflow-y-auto py-4 space-y-3 font-mono text-xs text-stone-800">
@@ -495,10 +691,12 @@
             </div>
 
             <div class="pt-3 border-t border-stone-100 shrink-0 space-y-2">
-                <button onclick="printGuiaCliente()" class="w-full py-3.5 bg-emerald-700 text-white font-black rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm">
+                <button onclick="printGuiaCliente()"
+                    class="w-full py-3.5 bg-emerald-700 text-white font-black rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-print"></i> IMPRIMIR CUPOM (80mm)
                 </button>
-                <button onclick="closeGuiaClienteModal()" class="w-full py-2.5 bg-stone-100 text-stone-600 font-bold rounded-xl text-xs">
+                <button onclick="closeGuiaClienteModal()"
+                    class="w-full py-2.5 bg-stone-100 text-stone-600 font-bold rounded-xl text-xs">
                     Fechar
                 </button>
             </div>
@@ -506,19 +704,27 @@
     </div>
 
     <!-- ====== NOTIFICATIONS CENTER MODAL ====== -->
-    <div id="notificationsModal" class="fixed inset-0 z-[95] hidden bg-black/70 backdrop-blur-sm flex-col justify-end p-4">
-        <div class="bg-white rounded-3xl p-5 relative max-w-md mx-auto w-full max-h-[85vh] flex flex-col anim-slide shadow-2xl">
+    <div id="notificationsModal"
+        class="fixed inset-0 z-[95] hidden bg-black/70 backdrop-blur-sm flex-col justify-end p-4">
+        <div
+            class="bg-white rounded-3xl p-5 relative max-w-md mx-auto w-full max-h-[85vh] flex flex-col anim-slide shadow-2xl">
             <div class="flex justify-between items-center pb-3 border-b border-stone-100 shrink-0">
                 <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg"><i class="fa-solid fa-bell"></i></div>
+                    <div
+                        class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-bell"></i></div>
                     <div>
                         <h3 class="text-base font-black text-stone-800 leading-tight">Central de Notificações</h3>
-                        <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">Avisos da Cozinha & Bar</p>
+                        <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">Avisos da Cozinha &
+                            Bar</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="clearGarcomNotifications()" class="text-xs font-bold text-stone-400 hover:text-stone-600 px-2.5 py-1 bg-stone-100 rounded-xl">Limpar</button>
-                    <button onclick="closeNotificationsModal()" class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i class="fa-solid fa-xmark"></i></button>
+                    <button onclick="clearGarcomNotifications()"
+                        class="text-xs font-bold text-stone-400 hover:text-stone-600 px-2.5 py-1 bg-stone-100 rounded-xl">Limpar</button>
+                    <button onclick="closeNotificationsModal()"
+                        class="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 transition"><i
+                            class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
 
@@ -526,14 +732,16 @@
                 <div class="text-center py-10 text-stone-400 font-bold text-xs">Nenhuma notificação recente</div>
             </div>
 
-            <button onclick="closeNotificationsModal()" class="w-full py-3 bg-stone-900 text-white font-bold rounded-2xl text-xs mt-2">
+            <button onclick="closeNotificationsModal()"
+                class="w-full py-3 bg-stone-900 text-white font-bold rounded-2xl text-xs mt-2">
                 Fechar
             </button>
         </div>
     </div>
 
     <!-- ====== NOTIFICATION TOAST (Pronto) ====== -->
-    <div id="notiToast" class="fixed top-4 left-4 right-4 z-[99999] bg-white rounded-2xl shadow-2xl border-l-4 border-green-500 p-4 transform -translate-y-[150%] transition-transform duration-500 flex items-center gap-4">
+    <div id="notiToast"
+        class="fixed top-4 left-4 right-4 z-[99999] bg-white rounded-2xl shadow-2xl border-l-4 border-green-500 p-4 transform -translate-y-[150%] transition-transform duration-500 flex items-center gap-4">
         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 shrink-0">
             <i class="fa-solid fa-bell text-xl"></i>
         </div>
@@ -542,30 +750,39 @@
             <p id="notiMsg" class="text-xs font-medium text-gray-600 mt-0.5"></p>
         </div>
         <button onclick="hideNoti()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
     <!-- ====== MODAL ÁREA CEGA / SEM CONEXÃO ====== -->
-    <div id="garcomOfflineModal" class="fixed inset-0 z-[100000] hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="garcomOfflineModal"
+        class="fixed inset-0 z-[100000] hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 text-center max-w-sm w-full shadow-2xl space-y-4 anim-slide">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto border-4 border-red-50">
+            <div
+                class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto border-4 border-red-50">
                 <i class="fa-solid fa-wifi-slash"></i>
             </div>
             <div>
                 <h3 class="text-xl font-black text-stone-900 tracking-tight">Sem Conexão Wi-Fi</h3>
-                <p class="text-xs font-bold text-stone-500 mt-1 uppercase tracking-wider">Você está em uma área cega de sinal</p>
+                <p class="text-xs font-bold text-stone-500 mt-1 uppercase tracking-wider">Você está em uma área cega de
+                    sinal</p>
             </div>
             <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left space-y-2">
                 <p class="text-xs text-amber-900 font-medium leading-relaxed">
-                    <strong class="font-black text-amber-950">Fique tranquilo!</strong> Os itens <u>NÃO foram perdidos</u> do carrinho.
+                    <strong class="font-black text-amber-950">Fique tranquilo!</strong> Os itens <u>NÃO foram
+                        perdidos</u> do carrinho.
                 </p>
                 <p class="text-xs text-amber-800 leading-relaxed">
-                    Caminhe até uma área com cobertura Wi-Fi (perto do bar, recepção ou restaurante) e clique no botão abaixo para reenviar.
+                    Caminhe até uma área com cobertura Wi-Fi (perto do bar, recepção ou restaurante) e clique no botão
+                    abaixo para reenviar.
                 </p>
             </div>
             <div class="pt-2 space-y-2">
-                <button onclick="retrySendOrder()" id="btnRetrySendOrder" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-200 active:scale-95 transition flex items-center justify-center gap-2">
+                <button onclick="retrySendOrder()" id="btnRetrySendOrder"
+                    class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-200 active:scale-95 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-rotate-right"></i>
                     TESTAR CONEXÃO E REENVIAR
                 </button>
-                <button onclick="closeOfflineModal()" class="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl transition">
+                <button onclick="closeOfflineModal()"
+                    class="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl transition">
                     Voltar ao Carrinho
                 </button>
             </div>
@@ -573,33 +790,40 @@
     </div>
 
     <!-- ====== BOTTOM NAVBAR ====== -->
-    <nav id="garcomBottomNav" style="display: none;" class="fixed bottom-0 left-0 right-0 z-[999999] bg-white border-t-2 border-stone-200 py-2.5 px-2 justify-around items-center shadow-[0_-8px_30px_rgba(0,0,0,0.15)]">
-        <button onclick="switchGarcomTab('fazer_pedido')" id="navBtn_fazerPedido" class="flex flex-col items-center gap-0.5 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition active:scale-95">
+    <nav id="garcomBottomNav" style="display: none;"
+        class="fixed bottom-0 left-0 right-0 z-[999999] bg-white border-t-2 border-stone-200 py-2.5 px-2 justify-around items-center shadow-[0_-8px_30px_rgba(0,0,0,0.15)]">
+        <button onclick="switchGarcomTab('fazer_pedido')" id="navBtn_fazerPedido"
+            class="flex flex-col items-center gap-0.5 text-emerald-700 font-black text-[10px] uppercase tracking-wider transition active:scale-95">
             <i class="fa-solid fa-map-location-dot text-xl"></i>
             <span>Locais</span>
         </button>
 
-        <button onclick="switchGarcomTab('comandas_ativas')" id="navBtn_comandasAtivas" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
+        <button onclick="switchGarcomTab('comandas_ativas')" id="navBtn_comandasAtivas"
+            class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
             <i class="fa-solid fa-bolt text-xl"></i>
             <span>Comandas Ativas</span>
-            <span id="navActiveComandasBadge" class="hidden absolute -top-1 right-2 bg-amber-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+            <span id="navActiveComandasBadge"
+                class="hidden absolute -top-1 right-2 bg-amber-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
         </button>
 
-        <button onclick="switchGarcomTab('pedidos_feitos')" id="navBtn_pedidosFeitos" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
+        <button onclick="switchGarcomTab('pedidos_feitos')" id="navBtn_pedidosFeitos"
+            class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition relative active:scale-95">
             <i class="fa-solid fa-fire-burner text-xl"></i>
             <span>Ao Vivo</span>
-            <span id="navLiveBadge" class="hidden absolute -top-1 right-2 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
+            <span id="navLiveBadge"
+                class="hidden absolute -top-1 right-2 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">0</span>
         </button>
 
-        <button onclick="switchGarcomTab('resumo_dia')" id="navBtn_resumoDia" class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition active:scale-95">
+        <button onclick="switchGarcomTab('resumo_dia')" id="navBtn_resumoDia"
+            class="flex flex-col items-center gap-0.5 text-stone-400 font-bold text-[10px] uppercase tracking-wider transition active:scale-95">
             <i class="fa-solid fa-receipt text-xl"></i>
             <span>Minhas Vendas</span>
         </button>
     </nav>
 
-    <script type="module" src="garcom.js?v=2.0.4"></script>
-    <script type="module" src="garcom_mods_1.js?v=2.0.4"></script>
-    <script type="module" src="garcom_mods_2.js?v=2.0.4"></script>
+    <script type="module" src="garcom.js?v=2.0.5"></script>
+    <script type="module" src="garcom_mods_1.js?v=2.0.5"></script>
+    <script type="module" src="garcom_mods_2.js?v=2.0.5"></script>
 </body>
 
 </html>
