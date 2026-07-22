@@ -120,13 +120,22 @@ export async function renderFechamentoSemanal(container){
       const t=Number(o.total||0), pm=(o.payment_method||'').toLowerCase();
       garcomMap[waiter].total+=t;
       garcomMap[waiter].serviceFee+=Number(o.service_fee||0);
-      if(pm==='split'){
-        garcomMap[waiter].card+=Number(o.split_credito||0)+Number(o.split_debito||0);
-        garcomMap[waiter].pix+=Number(o.split_pix||0);
-        garcomMap[waiter].cash+=Number(o.split_dinheiro||0);
-      } else if(pm.includes('cart')||pm.includes('deb')||pm.includes('cred')) garcomMap[waiter].card+=t;
-      else if(pm.includes('pix')) garcomMap[waiter].pix+=t;
-      else garcomMap[waiter].cash+=t;
+      
+      const spPix = Number(o.split_pix||0);
+      const spDin = Number(o.split_dinheiro||0);
+      const spCre = Number(o.split_credito||0);
+      const spDeb = Number(o.split_debito||0);
+      
+      if (spPix > 0 || spDin > 0 || spCre > 0 || spDeb > 0) {
+        garcomMap[waiter].pix += spPix;
+        garcomMap[waiter].cash += spDin;
+        garcomMap[waiter].card += (spCre + spDeb);
+      } else {
+        // Fallback for older orders without split_* columns
+        if(pm.includes('cart')||pm.includes('deb')||pm.includes('cred')) garcomMap[waiter].card+=t;
+        else if(pm.includes('pix')) garcomMap[waiter].pix+=t;
+        else garcomMap[waiter].cash+=t;
+      }
     });
 
     const totalCozinha=Object.values(dayMap).reduce((s,d)=>s+d.cozinha,0);
