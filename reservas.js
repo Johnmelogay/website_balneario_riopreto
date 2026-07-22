@@ -153,19 +153,7 @@ function calcular() {
 
     elNoites.innerText = `${noites} noite(s)`;
 
-    // --- DISCOUNT LOGIC ---
-    // "Desconto de reservas de sexta a domingo"
-    // Interpretando: Check-in Sexta (5), Checkout Domingo (0) ou Segunda (1) com Domingo incluso?
-    // Geralmente pacote de fds é entra sexta sai domingo = 2 noites.
     const dayOfWeek = d1Day.getDay(); // 0-Dom, 1-Seg, ..., 5-Sex, 6-Sab
-    let discount = 0;
-    let isWeekendPackage = false;
-
-    // Se checkin é Sexta(5) E check-out é Domingo(0) ou depois
-    if (dayOfWeek === 5 && noites >= 2) {
-        discount = 40;
-        isWeekendPackage = true;
-    }
 
     // Sunday Checkout Message
     // Se checkout cai no domingo
@@ -175,7 +163,6 @@ function calcular() {
         // Se tiver local para msg:
         // document.getElementById('msg-checkout').innerText = "Domingo: Saída estendida até 16h30!";
     }
-
 
     let valorBase = 280;
     let valorExtraAdulto = 40;
@@ -193,27 +180,8 @@ function calcular() {
 
     let total = valorDiaria * noites;
 
-    // Aplica desconto no total
-    if (isWeekendPackage) {
-        total -= discount;
-        // Poderia mostrar visualmente "Desconto aplicado: R$ 40"
-        // Como não alterei o HTML para ter slots de desconto, vou apenas garantir o total certo.
-        // Se possível, adicionaria um elemento extra pelo JS.
-        let helperText = "";
-        if (document.getElementById("discount-helper")) {
-            document.getElementById("discount-helper").remove();
-        }
-        if (isWeekendPackage) {
-            const span = document.createElement("span");
-            span.id = "discount-helper";
-            span.className = "text-xs text-green-600 font-bold block text-right";
-            span.innerText = "Desconto FDS aplicado (-R$ 40)";
-            elTotal.parentNode.appendChild(span);
-        }
-    } else {
-        if (document.getElementById("discount-helper")) {
-            document.getElementById("discount-helper").remove();
-        }
+    if (document.getElementById("discount-helper")) {
+        document.getElementById("discount-helper").remove();
     }
 
     elTotal.innerText = "R$ " + total.toFixed(2).replace('.', ',');

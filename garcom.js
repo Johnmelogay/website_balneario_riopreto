@@ -452,7 +452,7 @@ window.loadLiveOrdersFeed = async () => {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
 
-    const { data: orders, error } = await supabase
+    const { data: rawOrders, error } = await supabase
         .from('orders')
         .select('*, order_items(*), staff_users(name)')
         .gte('created_at', startOfDay)
@@ -463,6 +463,8 @@ window.loadLiveOrdersFeed = async () => {
         console.error('Error loading live orders feed:', error);
         return;
     }
+
+    const orders = rawOrders.filter(o => o.status !== 'entregue' && o.status !== 'ocupado');
 
     if (!orders || orders.length === 0) {
         list.innerHTML = `
