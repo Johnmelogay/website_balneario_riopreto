@@ -150,8 +150,7 @@ async function fetchLocationStats() {
                 locationStats[key] = { 
                     total_open_val: 0, 
                     open_orders: 0, 
-                    preparing_orders: 0,
-                    ready_orders: 0,
+                    counts: { pendente: 0, preparando: 0, pronto: 0, entregue: 0 },
                     status_color: 'livre'
                 };
             }
@@ -160,10 +159,8 @@ async function fetchLocationStats() {
                 locationStats[key].total_open_val += Number(o.total);
                 locationStats[key].open_orders++;
 
-                if (o.status === 'pendente' || o.status === 'fazendo') {
-                    locationStats[key].preparing_orders++;
-                } else if (o.status === 'pronto' || o.status === 'entregue') {
-                    locationStats[key].ready_orders++;
+                if (o.status && locationStats[key].counts[o.status] !== undefined) {
+                    locationStats[key].counts[o.status]++;
                 }
             }
         });
@@ -172,10 +169,14 @@ async function fetchLocationStats() {
         Object.keys(locationStats).forEach(k => {
             const stat = locationStats[k];
             if (stat.total_open_val > 0 || stat.open_orders > 0) {
-                if (stat.preparing_orders > 0) {
-                    stat.status_color = 'preparando'; // 🔴 Red
+                if (stat.counts.pronto > 0) {
+                    stat.status_color = 'pronto';
+                } else if (stat.counts.preparando > 0) {
+                    stat.status_color = 'preparando';
+                } else if (stat.counts.pendente > 0) {
+                    stat.status_color = 'pendente';
                 } else {
-                    stat.status_color = 'pronto'; // 🟢 Green (Ready for closing / delivered)
+                    stat.status_color = 'ocupado';
                 }
             } else {
                 stat.status_color = 'livre'; // ⚪ Free
@@ -200,7 +201,7 @@ async function fetchLocationStats() {
 
 window.filterLocationGrid = (filterKey) => {
     currentGridFilter = filterKey;
-    ['todos', 'preparando', 'pronto', 'livre'].forEach(k => {
+    ['todos', 'pendente', 'preparando', 'pronto', 'livre'].forEach(k => {
         const btn = document.getElementById(`filterGrid_${k}`);
         if (!btn) return;
         if (k === filterKey) {
@@ -267,6 +268,7 @@ window.setLocationType = async (type) => {
 
 function matchesGridFilter(stat) {
     if (currentGridFilter === 'todos') return true;
+    if (currentGridFilter === 'pendente') return stat.status_color === 'pendente';
     if (currentGridFilter === 'preparando') return stat.status_color === 'preparando';
     if (currentGridFilter === 'pronto') return stat.status_color === 'pronto';
     if (currentGridFilter === 'livre') return stat.status_color === 'livre';
@@ -281,19 +283,23 @@ function createLocationBtn(label, id, icon, stats) {
     let amountsHtml = '';
 
     if (stats && stats.total_open_val > 0) {
-        if (stats.status_color === 'preparando') {
-            // 🔴 PREPARANDO (Red)
+        if (stats.status_color === 'pendente') {
             colorClasses = 'bg-red-50/90 border-2 border-red-500 shadow-md shadow-red-100/50';
-            badgesHtml = `<div class="absolute -top-2 -right-2 bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-fire-burner"></i> PREPARANDO</div>`;
+            badgesHtml = `<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-clock"></i> PENDENTE</div>`;
+        } else if (stats.status_color === 'preparando') {
+            colorClasses = 'bg-amber-50/90 border-2 border-amber-500 shadow-md shadow-amber-100/50';
+            badgesHtml = `<div class="absolute -top-2 -right-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-fire-burner"></i> PREPARANDO</div>`;
         } else if (stats.status_color === 'pronto') {
-            // 🟢 PRONTO / APTO PARA FECHAMENTO (Green)
             colorClasses = 'bg-emerald-50/90 border-2 border-emerald-500 shadow-md shadow-emerald-100/50';
-            badgesHtml = `<div class="absolute -top-2 -right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-circle-check"></i> APTO</div>`;
+            badgesHtml = `<div class="absolute -top-2 -right-2 bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-bell animate-bounce"></i> PRONTO</div>`;
+        } else {
+            colorClasses = 'bg-blue-50/90 border-2 border-blue-400 shadow-md shadow-blue-100/50';
+            badgesHtml = `<div class="absolute -top-2 -right-2 bg-blue-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 border-2 border-white"><i class="fa-solid fa-user-check"></i> OCUPADO</div>`;
         }
 
         amountsHtml = `<div class="mt-2 pt-2 border-t border-stone-200/60 w-full text-center">
             <span class="text-[9px] font-extrabold text-stone-500 uppercase block leading-none mb-1">Consumo</span>
-            <span class="text-xs font-black ${stats.status_color === 'preparando' ? 'text-red-700' : 'text-emerald-700'} block leading-none">R$ ${stats.total_open_val.toFixed(2).replace('.', ',')}</span>
+            <span class="text-xs font-black text-stone-800 block leading-none">R$ ${stats.total_open_val.toFixed(2).replace('.', ',')}</span>
         </div>`;
     } else {
         // ⚪ LIVRE
@@ -603,17 +609,21 @@ window.loadComandasAtivasFeed = async () => {
         const icon = loc.type === 'chale' ? '🏡' : '🪑';
         const label = `${typeLabel} ${loc.id}`;
 
-        let hasPreparing = false;
+        let counts = { pendente: 0, preparando: 0, pronto: 0, entregue: 0 };
         let totalItemsCount = 0;
 
         loc.orders.forEach(o => {
+            if (o.status && counts[o.status] !== undefined) counts[o.status]++;
             (o.order_items || []).forEach(i => {
                 totalItemsCount += i.quantity;
-                if (i.status === 'pendente' || i.status === 'fazendo' || o.status === 'pendente' || o.status === 'fazendo') {
-                    hasPreparing = true;
-                }
             });
         });
+        
+        let locStatusColor = 'livre';
+        if (counts.pronto > 0) locStatusColor = 'pronto';
+        else if (counts.preparando > 0) locStatusColor = 'preparando';
+        else if (counts.pendente > 0) locStatusColor = 'pendente';
+        else locStatusColor = 'ocupado';
 
         const now = Date.now();
         const start = new Date(loc.firstCreatedAt).getTime();
@@ -622,9 +632,13 @@ window.loadComandasAtivasFeed = async () => {
         const mins = diffMins % 60;
         const durationStr = hours > 0 ? `${hours}h ${mins}min` : `${mins} min`;
 
-        const statusBadgeHtml = hasPreparing
-            ? `<span class="bg-red-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm animate-pulse"><i class="fa-solid fa-fire-burner"></i> PREPARANDO</span>`
-            : `<span class="bg-emerald-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm"><i class="fa-solid fa-circle-check"></i> APTO / ENTREGUE</span>`;
+        const statusBadgeHtml = locStatusColor === 'ocupado'
+            ? `<span class="bg-blue-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm"><i class="fa-solid fa-user-check"></i> OCUPADO</span>`
+            : locStatusColor === 'pendente'
+            ? `<span class="bg-red-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm animate-pulse"><i class="fa-solid fa-clock"></i> PENDENTE</span>`
+            : locStatusColor === 'preparando'
+            ? `<span class="bg-amber-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm animate-pulse"><i class="fa-solid fa-fire-burner"></i> PREPARANDO</span>`
+            : `<span class="bg-emerald-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm"><i class="fa-solid fa-bell animate-bounce"></i> PRONTO</span>`;
 
         return `
             <div class="bg-white rounded-3xl p-5 shadow-sm border border-stone-200 space-y-3 hover:shadow-md transition">
@@ -1478,7 +1492,7 @@ function addGarcomNotification(noti) {
 }
 
 function showNotiToast(noti) {
-    const msg = `Pedido #${noti.orderNumber} (${noti.locLabel}) de ${noti.customerName} está PRONTO!`;
+    const msg = `Pedido #${noti.orderNumber} (${noti.locLabel}) de ${noti.customerName} está PRONTO PARA RETIRADA!`;
     const toast = document.getElementById('notiToast');
     const msgEl = document.getElementById('notiMsg');
     if (toast && msgEl) {

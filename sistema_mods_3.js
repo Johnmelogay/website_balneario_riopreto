@@ -365,7 +365,7 @@ function renderCashierModal(type, id) {
 
     document.getElementById('modalContainer').innerHTML = `
         <div class="modal-overlay" onclick="if(event.target===this) window.closeMod()">
-            <div class="modal-box anim-fade p-0 overflow-hidden max-w-lg">
+            <div class="modal-box anim-fade p-0 overflow-hidden max-w-lg flex flex-col max-h-[95vh]">
                 <!-- Header -->
                 <div class="bg-emerald-900 p-5 text-white flex justify-between items-center relative">
                     <button onclick="window.closeMod()" class="absolute top-4 right-4 text-emerald-300 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -379,7 +379,7 @@ function renderCashierModal(type, id) {
                 </div>
 
                 <!-- Financial Summary -->
-                <div class="p-6 bg-white space-y-4 max-h-[75vh] overflow-y-auto">
+                <div class="p-6 bg-white space-y-4 overflow-y-auto flex-1 min-h-0">
                     <!-- Items Preview -->
                     <div class="bg-gray-50 rounded-2xl p-3.5 border border-gray-100 space-y-2 max-h-36 overflow-y-auto text-xs">
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Itens da Comanda (${allItems.length})</span>
