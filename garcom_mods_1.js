@@ -212,8 +212,11 @@ window.openGuiaClienteModal = async () => {
     const grandTotal = subtotal + serviceFee;
 
     const allItems = openOrders.flatMap(o => o.order_items || []);
-    const staffNames = Array.from(new Set(openOrders.map(o => o.staff_users?.name).filter(Boolean)));
-
+    const sortedOrders = [...openOrders].sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    const donoDaMesa = sortedOrders.length > 0 && sortedOrders[0].staff_users?.name 
+                       ? sortedOrders[0].staff_users.name 
+                       : 'Garçom';
+    const staffNames = [donoDaMesa];
     currentGuiaData = {
         locationType: window.currentLocationType,
         locationId: window.currentLocationId,

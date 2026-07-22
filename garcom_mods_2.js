@@ -168,7 +168,9 @@ window.filterResumo = async (status) => {
 };
 
 function renderComandaTicket(ticketOrders) {
-    const primaryOrder = ticketOrders[0];
+    // A comanda foi aberta pelo PRIMEIRO pedido (o mais antigo). Ordenar para garantir isso.
+    const sortedOrders = [...ticketOrders].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const primaryOrder = sortedOrders[0];
     const isPaid = primaryOrder.payment_status === 'pago';
     
     const createdAts = ticketOrders.map(o => new Date(o.created_at).getTime());

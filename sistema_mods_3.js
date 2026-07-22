@@ -206,7 +206,11 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
     }
 
     html += comandas.map(c => {
-        const staffTeam = Array.from(c.staffNames).join(', ') || 'Sem garçom';
+        const sortedOrders = [...c.orders].sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+        const donoDaMesa = sortedOrders.length > 0 && sortedOrders[0].staff_users?.name 
+                           ? sortedOrders[0].staff_users.name.split(' ')[0] 
+                           : 'Sem garçom';
+        const staffTeam = donoDaMesa;
         const typeLabel = c.type === 'chale' ? 'Chalé' : c.type === 'barraca' ? 'Barraca' : 'Mesa';
         
         // Item breakdown
