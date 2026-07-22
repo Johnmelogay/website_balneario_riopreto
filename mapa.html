@@ -42,19 +42,61 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen flex flex-col">
-    <!-- ==== AUTH SCRIPT ==== -->
+    <!-- ==== AUTH SCRIPT & MODAL ==== -->
+    <div id="mapaLoginModal" class="fixed inset-0 z-[100000] hidden bg-black/80 backdrop-blur-md flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 text-center max-w-sm w-full shadow-2xl space-y-4">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto border-4 border-emerald-50 shadow-sm">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+                <h3 class="text-2xl font-black text-stone-900 tracking-tight">Acesso Restrito</h3>
+                <p class="text-[11px] font-extrabold text-stone-500 mt-1 uppercase tracking-widest bg-stone-100 py-1 px-3 rounded-full inline-block">Digite seu PIN</p>
+            </div>
+            <div>
+                <input type="password" id="mapaPin" placeholder="****" class="w-full text-center text-3xl font-black tracking-[0.5em] py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl outline-none focus:border-emerald-500 transition-colors" maxlength="6">
+            </div>
+            <div class="pt-2">
+                <button onclick="window.handleMapaLogin()" id="btnMapaLogin" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-200 active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    ACESSAR MAPA
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
-        import { getCurrentStaff, logoutStaff } from './sistema_auth.js';
+        import { getCurrentStaff, logoutStaff, loginStaff } from './sistema_auth.js';
 
         document.addEventListener('DOMContentLoaded', () => {
             const staff = getCurrentStaff();
             if(!staff || !['admin', 'caixa', 'portaria'].includes(staff.role)) {
-                alert('Acesso negado. Faça login pelo Painel do Sistema.');
-                window.location.href = 'sistema.html';
+                // Show modal if not logged in or wrong role
+                document.getElementById('mapaLoginModal').classList.remove('hidden');
+                document.getElementById('mapaLoginModal').classList.add('flex');
             } else {
                 document.getElementById('mapaContent').style.display = 'block';
             }
         });
+
+        window.handleMapaLogin = async () => {
+            const pin = document.getElementById('mapaPin').value;
+            if(!pin) return;
+
+            const btn = document.getElementById('btnMapaLogin');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VERIFICANDO...';
+
+            const res = await loginStaff(pin);
+            if (res.success && ['admin', 'caixa', 'portaria'].includes(res.user.role)) {
+                window.location.reload();
+            } else {
+                alert(res.error || 'Acesso negado para o seu cargo.');
+                if (res.success) logoutStaff(); // block unauthorized roles
+                document.getElementById('mapaPin').value = '';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> ACESSAR MAPA';
+            }
+        };
     </script>
 
     <!-- Sticky Header -->

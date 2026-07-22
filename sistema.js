@@ -91,9 +91,8 @@ const MODULES = {
     pdv:                { icon: 'cash-register',    label: 'PDV (Balcão)',           roles: ['admin', 'gerente', 'ceo', 'caixa', 'balcao', 'bar'] },
     portaria:           { icon: 'door-open',        label: 'Portaria',               roles: ['admin', 'gerente', 'ceo', 'portaria'] },
     estoque:            { icon: 'boxes-stacked',    label: 'Estoque',                roles: ['admin', 'gerente', 'ceo'] },
-    funcionarios:       { icon: 'users',            label: 'Equipe (Staff)',         roles: ['admin', 'gerente', 'ceo'] },
-    funcionarios_db:    { icon: 'id-card',          label: 'Funcionários / Freelancers', roles: ['admin', 'gerente', 'ceo'] },
-    fechamento_semanal: { icon: 'file-csv',         label: 'Fechamento Semanal',     roles: ['admin', 'gerente', 'ceo'] }
+    funcionarios:       { icon: 'users',            label: 'Gestão de Equipe (Staff)', roles: ['admin', 'gerente', 'ceo'] },
+    fechamento_semanal: { icon: 'file-csv',         label: 'Gerar Relatório (Fechamento)', roles: ['admin', 'gerente', 'ceo'] }
 };
 
 function renderSidebar(role) {
@@ -146,25 +145,20 @@ window.loadModule = (key) => {
             import('./sistema_mods_3.js').then(m => m.renderComandas(content));
             break;
         case 'funcionarios':
-            subEl.textContent = 'Controle de acessos e cargos';
-            renderFuncionarios(content);
+            subEl.textContent = 'Controle de acessos, cargos e pagamentos';
+            import('./sistema_mods_func.js').then(m => m.renderFuncionarios(content));
             break;
         case 'pdv':
-            subEl.textContent = 'Lançamento rápido (Contingência)';
+            subEl.textContent = 'Lançamento rápido (Balcão)';
             import('./sistema_mods_pdv.js').then(m => m.renderPDV(content));
             break;
         case 'portaria':
             subEl.textContent = 'Registro de visitantes e Day Use';
             import('./sistema_mods_2.js').then(m => m.renderPortaria(content));
             break;
-
         case 'fechamento_semanal':
-            subEl.textContent = 'Relatório Semanal Completo com Exportação CSV';
+            subEl.textContent = 'Relatório Geral com Exportação e Impressão';
             import('./sistema_mods_fechamento.js').then(m => m.renderFechamentoSemanal(content));
-            break;
-        case 'funcionarios_db':
-            subEl.textContent = 'Cadastro de Funcionários e Freelancers';
-            import('./sistema_mods_func.js').then(m => m.renderFuncionariosDB(content));
             break;
         default:
             content.innerHTML = '<p class="text-gray-500 p-10 text-center">Módulo em desenvolvimento</p>';
@@ -394,68 +388,7 @@ window.openOrderDetails = async (orderId) => {
 };
 
 
-// ====== MODULE: FUNCIONÁRIOS ======
-async function renderFuncionarios(container) {
-    const { data: staffList } = await supabase.from('staff_users').select('*').order('name');
-    
-    let html = `
-        <div class="anim-fade bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-lg font-black text-gray-800">Equipe Cadastrada</h3>
-                <button onclick="openModStaff()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition">
-                    <i class="fa-solid fa-plus mr-2"></i> Novo Colaborador
-                </button>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100">
-                            <th class="py-3 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Nome</th>
-                            <th class="py-3 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Cargo</th>
-                            <th class="py-3 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="py-3 px-6 text-xs font-black text-gray-500 uppercase tracking-wider text-right">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        ${(staffList||[]).map(s => {
-                            const colors = ROLE_COLORS[s.role] || 'bg-gray-100 text-gray-700';
-                            const label = ROLE_LABELS[s.role] || s.role;
-                            return `
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-4 px-6 font-bold text-gray-800 text-sm">${s.name}</td>
-                                    <td class="py-4 px-6">
-                                        <span class="${colors} px-2.5 py-1 rounded-lg text-xs font-black">${label}</span>
-                                    </td>
-                                    <td class="py-4 px-6">
-                                        <span class="${s.is_active ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-2.5 py-1 rounded-lg text-xs font-black">
-                                            ${s.is_active ? 'Ativo' : 'Inativo'}
-                                        </span>
-                                    </td>
-                                    <td class="py-4 px-6 text-right space-x-2">
-                                        <button onclick="toggleStaffStatus('${s.id}', ${!s.is_active})" class="text-gray-400 hover:text-emerald-600 transition" title="Ativar/Inativar">
-                                            <i class="fa-solid fa-power-off"></i>
-                                        </button>
-                                        <button onclick="openModStaffPin('${s.id}', '${s.name}')" class="text-gray-400 hover:text-blue-600 transition" title="Alterar PIN">
-                                            <i class="fa-solid fa-key"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-    container.innerHTML = html;
-}
-
-window.toggleStaffStatus = async (id, isActive) => {
-    if(!confirm(`Deseja ${isActive ? 'ativar' : 'inativar'} este funcionário?`)) return;
-    await supabase.from('staff_users').update({ is_active: isActive }).eq('id', id);
-    loadModule('funcionarios');
-};
+// Funcionalidades migradas para sistema_mods_func.js
 
 // ====== EXPERIMENTAL / PLACEHOLDERS ======
 // Implementation details for Estoque, PDV, Portaria, Caixa will follow

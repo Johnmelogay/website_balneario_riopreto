@@ -121,9 +121,92 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    if (req.url === '/print_html' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const data = JSON.parse(body);
+                await printGenericHtml(data.html);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: true }));
+            } catch (e) {
+                console.error('❌ Erro de impressão HTML USB:', e.message || e);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: e.message || 'Erro de hardware USB' }));
+            }
+        });
+        return;
+    }
+
     res.writeHead(404);
     res.end('Not Found');
 });
+
+async function printGenericHtml(htmlContent) {
+    if (isPrinting) {
+        throw new Error("Impressão em andamento, aguarde um instante...");
+    }
+    isPrinting = true;
+
+    let dev = null;
+    try {
+        const devices = await usb.usb.getDevices();
+        dev = devices.find(d => (d.vendorId === 0x1fc9 && d.productId === 0x2016) || d.vendorId === 0x04b8 || d.vendorId === 0x0416 || d.vendorId === 0x0f3d);
+
+        if (!dev) {
+            throw new Error("Impressora Elgin i8 USB não encontrada no Mac! Verifique se o cabo USB está conectado e a impressora ligada.");
+        }
+
+        const rasterData = htmlToEscPosRaster(htmlContent, 576);
+
+        dev.open();
+        const iface = dev.interfaces[0];
+        if (iface.isKernelDriverActive()) {
+            iface.detachKernelDriver();
+        }
+        iface.claim();
+
+        let outEndpoint = iface.endpoints.find(e => e.direction === 'out');
+        if (!outEndpoint) {
+            throw new Error("Endpoint de saída USB não encontrado na impressora.");
+        }
+
+        const initCmd = Buffer.from([0x1B, 0x40]);
+        await new Promise((resolve, reject) => {
+            outEndpoint.transfer(initCmd, (err) => err ? reject(err) : resolve());
+        });
+
+        const centerCmd = Buffer.from([0x1B, 0x61, 0x01]);
+        await new Promise((resolve, reject) => {
+            outEndpoint.transfer(centerCmd, (err) => err ? reject(err) : resolve());
+        });
+
+        await new Promise((resolve, reject) => {
+            outEndpoint.transfer(rasterData, (err) => err ? reject(err) : resolve());
+        });
+
+        const cutCmd = Buffer.from([0x1D, 0x56, 0x42, 0x00]);
+        await new Promise((resolve, reject) => {
+            outEndpoint.transfer(cutCmd, (err) => err ? reject(err) : resolve());
+        });
+
+        await new Promise(r => setTimeout(r, 200));
+
+    } finally {
+        if (dev) {
+            try {
+                const iface = dev.interfaces[0];
+                iface.release(true, () => {
+                    dev.close();
+                });
+            } catch (e) {
+                console.error("Erro ao fechar USB:", e.message);
+            }
+        }
+        isPrinting = false;
+    }
+}
 
 async function printVisualPdfHardware(data) {
     if (isPrinting) {

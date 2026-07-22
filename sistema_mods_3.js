@@ -534,7 +534,7 @@ window.confirmCashierCheckout = async (type, id) => {
                     customer_name: customerName || o.customer_name,
                     service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
                     updated_at: new Date().toISOString(),
-                    staff_id: staff?.id || o.staff_id
+                    staff_id: o.staff_id || staff?.id
                 })
                 .eq('id', o.id);
 

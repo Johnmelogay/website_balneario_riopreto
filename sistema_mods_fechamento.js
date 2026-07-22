@@ -29,6 +29,7 @@ export async function renderFechamentoSemanal(container){
     <div id="fsContent" class="space-y-6"><p class="text-gray-400 text-center py-12 font-bold">Selecione o período e clique em Gerar</p></div>
     <div id="fsActions" class="hidden flex gap-3 mt-6">
       <button id="fsCsv" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-emerald-700 transition"><i class="fa-solid fa-file-csv mr-2"></i>Exportar CSV</button>
+      <button id="fsPrint" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-indigo-700 transition"><i class="fa-solid fa-print mr-2"></i>Imprimir (Elgin)</button>
       <button id="fsSave" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-blue-700 transition"><i class="fa-solid fa-floppy-disk mr-2"></i>Salvar no Banco</button>
     </div>
   </div>`;
@@ -210,6 +211,7 @@ export async function renderFechamentoSemanal(container){
 
     document.getElementById('fsActions').classList.remove('hidden');
     document.getElementById('fsCsv').onclick=()=>exportCSV(r);
+    document.getElementById('fsPrint').onclick=()=>printReportElgin(r);
     document.getElementById('fsSave').onclick=()=>saveClosing(r);
   }
 
@@ -246,5 +248,70 @@ export async function renderFechamentoSemanal(container){
       total_bar:r.totalBar, total_chalets:r.totalChalets
     },{onConflict:'week_start,week_end'});
     alert(error?'Erro ao salvar: '+error.message:'Fechamento salvo com sucesso!');
+  }
+
+  async function printReportElgin(r){
+    const btn = document.getElementById('fsPrint');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Imprimindo...';
+    btn.disabled = true;
+
+    try {
+        let html = `
+            <html>
+            <head>
+                <style>
+                    body { font-family: monospace; width: 576px; font-size: 16px; margin: 0; padding: 10px; color: black; background: white; }
+                    h2 { text-align: center; margin-bottom: 10px; border-bottom: 2px dashed black; padding-bottom: 5px; font-size: 24px; font-weight: bold; }
+                    h3 { font-size: 18px; margin-top: 15px; margin-bottom: 5px; text-decoration: underline; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                    .bold { font-weight: bold; }
+                    .total-box { border: 2px solid black; padding: 10px; margin-top: 10px; font-size: 20px; font-weight: bold; display: flex; justify-content: space-between; }
+                </style>
+            </head>
+            <body>
+                <h2>RELATÓRIO FINANCEIRO</h2>
+                <div class="row"><span>Período:</span><span>${r.startDate} a ${r.endDate}</span></div>
+                <div class="row"><span>Gerado em:</span><span>${new Date().toLocaleString('pt-BR')}</span></div>
+                
+                <h3>RESUMO GERAL</h3>
+                <div class="row"><span>Cozinha:</span><span>R$ ${r.totalCozinha.toFixed(2)}</span></div>
+                <div class="row"><span>Bar:</span><span>R$ ${r.totalBar.toFixed(2)}</span></div>
+                <div class="row"><span>Portaria:</span><span>R$ ${r.totalPortaria.toFixed(2)}</span></div>
+                <div class="row"><span>Chalés:</span><span>R$ ${r.totalChalets.toFixed(2)}</span></div>
+                <div class="total-box"><span>TOTAL BRUTO:</span><span>R$ ${r.totalBruto.toFixed(2)}</span></div>
+
+                <h3>FORMAS DE PAGAMENTO</h3>
+                <div class="row"><span>Dinheiro:</span><span>R$ ${r.payMethods.dinheiro.toFixed(2)}</span></div>
+                <div class="row"><span>PIX:</span><span>R$ ${r.payMethods.pix.toFixed(2)}</span></div>
+                <div class="row"><span>C. Débito:</span><span>R$ ${r.payMethods.cartao_debito.toFixed(2)}</span></div>
+                <div class="row"><span>C. Crédito:</span><span>R$ ${r.payMethods.cartao_credito.toFixed(2)}</span></div>
+
+                <h3>GARÇONS (10%)</h3>
+                ${Object.entries(r.garcomMap).map(([n,v]) => `
+                    <div class="row" style="border-bottom: 1px dotted #000;">
+                        <span>${n.substring(0,20)}</span>
+                        <span>Acumulado: <b style="font-size:18px;">R$ ${v.serviceFee.toFixed(2)}</b></span>
+                    </div>
+                `).join('') || '<div class="row">Sem dados.</div>'}
+                
+                <div style="margin-top: 30px; text-align: center; font-size: 14px;">=============================</div>
+            </body>
+            </html>
+        `;
+
+        await fetch('http://localhost:3001/print_html', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ html })
+        });
+
+    } catch (e) {
+        console.warn('Erro impressora Elgin:', e);
+        alert('Falha ao imprimir. Verifique se o Elgin Server local (porta 3001) está rodando e a impressora ligada.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
   }
 }
