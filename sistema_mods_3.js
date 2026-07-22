@@ -5,6 +5,8 @@ let currentTab = 'abertas'; // abertas | fechadas
 let filterDate = new Date().toISOString().split('T')[0];
 let selectedStaffId = 'all';
 let allStaffMembers = [];
+let caixaChannel = null;
+let caixaPollingInterval = null;
 
 export async function renderComandas(container) {
     container.innerHTML = `
@@ -38,6 +40,7 @@ export async function renderComandas(container) {
     `;
 
     loadComandas();
+    startCaixaRealtime();
 }
 
 window.cmdTab = (tab) => {
@@ -65,7 +68,28 @@ window.cmdStaffChange = (staffId) => {
     loadComandas();
 };
 
-async function loadComandas() {
+function startCaixaRealtime() {
+    if (caixaChannel) return;
+    
+    // Polling fallback de 5s para segurança apenas na aba abertas
+    if (caixaPollingInterval) clearInterval(caixaPollingInterval);
+    caixaPollingInterval = setInterval(() => {
+        if (currentTab === 'abertas' && document.getElementById('cmdContent')) {
+            loadComandas(true); // silent refresh
+        }
+    }, 5000);
+
+    caixaChannel = supabase.channel('caixa-comandas-live')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+            if (currentTab === 'abertas' && document.getElementById('cmdContent')) loadComandas(true);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+            if (currentTab === 'abertas' && document.getElementById('cmdContent')) loadComandas(true);
+        })
+        .subscribe();
+}
+
+async function loadComandas(silent = false) {
     const staff = getCurrentStaff();
     if (!staff) return;
 
@@ -143,7 +167,9 @@ async function loadComandas() {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('cmdContent').innerHTML = `<div class="col-span-full text-center text-red-500 font-bold">${e.message}</div>`;
+        if (!silent) {
+            document.getElementById('cmdContent').innerHTML = `<div class="col-span-full text-center text-red-500 font-bold">${e.message}</div>`;
+        }
     }
 }
 

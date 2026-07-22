@@ -89,16 +89,23 @@ function startGlobalGarcomRealtime() {
     globalGarcomChannel = supabase
         .channel('garcom-global-stats')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-            const locScreen = document.getElementById('locationScreen');
-            if (locScreen && locScreen.style.display !== 'none') {
-                if (document.getElementById('tab_resumo')?.classList.contains('active')) {
-                    if (typeof window.filterResumo === 'function') window.filterResumo(window.currentResumoFilter || 'aberto');
-                } else if (currentLocation?.type) {
-                    if (typeof window.setLocationType === 'function') window.setLocationType(currentLocation.type);
-                }
-            }
+            refreshLocationView();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+            refreshLocationView();
         })
         .subscribe();
+}
+
+function refreshLocationView() {
+    const locScreen = document.getElementById('locationScreen');
+    if (locScreen && locScreen.style.display !== 'none') {
+        if (document.getElementById('tab_resumo')?.classList.contains('active')) {
+            if (typeof window.filterResumo === 'function') window.filterResumo(window.currentResumoFilter || 'aberto');
+        } else if (currentLocation?.type) {
+            if (typeof window.setLocationType === 'function') window.setLocationType(currentLocation.type);
+        }
+    }
 }
 
 // ====== LOCATION STATS ======
@@ -113,7 +120,7 @@ async function fetchLocationStats() {
     const { data: orders, error } = await supabase
         .from('orders')
         .select('location_type, location_id, status, payment_status, total, created_at, updated_at, staff_id')
-        .or(`created_at.gte.${startOfDay},updated_at.gte.${startOfDay}`)
+        .or(`payment_status.eq.aberto,created_at.gte.${startOfDay},updated_at.gte.${startOfDay}`)
         .neq('status', 'cancelado');
         
     locationStats = {};
@@ -128,7 +135,7 @@ async function fetchLocationStats() {
 
         orders.forEach(o => {
             const isTodayPaid = o.payment_status === 'pago' && o.updated_at >= startOfDay && o.updated_at <= endOfDay;
-            const isTodayOpen = o.payment_status === 'aberto' && o.created_at >= startOfDay;
+            const isTodayOpen = o.payment_status === 'aberto';
 
             if (o.staff_id === staffId && isTodayPaid) {
                 myTotalSales += Number(o.total);
@@ -330,15 +337,8 @@ function openMainApp(label) {
     loadCatalog();
     updateCartUI();
             
-    // Header: Mudar botão de voltar para também permitir ver o extrato
-    document.getElementById('locationLabel').innerHTML = `
-        <div class="flex items-center justify-between">
-            <span>${window.currentLocationType.toUpperCase()}: ${label}</span>
-            <button onclick="openExtrato()" class="ml-2 bg-emerald-800 text-xs px-3 py-1 rounded-full text-emerald-100 font-bold hover:bg-emerald-700 active:scale-95 transition">
-                <i class="fa-solid fa-list-ul mr-1"></i> Ver Consumo
-            </button>
-        </div>
-    `;
+    const upperType = window.currentLocationType === 'chale' ? 'CHALÉ' : (window.currentLocationType === 'mesa' ? 'MESA' : 'BALCÃO');
+    document.getElementById('locationLabel').textContent = `${upperType} ${currentLocation.id}`;
             
     // Listen for ready orders
     if (typeof window.listenForReadyOrders === 'function') {

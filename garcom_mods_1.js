@@ -139,19 +139,35 @@ window.listenForReadyOrders = function() {
     
     window.orderSubscription = supabase.channel('garcom_ready_alerts')
         .on('postgres_changes', { 
-            event: 'UPDATE', 
+            event: '*', 
             schema: 'public', 
             table: 'orders',
             filter: `location_type=eq.${window.currentLocationType}` // Match type
         }, payload => {
-            const order = payload.new;
+            const order = payload.new || payload.old;
+            if (!order || order.location_id !== window.currentLocationId) return;
             
-            // Notification only if currently viewing same location ID, and status is 'pronto'
-            if (order.location_id === window.currentLocationId && order.status === 'pronto') {
-                if(!window.lastNotifiedIds.has(order.id)) {
-                    showReadyToast(order);
-                    window.lastNotifiedIds.add(order.id);
+            // Notification if status is 'pronto'
+            if (payload.eventType === 'UPDATE' && payload.new.status === 'pronto') {
+                if(!window.lastNotifiedIds.has(payload.new.id)) {
+                    showReadyToast(payload.new);
+                    window.lastNotifiedIds.add(payload.new.id);
                 }
+            }
+
+            // Refresh extrato if open
+            if (document.getElementById('extratoScreen')?.classList.contains('flex')) {
+                window.openExtrato();
+            }
+        })
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'order_items'
+        }, payload => {
+            // Refresh extrato if open
+            if (document.getElementById('extratoScreen')?.classList.contains('flex')) {
+                window.openExtrato();
             }
         })
         .subscribe();
