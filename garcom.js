@@ -1086,10 +1086,44 @@ window.toggleCart = () => {
 // ====== SEND ORDER ======
 let lastOrderMeta = null; // Store last order info for retry/WhatsApp
 
+window.openStaffSelectionModal = async () => {
+    const modal = document.getElementById('staffSelectionModal');
+    const btnContainer = document.getElementById('staffSelectionButtons');
+    
+    btnContainer.innerHTML = '<div class="col-span-2 py-4 text-stone-400"><i class="fa-solid fa-spinner fa-spin text-2xl"></i></div>';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    const { data: staffList, error } = await supabase
+        .from('staff_users')
+        .select('id, name, role')
+        .eq('is_active', true)
+        .order('name');
+        
+    if (error || !staffList) {
+        btnContainer.innerHTML = '<div class="col-span-2 py-4 text-red-500 font-bold">Erro ao carregar garçons.</div>';
+        return;
+    }
+    
+    btnContainer.innerHTML = staffList.map(s => `
+        <button onclick="executeOrder('${s.id}')" class="py-4 rounded-2xl bg-white border border-stone-200 shadow-sm text-stone-700 font-black text-sm active:scale-95 transition hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 flex flex-col items-center justify-center gap-1">
+            <i class="fa-solid fa-user-circle text-2xl text-stone-300"></i>
+            ${s.name.split(' ')[0]}
+        </button>
+    `).join('');
+};
+
+window.closeStaffSelectionModal = () => {
+    const modal = document.getElementById('staffSelectionModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
 window.sendOrder = async () => {
     if (cart.length === 0) return;
 
-    // 0. Verificação prévia de área cega/conexão antes de processar
     const isOnline = await checkNetworkConnection();
     if (!isOnline) {
         updateNetworkStatusUI();
@@ -1097,10 +1131,18 @@ window.sendOrder = async () => {
         return;
     }
 
-    const staff = getCurrentStaff();
-    if (!staff) {
-        alert('Sessão expirada. Faça login novamente.');
-        logoutAndGoLogin();
+    openStaffSelectionModal();
+};
+
+window.executeOrder = async (selectedStaffId) => {
+    closeStaffSelectionModal();
+
+    if (cart.length === 0) return;
+
+    const isOnline = await checkNetworkConnection();
+    if (!isOnline) {
+        updateNetworkStatusUI();
+        window.showOfflineModal();
         return;
     }
 
@@ -1164,7 +1206,7 @@ window.sendOrder = async () => {
                 .insert({
                     location_type: currentLocation.type,
                     location_id: currentLocation.id,
-                    staff_id: staff.id,
+                    staff_id: selectedStaffId,
                     total: destTotal,
                     notes: orderNotes || null,
                     customer_name: customerName,
@@ -1231,7 +1273,7 @@ window.sendOrder = async () => {
                             new_qty: newQty,
                             reason: `Venda - Pedido #${order.order_number}`,
                             order_id: order.id,
-                            staff_id: staff.id
+                            staff_id: selectedStaffId
                         });
                     }
                 }

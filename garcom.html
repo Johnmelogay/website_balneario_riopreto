@@ -752,6 +752,27 @@
         <button onclick="hideNoti()" class="text-gray-400 p-2"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
+    <!-- ====== MODAL DE SELEÇÃO DE GARÇOM (DISPOSITIVO COMPARTILHADO) ====== -->
+    <div id="staffSelectionModal" class="fixed inset-0 z-[100000] hidden bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 text-center max-w-sm w-full shadow-2xl space-y-4 anim-slide">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto border-4 border-emerald-50 shadow-sm">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div>
+                <h3 class="text-2xl font-black text-stone-900 tracking-tight">Quem é você?</h3>
+                <p class="text-[11px] font-extrabold text-stone-500 mt-1 uppercase tracking-widest bg-stone-100 py-1 px-3 rounded-full inline-block">Toque no seu nome para lançar</p>
+            </div>
+            <div id="staffSelectionButtons" class="grid grid-cols-2 gap-3 pt-2 max-h-[50vh] overflow-y-auto no-scrollbar">
+                <!-- Botões gerados via JS -->
+            </div>
+            <div class="pt-2">
+                <button onclick="closeStaffSelectionModal()" class="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-black text-sm rounded-2xl transition active:scale-95">
+                    Cancelar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ====== MODAL ÁREA CEGA / SEM CONEXÃO ====== -->
     <div id="garcomOfflineModal"
         class="fixed inset-0 z-[100000] hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -821,9 +842,9 @@
         </button>
     </nav>
 
-    <script type="module" src="garcom.js?v=2.0.5"></script>
-    <script type="module" src="garcom_mods_1.js?v=2.0.5"></script>
-    <script type="module" src="garcom_mods_2.js?v=2.0.5"></script>
+    <script type="module" src="garcom.js?v=2.0.6"></script>
+    <script type="module" src="garcom_mods_1.js?v=2.0.6"></script>
+    <script type="module" src="garcom_mods_2.js?v=2.0.6"></script>
 </body>
 
 </html>
