@@ -1,4 +1,5 @@
 import { supabase } from './scripts.js';
+import { logAuditAction } from './audit_logger.js';
 
 // ====== EXTRATO (CONSUMO) ======
 window.openExtrato = async () => {
@@ -482,6 +483,9 @@ window.cancelarPedido = async (orderId, orderNumber) => {
         }
 
         alert('Pedido cancelado com sucesso!');
+        try {
+            await logAuditAction('ORDER_CANCELLED', { order_id: orderId, order_number: orderNumber });
+        } catch(e) {}
         // Refresh extrato
         window.openExtrato();
     } catch (err) {

@@ -76,8 +76,13 @@ window.filterResumo = async (status) => {
     
     // Staff filtering
     let staffId = null;
-    if (currentResumoScope === 'mine' && window.currentStaff && window.currentStaff.id) {
-        staffId = window.currentStaff.id;
+    const activeStaff = window.currentStaff || (window.getCurrentStaff ? window.getCurrentStaff() : null);
+    if (currentResumoScope === 'mine') {
+        if (activeStaff && activeStaff.id) {
+            staffId = activeStaff.id;
+        } else {
+            staffId = '00000000-0000-0000-0000-000000000000';
+        }
     }
 
     // Selected Date bounds

@@ -4,6 +4,7 @@
  */
 import { supabase } from './scripts.js';
 import { ROLE_LABELS, ROLE_COLORS, hashPin } from './sistema_auth.js';
+import { logAuditAction } from './audit_logger.js';
 
 let showInactive = false;
 
@@ -159,6 +160,14 @@ function showFuncModal(title, f = {}) {
             return;
         }
 
+        try {
+            await logAuditAction(id ? 'STAFF_UPDATED' : 'STAFF_CREATED', {
+                target_staff_id: id || res.data?.id,
+                name: payload.name,
+                role: payload.role
+            });
+        } catch(e) {}
+
         closeMod();
         if (window.loadModule) {
             window.loadModule('funcionarios');
@@ -178,6 +187,9 @@ window._funcEdit = async (id) => {
 window._funcToggle = async (id, active) => {
     if(!confirm(`Deseja ${active ? 'ativar' : 'inativar'} este funcionário?`)) return;
     await supabase.from('staff_users').update({ is_active: active }).eq('id', id);
+    try {
+        await logAuditAction('STAFF_STATUS_TOGGLED', { target_staff_id: id, active });
+    } catch(e) {}
     loadModule('funcionarios');
 };
 

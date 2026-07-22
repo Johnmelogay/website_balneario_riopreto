@@ -30,6 +30,7 @@ window.pinInput = async (digit) => {
     if (currentPin.length === 4) {
         const result = await loginStaff(currentPin);
         if (result.success) {
+            window.currentStaff = result.user;
             document.getElementById('loginScreen').style.display = 'none';
             showLocationScreen();
         } else {
@@ -42,6 +43,8 @@ window.pinInput = async (digit) => {
         }
     }
 };
+
+window.getCurrentStaff = getCurrentStaff;
 
 window.pinClear = () => { currentPin = ''; updatePinDots(); };
 window.pinDelete = () => { currentPin = currentPin.slice(0, -1); updatePinDots(); };
@@ -56,6 +59,7 @@ function updatePinDots() {
 // ====== LOCATION ======
 function showLocationScreen() {
     const staff = getCurrentStaff();
+    window.currentStaff = staff;
     document.getElementById('staffNameDisplay').textContent = staff?.name || '';
     document.getElementById('locationScreen').style.display = 'flex';
     
