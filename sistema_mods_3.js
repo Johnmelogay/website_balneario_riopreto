@@ -587,9 +587,17 @@ window.confirmCashierCheckout = async (type, id) => {
         else if (cre > 0 && pix === 0 && din === 0 && deb === 0) primaryMethod = 'credito';
         else if (deb > 0 && pix === 0 && din === 0 && cre === 0) primaryMethod = 'debito';
 
+        // Option A: Primary Server (Dono da Mesa)
+        // Find the oldest order which represents the owner of the table
+        const sortedOrders = [...cashierActiveOrders].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        const ownerOrderId = sortedOrders.length > 0 ? sortedOrders[0].id : null;
+
         // Update all active orders for this comanda
         for (const o of cashierActiveOrders) {
-            const ratio = Number(o.total) / cashierBaseTotal; // proportional split among sub-orders
+            const ratio = Number(o.total) / cashierBaseTotal; // proportional split among sub-orders for payment methods
+            
+            // The 10% commission goes 100% to the Dono da Mesa (ownerOrderId)
+            const myServiceFee = (o.id === ownerOrderId) ? serviceVal : 0;
             
             const { error: updateErr } = await supabase
                 .from('orders')
@@ -598,7 +606,7 @@ window.confirmCashierCheckout = async (type, id) => {
                     payment_method: primaryMethod,
                     customer_name: customerName || o.customer_name,
                     customer_phone: customerPhone || o.customer_phone,
-                    service_fee: parseFloat((serviceVal * ratio).toFixed(2)),
+                    service_fee: parseFloat(myServiceFee.toFixed(2)),
                     split_pix: parseFloat((pix * ratio).toFixed(2)),
                     split_dinheiro: parseFloat((din * ratio).toFixed(2)),
                     split_credito: parseFloat((cre * ratio).toFixed(2)),
