@@ -158,7 +158,7 @@ window.loadModule = (key) => {
             break;
         case 'fechamento_semanal':
             subEl.textContent = 'Relatório Geral com Exportação e Impressão';
-            import('./sistema_mods_fechamento.js').then(m => m.renderFechamentoSemanal(content));
+            import(`./sistema_mods_fechamento.js?v=${Date.now()}`).then(m => m.renderFechamentoSemanal(content));
             break;
         default:
             content.innerHTML = '<p class="text-gray-500 p-10 text-center">Módulo em desenvolvimento</p>';
