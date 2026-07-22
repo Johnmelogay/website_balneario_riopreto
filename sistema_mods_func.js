@@ -3,7 +3,7 @@
  * CRUD unificado na tabela staff_users
  */
 import { supabase } from './scripts.js';
-import { ROLE_LABELS, ROLE_COLORS } from './sistema_auth.js';
+import { ROLE_LABELS, ROLE_COLORS, hashPin } from './sistema_auth.js';
 
 let showInactive = false;
 
@@ -52,7 +52,7 @@ export async function renderFuncionarios(container) {
                                 <tr class="hover:bg-gray-50 transition ${!f.is_active ? 'opacity-50' : ''}">
                                     <td class="py-4 px-4 font-bold text-gray-800 text-sm">${f.name}</td>
                                     <td class="py-4 px-4"><span class="${colors} px-2 py-0.5 rounded text-xs font-black">${label}</span></td>
-                                    <td class="py-4 px-4 text-xs font-mono font-bold text-gray-600">${f.pin || 'S/ PIN'}</td>
+                                    <td class="py-4 px-4 text-xs font-mono font-bold ${f.pin_hash ? 'text-emerald-700' : 'text-gray-400'}">${f.pin_hash ? '•••• (Ativo)' : 'S/ PIN'}</td>
                                     <td class="py-4 px-4 text-xs text-gray-500 font-mono">${f.cpf || '—'}</td>
                                     <td class="py-4 px-4 font-black text-emerald-600">R$ ${Number(f.diaria || 0).toFixed(2).replace('.',',')}</td>
                                     <td class="py-4 px-4"><span class="${f.is_active ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-2 py-0.5 rounded text-xs font-black">${f.is_active ? 'Ativo' : 'Inativo'}</span></td>
@@ -99,8 +99,8 @@ function showFuncModal(title, f = {}) {
                             </select>
                         </div>
                         <div>
-                            <label class="label-sys">PIN de Acesso (4 digitos)</label>
-                            <input type="text" id="funcPin" class="input-sys" maxlength="4" value="${f.pin || ''}" placeholder="0000">
+                            <label class="label-sys">PIN de Acesso (4 dígitos)</label>
+                            <input type="text" id="funcPin" class="input-sys" maxlength="4" value="" placeholder="${f.pin_hash ? 'Manter PIN atual' : '0000'}">
                         </div>
                     </div>
                     <hr class="border-gray-100">
@@ -131,23 +131,40 @@ function showFuncModal(title, f = {}) {
     document.getElementById('funcForm').onsubmit = async (e) => {
         e.preventDefault();
         const id = document.getElementById('funcId').value;
+        const rawPin = document.getElementById('funcPin').value.trim();
+
         const payload = {
             name: document.getElementById('funcName').value.trim(),
             role: document.getElementById('funcRole').value,
-            pin: document.getElementById('funcPin').value.trim() || null,
             diaria: parseFloat(document.getElementById('funcDiaria').value || 0),
             cpf: document.getElementById('funcCPF').value.trim() || null,
             telefone: document.getElementById('funcTel').value.trim() || null,
             email: document.getElementById('funcEmail').value.trim() || null,
             is_active: f.is_active !== undefined ? f.is_active : true
         };
-        if (id) {
-            await supabase.from('staff_users').update(payload).eq('id', id);
-        } else {
-            await supabase.from('staff_users').insert(payload);
+
+        if (rawPin) {
+            payload.pin_hash = await hashPin(rawPin);
         }
+
+        let res;
+        if (id) {
+            res = await supabase.from('staff_users').update(payload).eq('id', id);
+        } else {
+            res = await supabase.from('staff_users').insert(payload);
+        }
+
+        if (res.error) {
+            alert('Erro ao salvar membro: ' + res.error.message);
+            return;
+        }
+
         closeMod();
-        loadModule('funcionarios');
+        if (window.loadModule) {
+            window.loadModule('funcionarios');
+        } else {
+            renderFuncionarios(document.getElementById('mainContent'));
+        }
     };
 }
 

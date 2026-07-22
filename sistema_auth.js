@@ -8,7 +8,7 @@ const SESSION_KEY = 'riopreto_staff_session';
 const SESSION_TIMEOUT = 12 * 60 * 60 * 1000; // 12 horas
 
 // ====== HASH ======
-async function hashPin(pin) {
+export async function hashPin(pin) {
     const encoder = new TextEncoder();
     const data = encoder.encode(pin.toString().trim());
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
