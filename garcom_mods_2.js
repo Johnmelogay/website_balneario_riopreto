@@ -129,51 +129,83 @@ window.filterResumo = async (status) => {
         return;
     }
 
+    // Group orders into Tickets
+    let tickets = [];
+    if (status === 'pago') {
+        const groups = {};
+        orders.forEach(o => {
+            const key = `${o.location_type}-${o.location_id}-${o.updated_at}`;
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(o);
+        });
+        tickets = Object.values(groups);
+    } else {
+        const groups = {};
+        orders.forEach(o => {
+            const key = `${o.location_type}-${o.location_id}`;
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(o);
+        });
+        tickets = Object.values(groups);
+    }
+
     // Update Summary Header
-    const totalSum = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const totalSum = tickets.reduce((sum, ticketOrders) => sum + ticketOrders.reduce((s, o) => s + Number(o.total || 0), 0), 0);
+    const total10 = tickets.reduce((sum, ticketOrders) => sum + ticketOrders.reduce((s, o) => s + Number(o.service_fee || 0), 0), 0);
+    
     document.getElementById('resumoTotalAmount').textContent = `R$ ${totalSum.toFixed(2).replace('.', ',')}`;
-    document.getElementById('resumoTicketCount').textContent = `${orders.length} ticket${orders.length > 1 ? 's' : ''}`;
+    const elTotal10 = document.getElementById('resumoTotal10');
+    if (elTotal10) elTotal10.textContent = `R$ ${total10.toFixed(2).replace('.', ',')}`;
+    document.getElementById('resumoTicketCount').textContent = `${tickets.length} ticket${tickets.length > 1 ? 's' : ''}`;
 
     // Render individual Comanda Tickets
-    list.innerHTML = orders.map(order => renderComandaTicket(order)).join('');
+    list.innerHTML = tickets.map(ticketOrders => renderComandaTicket(ticketOrders)).join('');
 };
 
-function renderComandaTicket(order) {
-    const createdAt = new Date(order.created_at);
-    const openTime = createdAt.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
-    const openDate = createdAt.toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: '2-digit' });
+function renderComandaTicket(ticketOrders) {
+    const primaryOrder = ticketOrders[0];
+    const isPaid = primaryOrder.payment_status === 'pago';
+    
+    const createdAts = ticketOrders.map(o => new Date(o.created_at).getTime());
+    const minCreatedAt = new Date(Math.min(...createdAts));
+    
+    const openTime = minCreatedAt.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' });
+    const openDate = minCreatedAt.toLocaleDateString('pt-BR', { timeZone: 'America/Porto_Velho',  day: '2-digit', month: '2-digit' });
 
-    const isPaid = order.payment_status === 'pago';
-    const updatedAt = order.updated_at ? new Date(order.updated_at) : new Date();
+    const updatedAt = primaryOrder.updated_at ? new Date(primaryOrder.updated_at) : new Date();
     const closeTime = isPaid ? updatedAt.toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho',  hour: '2-digit', minute: '2-digit' }) : null;
 
-    // Calculate duration
-    const elapsedMs = (isPaid ? updatedAt.getTime() : Date.now()) - createdAt.getTime();
+    const elapsedMs = (isPaid ? updatedAt.getTime() : Date.now()) - minCreatedAt.getTime();
     const totalMins = Math.floor(elapsedMs / 60000);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
     const durationStr = hrs > 0 ? `${hrs}h ${mins}min` : `${mins}min`;
 
-    // Location label
-    const locType = order.location_type;
-    const locId = order.location_id;
+    const locType = primaryOrder.location_type;
+    const locId = primaryOrder.location_id;
     let locLabel = '';
     if (locType === 'chale') locLabel = '🏡 Chalé ' + locId;
     else if (locType === 'mesa') locLabel = '🪑 Mesa ' + locId.replace('M', '');
     else locLabel = '🏪 Balcão';
 
-    // Staff & Customer info
-    const staffName = order.staff_users?.name || 'Garçom';
-    const customerInfo = order.customer_name ? ` • Cliente: ${order.customer_name}` : '';
+    const staffName = primaryOrder.staff_users?.name || 'Garçom';
+    const customerInfo = primaryOrder.customer_name ? ` • Cliente: ${primaryOrder.customer_name}` : '';
 
-    // Items summary
-    const items = order.order_items || [];
-    const itemsCount = items.reduce((s, i) => s + (i.quantity || 1), 0);
+    let itemsCount = 0;
+    let totalValue = 0;
+    let serviceFee = 0;
+    ticketOrders.forEach(o => {
+        const items = o.order_items || [];
+        itemsCount += items.reduce((s, i) => s + (i.quantity || 1), 0);
+        totalValue += Number(o.total || 0);
+        serviceFee += Number(o.service_fee || 0);
+    });
+    
+    const grandTotal = totalValue + serviceFee;
 
-    // Payment Badge
     let paymentBadge = '';
     if (isPaid) {
-        const method = order.payment_method ? order.payment_method.toUpperCase() : 'PAGO';
+        const method = primaryOrder.payment_method ? primaryOrder.payment_method.toUpperCase() : 'PAGO';
         paymentBadge = `<span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black flex items-center gap-1">
             <i class="fa-solid fa-circle-check"></i> ${method}
         </span>`;
@@ -182,23 +214,30 @@ function renderComandaTicket(order) {
             <i class="fa-solid fa-clock"></i> EM ABERTO
         </span>`;
     }
+    
+    const ticketId = primaryOrder.id;
+    window.ticketDataCache = window.ticketDataCache || {};
+    window.ticketDataCache[ticketId] = {
+        ticketOrders, locLabel, openTime, closeTime, durationStr,
+        staffName, customerInfo, itemsCount, totalValue, serviceFee, grandTotal, method: primaryOrder.payment_method, dateStr: openDate
+    };
+
+    const clickAction = isPaid ? `openExtratoComanda('${ticketId}')` : `openLocationFromResumo('${locType}', '${locId}', '${locLabel}')`;
 
     return `
-        <div onclick="openLocationFromResumo('${locType}', '${locId}', '${locLabel}')" 
+        <div onclick="${clickAction}" 
              class="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition active:scale-[0.98] space-y-3">
             
-            <!-- Ticket Header -->
             <div class="flex items-center justify-between pb-2 border-b border-stone-100">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-black text-stone-800 font-mono bg-stone-100 px-2 py-0.5 rounded-md">
-                        #${order.order_number || order.id.slice(0, 5)}
+                        #${primaryOrder.order_number || primaryOrder.id.slice(0, 5)}
                     </span>
                     <span class="text-xs font-bold text-stone-700">${locLabel}</span>
                 </div>
                 ${paymentBadge}
             </div>
 
-            <!-- Time & Duration Ticket Section -->
             <div class="bg-stone-50 rounded-xl p-2.5 grid grid-cols-3 text-center text-xs">
                 <div>
                     <span class="text-[9px] text-stone-400 font-bold uppercase block">Abertura</span>
@@ -214,7 +253,6 @@ function renderComandaTicket(order) {
                 </div>
             </div>
 
-            <!-- Items & Info -->
             <div class="flex items-center justify-between text-xs pt-1">
                 <div class="min-w-0 flex-1">
                     <p class="text-stone-500 text-[11px] font-medium truncate">
@@ -226,9 +264,44 @@ function renderComandaTicket(order) {
                 </div>
                 <div class="text-right shrink-0">
                     <span class="text-[9px] text-stone-400 font-bold uppercase block">Total</span>
-                    <span class="text-base font-black text-emerald-700">R$ ${Number(order.total || 0).toFixed(2).replace('.', ',')}</span>
+                    <span class="text-base font-black text-emerald-700">R$ ${totalValue.toFixed(2).replace('.', ',')}</span>
                 </div>
             </div>
         </div>
     `;
 }
+
+window.openExtratoComanda = (ticketId) => {
+    const data = window.ticketDataCache[ticketId];
+    if(!data) return;
+    
+    document.getElementById('extratoComandaLoc').textContent = data.locLabel;
+    document.getElementById('extratoComandaMethod').innerHTML = `<i class="fa-solid fa-check-circle"></i> ${data.method ? data.method.toUpperCase() : 'PAGO'}`;
+    document.getElementById('extratoComandaDate').textContent = data.dateStr + (data.closeTime ? ` às ${data.closeTime}` : '');
+    
+    const itemsHtml = data.ticketOrders.flatMap(o => (o.order_items || [])).map(item => `
+        <div class="flex justify-between items-start text-sm border-b border-stone-100 pb-2">
+            <div>
+                <p class="font-bold text-stone-800">${item.quantity}x ${item.product_name}</p>
+                ${item.notes ? `<p class="text-[10px] text-stone-400 mt-0.5">Obs: ${item.notes}</p>` : ''}
+            </div>
+            <div class="text-right">
+                <p class="font-bold text-stone-700">R$ ${Number(item.price * item.quantity).toFixed(2).replace('.', ',')}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('extratoComandaItems').innerHTML = itemsHtml || '<p class="text-center text-xs text-stone-400 py-4">Sem itens detalhados.</p>';
+    
+    document.getElementById('extratoComandaSub').textContent = `R$ ${data.totalValue.toFixed(2).replace('.', ',')}`;
+    document.getElementById('extratoComandaFee').textContent = `R$ ${data.serviceFee.toFixed(2).replace('.', ',')}`;
+    document.getElementById('extratoComandaTotal').textContent = `R$ ${data.grandTotal.toFixed(2).replace('.', ',')}`;
+    
+    document.getElementById('extratoComandaModal').classList.remove('hidden');
+    document.getElementById('extratoComandaModal').classList.add('flex');
+};
+
+window.closeExtratoComanda = () => {
+    document.getElementById('extratoComandaModal').classList.add('hidden');
+    document.getElementById('extratoComandaModal').classList.remove('flex');
+};
