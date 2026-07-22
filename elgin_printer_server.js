@@ -160,49 +160,31 @@ async function printGenericHtml(htmlContent) {
 
         const rasterData = htmlToEscPosRaster(htmlContent, 576);
 
-        dev.open();
-        const iface = dev.interfaces[0];
-        if (iface.isKernelDriverActive()) {
-            iface.detachKernelDriver();
-        }
-        iface.claim();
+        await dev.open();
+        await dev.claimInterface(0);
 
-        let outEndpoint = iface.endpoints.find(e => e.direction === 'out');
-        if (!outEndpoint) {
-            throw new Error("Endpoint de saída USB não encontrado na impressora.");
-        }
+        const RESET = new Uint8Array([0x1B, 0x40, 0x1B, 0x61, 0x01]);
+        const FEED_CUT = new Uint8Array([0x0A, 0x0A, 0x1D, 0x56, 0x00]);
 
-        const initCmd = Buffer.from([0x1B, 0x40]);
-        await new Promise((resolve, reject) => {
-            outEndpoint.transfer(initCmd, (err) => err ? reject(err) : resolve());
-        });
+        const payload = Buffer.concat([
+            RESET,
+            rasterData,
+            FEED_CUT
+        ]);
 
-        const centerCmd = Buffer.from([0x1B, 0x61, 0x01]);
-        await new Promise((resolve, reject) => {
-            outEndpoint.transfer(centerCmd, (err) => err ? reject(err) : resolve());
-        });
+        await dev.transferOut(1, payload);
 
-        await new Promise((resolve, reject) => {
-            outEndpoint.transfer(rasterData, (err) => err ? reject(err) : resolve());
-        });
+        try {
+            await dev.releaseInterface(0);
+        } catch (e) {}
 
-        const cutCmd = Buffer.from([0x1D, 0x56, 0x42, 0x00]);
-        await new Promise((resolve, reject) => {
-            outEndpoint.transfer(cutCmd, (err) => err ? reject(err) : resolve());
-        });
-
-        await new Promise(r => setTimeout(r, 200));
+        console.log("🎨 RELATÓRIO IMPRESSO COM SUCESSO!");
 
     } finally {
         if (dev) {
             try {
-                const iface = dev.interfaces[0];
-                iface.release(true, () => {
-                    dev.close();
-                });
-            } catch (e) {
-                console.error("Erro ao fechar USB:", e.message);
-            }
+                await dev.close();
+            } catch (e) {}
         }
         isPrinting = false;
     }
