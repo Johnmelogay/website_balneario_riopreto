@@ -110,13 +110,14 @@ export async function renderFechamentoSemanal(container){
       else if(pm.includes('cart')) payMethods.cartao+=Number(o.total||0);
     });
 
-    // Garcom tips calculation (total sales - card - pix = tip base for 20%)
+    // Garcom tips calculation (sum of service_fee collected at checkout)
     const garcomMap={};
     ordersData.forEach(o=>{
       const waiter=(o.staff_users&&o.staff_users.name)||'Desconhecido';
-      if(!garcomMap[waiter]) garcomMap[waiter]={total:0,card:0,pix:0,cash:0};
+      if(!garcomMap[waiter]) garcomMap[waiter]={total:0,card:0,pix:0,cash:0,serviceFee:0};
       const t=Number(o.total||0), pm=(o.payment_method||'').toLowerCase();
       garcomMap[waiter].total+=t;
+      garcomMap[waiter].serviceFee+=Number(o.service_fee||0);
       if(pm==='split'){
         garcomMap[waiter].card+=Number(o.split_credito||0)+Number(o.split_debito||0);
         garcomMap[waiter].pix+=Number(o.split_pix||0);
@@ -188,9 +189,9 @@ export async function renderFechamentoSemanal(container){
 
     <!-- GARÇONS / TIPS -->
     <div class="bg-white rounded-2xl border border-gray-100 p-6">
-      <h3 class="text-lg font-black text-gray-800 mb-4"><i class="fa-solid fa-hand-holding-dollar text-yellow-500 mr-2"></i>Garçons — Gorjetas (20%)</h3>
-      <table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="py-2 px-3 text-left text-xs font-black text-gray-500">Garçom</th><th class="py-2 px-3 text-right">Total Vendas</th><th class="py-2 px-3 text-right">Cartão</th><th class="py-2 px-3 text-right">PIX</th><th class="py-2 px-3 text-right">Dinheiro</th><th class="py-2 px-3 text-right font-black text-emerald-600">Gorjeta (20%)</th></tr></thead>
-      <tbody>${Object.entries(r.garcomMap).map(([n,v])=>{const tip=v.total*0.2; return `<tr class="border-t border-gray-100"><td class="py-2 px-3 font-bold">${n}</td><td class="py-2 px-3 text-right">${fmt(v.total)}</td><td class="py-2 px-3 text-right">${fmt(v.card)}</td><td class="py-2 px-3 text-right">${fmt(v.pix)}</td><td class="py-2 px-3 text-right">${fmt(v.cash)}</td><td class="py-2 px-3 text-right font-black text-emerald-600">${fmt(tip)}</td></tr>`}).join('')||'<tr><td colspan="6" class="py-4 text-center text-gray-400">Sem dados</td></tr>'}</tbody></table>
+      <h3 class="text-lg font-black text-gray-800 mb-4"><i class="fa-solid fa-hand-holding-dollar text-yellow-500 mr-2"></i>Garçons — Taxa de Serviço (10%)</h3>
+      <table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="py-2 px-3 text-left text-xs font-black text-gray-500">Garçom</th><th class="py-2 px-3 text-right">Total Vendas</th><th class="py-2 px-3 text-right">Cartão</th><th class="py-2 px-3 text-right">PIX</th><th class="py-2 px-3 text-right">Dinheiro</th><th class="py-2 px-3 text-right font-black text-emerald-600">10% Acumulado</th></tr></thead>
+      <tbody>${Object.entries(r.garcomMap).map(([n,v])=>{return `<tr class="border-t border-gray-100"><td class="py-2 px-3 font-bold">${n}</td><td class="py-2 px-3 text-right">${fmt(v.total)}</td><td class="py-2 px-3 text-right">${fmt(v.card)}</td><td class="py-2 px-3 text-right">${fmt(v.pix)}</td><td class="py-2 px-3 text-right">${fmt(v.cash)}</td><td class="py-2 px-3 text-right font-black text-emerald-600">${fmt(v.serviceFee)}</td></tr>`}).join('')||'<tr><td colspan="6" class="py-4 text-center text-gray-400">Sem dados</td></tr>'}</tbody></table>
     </div>
 
     <!-- FUNCIONÁRIOS/FREELANCERS -->
@@ -221,8 +222,8 @@ export async function renderFechamentoSemanal(container){
 
     csv+=`\nFORMAS DE PAGAMENTO\nForma;Total\nDinheiro;${r.payMethods.dinheiro.toFixed(2)}\nPIX;${r.payMethods.pix.toFixed(2)}\nCartão Débito;${r.payMethods.cartao_debito.toFixed(2)}\nCartão Crédito;${r.payMethods.cartao_credito.toFixed(2)}\n\n`;
 
-    csv+=`GARÇONS\nNome;Total Vendas;Cartão;PIX;Dinheiro;Gorjeta 20%\n`;
-    Object.entries(r.garcomMap).forEach(([n,v])=>{csv+=`${n};${v.total.toFixed(2)};${v.card.toFixed(2)};${v.pix.toFixed(2)};${v.cash.toFixed(2)};${(v.total*0.2).toFixed(2)}\n`});
+    csv+=`GARÇONS\nNome;Total Vendas;Cartão;PIX;Dinheiro;10% Acumulado\n`;
+    Object.entries(r.garcomMap).forEach(([n,v])=>{csv+=`${n};${v.total.toFixed(2)};${v.card.toFixed(2)};${v.pix.toFixed(2)};${v.cash.toFixed(2)};${v.serviceFee.toFixed(2)}\n`});
 
     csv+=`\nFUNCIONÁRIOS\nNome;Cargo;Diária\n`;
     (r.funcsData||[]).forEach(f=>{csv+=`${f.nome};${f.cargo};${Number(f.diaria||0).toFixed(2)}\n`});

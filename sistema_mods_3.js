@@ -154,8 +154,12 @@ async function loadComandas(silent = false) {
                     id: o.location_id,
                     total: 0,
                     orders: [],
-                    staffNames: new Set()
+                    staffNames: new Set(),
+                    daily_seq: o.daily_seq || 999999
                 };
+            }
+            if (o.daily_seq && o.daily_seq < comandas[comandaId].daily_seq) {
+                comandas[comandaId].daily_seq = o.daily_seq;
             }
             comandas[comandaId].total += Number(o.total);
             comandas[comandaId].orders.push(o);
@@ -163,7 +167,9 @@ async function loadComandas(silent = false) {
             totalVal += Number(o.total);
         });
 
-        renderComandasGrid(Object.values(comandas), isAdminOrCaixa, totalVal);
+        // Sort by daily_seq ascending
+        const comandasArr = Object.values(comandas).sort((a, b) => a.daily_seq - b.daily_seq);
+        renderComandasGrid(comandasArr, isAdminOrCaixa, totalVal);
 
     } catch (e) {
         console.error(e);
@@ -215,11 +221,14 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
                 
                 <div class="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
                     <div>
-                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-widest flex items-center gap-1 w-fit">
-                            <i class="fa-solid ${c.type === 'chale' ? 'fa-house' : c.type === 'barraca' ? 'fa-campground' : 'fa-chair'}"></i>
-                            ${typeLabel} ${c.id}
-                        </span>
-                        <p class="text-[10px] font-bold text-gray-400 mt-2 truncate"><i class="fa-solid fa-user-tag mr-1"></i>${staffTeam}</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-widest flex items-center gap-1 w-fit">
+                                <i class="fa-solid ${c.type === 'chale' ? 'fa-house' : c.type === 'barraca' ? 'fa-campground' : 'fa-chair'}"></i>
+                                ${typeLabel} ${c.id}
+                            </span>
+                            <span class="text-xs font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-lg border border-gray-200">#${c.daily_seq < 999999 ? c.daily_seq : '?'}</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-gray-400 truncate"><i class="fa-solid fa-user-tag mr-1"></i>${staffTeam}</p>
                     </div>
                 </div>
 
