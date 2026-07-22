@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     footerContainer.innerHTML = `
     <footer class="bg-gray-900 text-white pt-20 pb-10 border-t-4 border-primary-green">
-        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-10">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-5 gap-10">
             <div class="space-y-4">
                 <img src="images/logo.png" onerror="this.style.display='none'" alt="Logo" class="h-12 opacity-90">
                 <h3 class="text-2xl font-bold text-white">Rio Preto</h3>
@@ -63,12 +63,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="w-full bg-primary-green text-white font-bold text-sm py-2 rounded-lg hover:bg-green-700 transition">Inscrever-se</button>
                 </form>
             </div>
-            <div>
-                <h4 class="font-bold mb-4 text-primary-green">Legal</h4>
-                <ul class="space-y-2 text-sm text-gray-400">
-                    <li><a href="termos.html" class="hover:text-white transition">Termos de Uso</a></li>
-                    <li><a href="termos.html" class="hover:text-white transition">Privacidade</a></li>
-                </ul>
+            
+            <div class="flex flex-col items-center md:items-start">
+                <h4 class="font-bold mb-4 text-white">Avalie-nos</h4>
+                <a href="https://www.tripadvisor.com/" target="_blank" class="block w-32 hover:scale-105 transition transform shadow-lg rounded-xl overflow-hidden">
+                    <img src="images/tripadvisor.png" alt="Review us on Tripadvisor" class="w-full">
+                </a>
+                <div class="mt-6 w-full">
+                    <h4 class="font-bold mb-3 text-primary-green text-sm">Legal</h4>
+                    <ul class="space-y-1 text-xs text-gray-400">
+                        <li><a href="termos.html" class="hover:text-white transition">Termos de Uso</a></li>
+                        <li><a href="termos.html" class="hover:text-white transition">Privacidade</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
