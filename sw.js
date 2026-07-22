@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pos-treino-v7';
+const CACHE_NAME = 'pos-treino-v8';
 const ASSETS = [
   './desafiocaia.html',
   './desafiocaia.css',
@@ -51,6 +51,7 @@ self.addEventListener('fetch', (e) => {
     url.hostname.includes('accounts.google.com') ||
     url.hostname.includes('google.com') ||
     url.hostname.includes('gstatic.com') ||
+    url.hostname.includes('supabase.co') ||
     url.pathname.includes('__/auth/') ||
     url.search.includes('apiKey=') ||
     url.search.includes('authType=')
