@@ -110,9 +110,8 @@ window.filterResumo = async (status) => {
         query = query.gte('created_at', startOfDay).lte('created_at', endOfDay).order('created_at', { ascending: false });
     }
         
-    if (staffId) {
-        query = query.eq('staff_id', staffId);
-    }
+    // We no longer filter by staff_id in the DB query because we need the FULL table (all items from all waiters)
+    // to show a complete receipt in the Extrato. We will filter the tickets in memory below.
 
     const { data: orders, error } = await query;
 
@@ -154,9 +153,21 @@ window.filterResumo = async (status) => {
         tickets = Object.values(groups);
     }
 
-    // Update Summary Header
-    const totalSum = tickets.reduce((sum, ticketOrders) => sum + ticketOrders.reduce((s, o) => s + Number(o.total || 0), 0), 0);
-    const total10 = tickets.reduce((sum, ticketOrders) => sum + ticketOrders.reduce((s, o) => s + Number(o.service_fee || 0), 0), 0);
+    // Filter tickets if scoped to 'mine'
+    if (staffId && currentResumoScope === 'mine') {
+        tickets = tickets.filter(ticketOrders => ticketOrders.some(o => o.staff_id === staffId));
+    }
+
+    // Update Summary Header - Only sum what belongs to this staff if 'mine'
+    const totalSum = tickets.reduce((sum, ticketOrders) => sum + ticketOrders.reduce((s, o) => {
+        if (staffId && currentResumoScope === 'mine') return s + (o.staff_id === staffId ? Number(o.total || 0) : 0);
+        return s + Number(o.total || 0);
+    }, 0), 0);
+    
+    const total10 = tickets.reduce((sum, ticketOrders) => sum + ticketOrders.reduce((s, o) => {
+        if (staffId && currentResumoScope === 'mine') return s + (o.staff_id === staffId ? Number(o.service_fee || 0) : 0);
+        return s + Number(o.service_fee || 0);
+    }, 0), 0);
     
     document.getElementById('resumoTotalAmount').textContent = `R$ ${totalSum.toFixed(2).replace('.', ',')}`;
     const elTotal10 = document.getElementById('resumoTotal10');
@@ -201,11 +212,17 @@ function renderComandaTicket(ticketOrders) {
     let itemsCount = 0;
     let totalValue = 0;
     let serviceFee = 0;
+    let myServiceFee = 0;
+    const activeStaffId = window.currentStaff ? window.currentStaff.id : null;
+
     ticketOrders.forEach(o => {
         const items = o.order_items || [];
         itemsCount += items.reduce((s, i) => s + (i.quantity || 1), 0);
         totalValue += Number(o.total || 0);
         serviceFee += Number(o.service_fee || 0);
+        if (activeStaffId && o.staff_id === activeStaffId) {
+            myServiceFee += Number(o.service_fee || 0);
+        }
     });
     
     const grandTotal = totalValue + serviceFee;
@@ -226,10 +243,14 @@ function renderComandaTicket(ticketOrders) {
     window.ticketDataCache = window.ticketDataCache || {};
     window.ticketDataCache[ticketId] = {
         ticketOrders, locLabel, openTime, closeTime, durationStr,
-        staffName, customerInfo, itemsCount, totalValue, serviceFee, grandTotal, method: primaryOrder.payment_method, dateStr: openDate
+        staffName, customerInfo, itemsCount, totalValue, serviceFee, myServiceFee, grandTotal, method: primaryOrder.payment_method, dateStr: openDate
     };
 
     const clickAction = isPaid ? `openExtratoComanda('${ticketId}')` : `openLocationFromResumo('${locType}', '${locId}', '${locLabel}')`;
+
+    const tenPercentBadge = currentResumoScope === 'mine' 
+        ? `<span class="text-[9px] font-bold ${myServiceFee > 0 ? 'text-emerald-500' : 'text-stone-400'} block mt-0.5">Meus 10%: R$ ${myServiceFee.toFixed(2).replace('.', ',')}</span>`
+        : `<span class="text-[9px] font-bold text-emerald-500 block mt-0.5">10%: R$ ${serviceFee.toFixed(2).replace('.', ',')}</span>`;
 
     return `
         <div onclick="${clickAction}" 
@@ -270,8 +291,9 @@ function renderComandaTicket(ticketOrders) {
                     </p>
                 </div>
                 <div class="text-right shrink-0">
-                    <span class="text-[9px] text-stone-400 font-bold uppercase block">Total</span>
-                    <span class="text-base font-black text-emerald-700">R$ ${totalValue.toFixed(2).replace('.', ',')}</span>
+                    <span class="text-[9px] text-stone-400 font-bold uppercase block">Total Mesa</span>
+                    <span class="text-base font-black text-stone-700">R$ ${totalValue.toFixed(2).replace('.', ',')}</span>
+                    ${tenPercentBadge}
                 </div>
             </div>
         </div>
@@ -301,7 +323,13 @@ window.openExtratoComanda = (ticketId) => {
     document.getElementById('extratoComandaItems').innerHTML = itemsHtml || '<p class="text-center text-xs text-stone-400 py-4">Sem itens detalhados.</p>';
     
     document.getElementById('extratoComandaSub').textContent = `R$ ${data.totalValue.toFixed(2).replace('.', ',')}`;
-    document.getElementById('extratoComandaFee').textContent = `R$ ${data.serviceFee.toFixed(2).replace('.', ',')}`;
+    
+    let feeHtml = `R$ ${data.serviceFee.toFixed(2).replace('.', ',')}`;
+    if (data.myServiceFee !== undefined && currentResumoScope === 'mine') {
+        feeHtml += ` <span class="text-[10px] block ${data.myServiceFee > 0 ? 'text-emerald-500' : 'text-stone-400'}">(Meus 10%: R$ ${data.myServiceFee.toFixed(2).replace('.', ',')})</span>`;
+    }
+    document.getElementById('extratoComandaFee').innerHTML = feeHtml;
+    
     document.getElementById('extratoComandaTotal').textContent = `R$ ${data.grandTotal.toFixed(2).replace('.', ',')}`;
     
     document.getElementById('extratoComandaModal').classList.remove('hidden');
