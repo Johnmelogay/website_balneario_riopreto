@@ -603,8 +603,7 @@ window.confirmCashierCheckout = async (type, id) => {
                     split_dinheiro: parseFloat((din * ratio).toFixed(2)),
                     split_credito: parseFloat((cre * ratio).toFixed(2)),
                     split_debito: parseFloat((deb * ratio).toFixed(2)),
-                    updated_at: new Date().toISOString(),
-                    staff_id: o.staff_id || staff?.id
+                    updated_at: new Date().toISOString()
                 })
                 .eq('id', o.id);
 
