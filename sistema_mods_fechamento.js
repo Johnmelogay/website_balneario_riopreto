@@ -27,10 +27,17 @@ export async function renderFechamentoSemanal(container){
       </div>
     </div>
     <div id="fsContent" class="space-y-6"><p class="text-gray-400 text-center py-12 font-bold">Selecione o período e clique em Gerar</p></div>
-    <div id="fsActions" class="hidden flex gap-3 mt-6">
+    <div id="fsActions" class="hidden flex flex-wrap gap-3 mt-6">
       <button id="fsCsv" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-emerald-700 transition"><i class="fa-solid fa-file-csv mr-2"></i>Exportar CSV</button>
-      <button id="fsPrint" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-indigo-700 transition"><i class="fa-solid fa-print mr-2"></i>Imprimir (Elgin)</button>
       <button id="fsSave" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-blue-700 transition"><i class="fa-solid fa-floppy-disk mr-2"></i>Salvar no Banco</button>
+      
+      <div class="flex bg-indigo-50 rounded-xl overflow-hidden shadow-lg border border-indigo-200">
+        <button id="fsPrintAll" class="bg-indigo-600 text-white px-4 py-3 font-black hover:bg-indigo-700 transition border-r border-indigo-800"><i class="fa-solid fa-print mr-2"></i>Tudo</button>
+        <button id="fsPrintResumo" class="text-indigo-800 px-4 py-3 font-bold hover:bg-indigo-100 transition border-r border-indigo-200">Resumo</button>
+        <button id="fsPrintPortaria" class="text-indigo-800 px-4 py-3 font-bold hover:bg-indigo-100 transition border-r border-indigo-200">Portaria</button>
+        <button id="fsPrintChales" class="text-indigo-800 px-4 py-3 font-bold hover:bg-indigo-100 transition border-r border-indigo-200">Chalés</button>
+        <button id="fsPrintPedidos" class="text-indigo-800 px-4 py-3 font-bold hover:bg-indigo-100 transition">Pedidos</button>
+      </div>
     </div>
   </div>`;
 
@@ -217,12 +224,38 @@ export async function renderFechamentoSemanal(container){
       <h3 class="text-lg font-black text-gray-800 mb-4"><i class="fa-solid fa-house text-teal-500 mr-2"></i>Chalés</h3>
       <table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="py-2 px-3 text-left text-xs font-black text-gray-500">Hóspede</th><th class="py-2 px-3">Check-in</th><th class="py-2 px-3">Check-out</th><th class="py-2 px-3 text-right">Total</th><th class="py-2 px-3">Status</th></tr></thead>
       <tbody>${(r.bookingsData||[]).map(b=>`<tr class="border-t border-gray-100"><td class="py-2 px-3 font-bold">${b.guest_name||b.name||'—'}</td><td class="py-2 px-3 text-center text-xs">${b.checkin_date||'—'}</td><td class="py-2 px-3 text-center text-xs">${b.checkout_date||'—'}</td><td class="py-2 px-3 text-right font-black">${fmt(b.total_price)}</td><td class="py-2 px-3 text-center"><span class="text-xs font-bold ${b.status==='confirmed'?'text-green-600':'text-yellow-600'}">${b.status||'—'}</span></td></tr>`).join('')||'<tr><td colspan="5" class="py-4 text-center text-gray-400">Sem reservas no período</td></tr>'}</tbody></table>
+    </div>
+
+    <!-- PORTARIA -->
+    <div class="bg-white rounded-2xl border border-gray-100 p-6">
+      <h3 class="text-lg font-black text-gray-800 mb-4"><i class="fa-solid fa-ticket text-cyan-500 mr-2"></i>Entradas da Portaria</h3>
+      <table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="py-2 px-3 text-left text-xs font-black text-gray-500">Nome / Placa</th><th class="py-2 px-3">Tipo</th><th class="py-2 px-3">Pagamento</th><th class="py-2 px-3">Data</th><th class="py-2 px-3 text-right">Valor</th></tr></thead>
+      <tbody>${(r.gateData||[]).map(g=>`<tr class="border-t border-gray-100"><td class="py-2 px-3 font-bold">${g.visitor_name||'—'}</td><td class="py-2 px-3 text-center"><span class="bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded text-xs font-bold uppercase">${g.entry_type||'—'}</span></td><td class="py-2 px-3 text-center text-xs font-bold uppercase text-gray-600">${g.payment_method||'—'}</td><td class="py-2 px-3 text-center text-xs text-gray-500">${new Date(g.created_at).toLocaleDateString('pt-BR',{timeZone:'America/Porto_Velho'})}</td><td class="py-2 px-3 text-right font-black text-emerald-600">${fmt(g.amount_paid||g.total_amount)}</td></tr>`).join('')||'<tr><td colspan="5" class="py-4 text-center text-gray-400">Sem entradas no período</td></tr>'}</tbody></table>
+    </div>
+
+    <!-- PEDIDOS (RESTAURANTE/BAR) -->
+    <div class="bg-white rounded-2xl border border-gray-100 p-6">
+      <h3 class="text-lg font-black text-gray-800 mb-4"><i class="fa-solid fa-utensils text-orange-500 mr-2"></i>Detalhamento de Pedidos</h3>
+      <table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="py-2 px-3 text-left text-xs font-black text-gray-500">ID / Local</th><th class="py-2 px-3">Cliente / Hora</th><th class="py-2 px-3">Pagamento</th><th class="py-2 px-3 text-right">Subtotal</th><th class="py-2 px-3 text-right text-emerald-600 font-bold">10%</th><th class="py-2 px-3 text-right text-gray-800 font-black">Total</th></tr></thead>
+      <tbody>${(r.ordersData||[]).map(o=>{
+          let pms = [];
+          if(o.split_pix>0) pms.push('Pix'); if(o.split_dinheiro>0) pms.push('Dinheiro');
+          if(o.split_credito>0) pms.push('Crédito'); if(o.split_debito>0) pms.push('Débito');
+          let pgto = pms.join(', ') || String(o.payment_method||'').toUpperCase();
+          let waiter = o.staff_users?.name || 'Sistema';
+          return `<tr class="border-t border-gray-100"><td class="py-2 px-3"><div class="font-mono text-xs font-bold text-gray-500">#${o.order_number||o.id.substring(0,5)}</div><div class="font-bold uppercase text-gray-800">${o.location_type||'MESA'} ${o.location_id||''}</div></td><td class="py-2 px-3 text-center"><div class="font-bold text-gray-700">${o.customer_name||'—'}</div><div class="text-[10px] text-gray-400 font-mono">${new Date(o.created_at).toLocaleTimeString('pt-BR',{timeZone:'America/Porto_Velho',hour:'2-digit',minute:'2-digit'})} • ${waiter}</div></td><td class="py-2 px-3 text-center text-xs font-bold text-gray-600">${pgto}</td><td class="py-2 px-3 text-right text-gray-600">${fmt(o.total)}</td><td class="py-2 px-3 text-right text-emerald-600 font-bold">${fmt(o.service_fee)}</td><td class="py-2 px-3 text-right font-black text-gray-800">${fmt(Number(o.total)+Number(o.service_fee||0))}</td></tr>`;
+      }).join('')||'<tr><td colspan="6" class="py-4 text-center text-gray-400">Sem pedidos no período</td></tr>'}</tbody></table>
     </div>`;
 
     document.getElementById('fsActions').classList.remove('hidden');
     document.getElementById('fsCsv').onclick=()=>exportCSV(r);
-    document.getElementById('fsPrint').onclick=()=>printReportElgin(r);
     document.getElementById('fsSave').onclick=()=>saveClosing(r);
+    
+    document.getElementById('fsPrintAll').onclick=(e)=>printReportElgin(r, 'all', e.target);
+    document.getElementById('fsPrintResumo').onclick=(e)=>printReportElgin(r, 'resumo', e.target);
+    document.getElementById('fsPrintPortaria').onclick=(e)=>printReportElgin(r, 'portaria', e.target);
+    document.getElementById('fsPrintChales').onclick=(e)=>printReportElgin(r, 'chales', e.target);
+    document.getElementById('fsPrintPedidos').onclick=(e)=>printReportElgin(r, 'pedidos', e.target);
   }
 
   function exportCSV(r){
@@ -260,37 +293,32 @@ export async function renderFechamentoSemanal(container){
     alert(error?'Erro ao salvar: '+error.message:'Fechamento salvo com sucesso!');
   }
 
-  async function printReportElgin(r){
-    const btn = document.getElementById('fsPrint');
+  async function printReportElgin(r, type = 'all', btnElement = null) {
+    const btn = btnElement || document.getElementById('fsPrintAll') || document.getElementById('fsPrint');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Imprimindo...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>...';
     btn.disabled = true;
 
     try {
-        let html = `
-            <html>
-            <head>
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
-                <style>
-                    * { box-sizing: border-box; }
-                    body { font-family: 'Inter', monospace; width: 576px; margin: 0; padding: 12px 16px 20px 16px; color: black; background: white; font-size: 18px; line-height: 1.3; }
-                    h2 { text-align: center; margin: 0 0 10px 0; border-bottom: 3px solid black; padding-bottom: 8px; font-size: 28px; font-weight: 900; }
-                    h3 { font-size: 20px; font-weight: 900; margin: 16px 0 6px 0; text-transform: uppercase; border-bottom: 1px solid black; padding-bottom: 2px; }
-                    .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-                    .row.sub { font-size: 16px; color: #333; }
-                    .total-box { border: 3px solid black; padding: 12px; margin-top: 12px; font-size: 24px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 8px; }
-                    
-                    .order-item { border-bottom: 1px dashed #666; padding: 8px 0; font-size: 16px; }
-                    .order-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; }
-                    .order-meta { font-size: 14px; color: #444; }
-                </style>
-            </head>
-            <body>
-                <h2>FECHAMENTO DETALHADO</h2>
-                <div class="row"><b>Início:</b><span>${r.startDate}</span></div>
-                <div class="row"><b>Fim:</b><span>${r.endDate}</span></div>
-                <div class="row"><b>Emissão:</b><span>${new Date().toLocaleString('pt-BR', { timeZone: 'America/Porto_Velho' })}</span></div>
-                
+        let htmlContent = '';
+        const titleMap = {
+            'all': 'FECHAMENTO DETALHADO',
+            'resumo': 'RESUMO FINANCEIRO',
+            'portaria': 'ENTRADAS DA PORTARIA',
+            'chales': 'RESERVAS DE CHALÉS',
+            'pedidos': 'DETALHAMENTO DE PEDIDOS'
+        };
+
+        const headerHtml = `
+            <h2>${titleMap[type]}</h2>
+            <div class="row"><b>Início:</b><span>${r.startDate}</span></div>
+            <div class="row"><b>Fim:</b><span>${r.endDate}</span></div>
+            <div class="row"><b>Emissão:</b><span>${new Date().toLocaleString('pt-BR', { timeZone: 'America/Porto_Velho' })}</span></div>
+        `;
+
+        let resumoHtml = '';
+        if (type === 'all' || type === 'resumo') {
+            resumoHtml = `
                 <h3>RESUMO FINANCEIRO</h3>
                 <div class="row"><span>Cozinha (Restaurante):</span><b>R$ ${r.totalCozinha.toFixed(2)}</b></div>
                 <div class="row"><span>Bar (Bebidas):</span><b>R$ ${r.totalBar.toFixed(2)}</b></div>
@@ -323,41 +351,91 @@ export async function renderFechamentoSemanal(container){
                         <b style="font-size: 18px;">R$ ${Number(f.diaria||0).toFixed(2)}</b>
                     </div>
                 `).join('') || '<div class="row">Nenhum funcionário.</div>'}
+            `;
+        }
 
+        let portariaHtml = '';
+        if (type === 'all' || type === 'portaria') {
+            portariaHtml = `
+                <h3>ENTRADAS DA PORTARIA</h3>
+                ${(r.gateData||[]).map(g => `
+                    <div style="border-bottom: 1px dashed #666; padding-bottom: 6px; margin-bottom: 6px;">
+                        <div class="row"><b style="font-size: 18px;">${g.visitor_name||'Visitante'}</b> <b>R$ ${Number(g.amount_paid||g.total_amount||0).toFixed(2)}</b></div>
+                        <div class="row sub"><span>${g.entry_type||'—'} • ${g.payment_method||'—'}</span> <span>${new Date(g.created_at).toLocaleTimeString('pt-BR',{timeZone:'America/Porto_Velho',hour:'2-digit',minute:'2-digit'})}</span></div>
+                    </div>
+                `).join('') || '<div class="row">Sem entradas registradas.</div>'}
+            `;
+        }
+
+        let chalesHtml = '';
+        if (type === 'all' || type === 'chales') {
+            chalesHtml = `
                 <h3>RESERVAS DE CHALÉS</h3>
                 ${(r.bookingsData||[]).map(b => `
                     <div style="border-bottom: 1px dashed #666; padding-bottom: 6px; margin-bottom: 6px;">
-                        <div class="row"><b>${b.guest_name||b.name||'Hóspede'}</b> <b>R$ ${Number(b.total_price||0).toFixed(2)}</b></div>
+                        <div class="row"><b style="font-size: 18px;">${b.guest_name||b.name||'Hóspede'}</b> <b>R$ ${Number(b.total_price||0).toFixed(2)}</b></div>
                         <div class="row sub"><span>${b.checkin_date} a ${b.checkout_date}</span> <span>${b.status==='confirmed'?'CONFIRMADO':'PENDENTE'}</span></div>
                     </div>
-                `).join('') || '<div class="row">Sem reservas.</div>'}
+                `).join('') || '<div class="row">Sem reservas registradas.</div>'}
+            `;
+        }
 
+        let pedidosHtml = '';
+        if (type === 'all' || type === 'pedidos') {
+            pedidosHtml = `
                 <h3>DETALHAMENTO DE PEDIDOS</h3>
-                ${r.ordersData.map(o => `
+                ${r.ordersData.map(o => {
+                    let pgto = [
+                        o.split_pix > 0 ? 'Pix' : '', 
+                        o.split_dinheiro > 0 ? 'Dinheiro' : '', 
+                        o.split_credito > 0 ? 'Crédito' : '', 
+                        o.split_debito > 0 ? 'Débito' : ''
+                    ].filter(Boolean).join(', ') || String(o.payment_method).toUpperCase();
+                    return `
                     <div class="order-item">
                         <div class="order-header">
                             <span>#${o.order_number || o.id.substring(0,5)} • ${(o.location_type || 'Mesa').toUpperCase()} ${o.location_id}</span>
-                            <span>R$ ${Number(o.total).toFixed(2)}</span>
+                            <span>R$ ${(Number(o.total)+Number(o.service_fee||0)).toFixed(2)}</span>
                         </div>
                         <div class="order-meta">Cliente: ${o.customer_name || 'Não informado'}</div>
                         <div class="order-meta">Abertura: ${new Date(o.created_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho', hour:'2-digit', minute:'2-digit'})} • Garçom: ${o.staff_users?.name || 'Sistema'}</div>
                         <div class="order-meta">
-                            Pago via: ${ [
-                                o.split_pix > 0 ? 'Pix' : '', 
-                                o.split_dinheiro > 0 ? 'Dinheiro' : '', 
-                                o.split_credito > 0 ? 'Crédito' : '', 
-                                o.split_debito > 0 ? 'Débito' : ''
-                            ].filter(Boolean).join(', ') || String(o.payment_method).toUpperCase() }
+                            Pago via: ${pgto}
                             ${ o.service_fee > 0 ? `(+ 10% R$ ${Number(o.service_fee).toFixed(2)})` : '' }
                         </div>
-                    </div>
-                `).join('') || '<div>Sem pedidos.</div>'}
-                
+                    </div>`;
+                }).join('') || '<div>Sem pedidos.</div>'}
+            `;
+        }
+
+        let html = `
+            <html>
+            <head>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+                <style>
+                    * { box-sizing: border-box; }
+                    body { font-family: 'Inter', monospace; width: 576px; margin: 0; padding: 12px 16px 20px 16px; color: black; background: white; font-size: 18px; line-height: 1.3; }
+                    h2 { text-align: center; margin: 0 0 10px 0; border-bottom: 3px solid black; padding-bottom: 8px; font-size: 28px; font-weight: 900; text-transform: uppercase; }
+                    h3 { font-size: 20px; font-weight: 900; margin: 16px 0 6px 0; text-transform: uppercase; border-bottom: 1px solid black; padding-bottom: 2px; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+                    .row.sub { font-size: 16px; color: #333; }
+                    .total-box { border: 3px solid black; padding: 12px; margin-top: 12px; font-size: 24px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 8px; }
+                    
+                    .order-item { border-bottom: 1px dashed #666; padding: 8px 0; font-size: 16px; }
+                    .order-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 18px; }
+                    .order-meta { font-size: 14px; color: #444; }
+                </style>
+            </head>
+            <body>
+                ${headerHtml}
+                ${resumoHtml}
+                ${portariaHtml}
+                ${chalesHtml}
+                ${pedidosHtml}
                 <div style="text-align: center; font-size: 16px; margin-top: 20px; font-weight: bold;">-- FIM DO RELATÓRIO --</div>
             </body>
             </html>
         `;
-
         await fetch('http://localhost:3001/print_html', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
