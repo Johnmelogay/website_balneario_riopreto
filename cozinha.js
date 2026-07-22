@@ -216,6 +216,36 @@ function handleRealtimeOrder(payload) {
     loadOrders();
 }
 
+// ====== VOICE & BELL CHIME ======
+let voicesList = [];
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    voicesList = window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+        voicesList = window.speechSynthesis.getVoices();
+    };
+}
+
+function playBellChime() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playNote(freq, time, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, time);
+            gain.gain.setValueAtTime(0.35, time);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+        const now = audioCtx.currentTime;
+        playNote(1567.98, now, 0.5);        // G6 (Ding!)
+        playNote(2093.00, now + 0.12, 0.8); // C7 (Dong!)
+    } catch(e) {}
+}
+
 function speakOrder(order) {
     if (!soundEnabled) return;
     try {
@@ -228,12 +258,39 @@ function speakOrder(order) {
                     order.location_type === 'mesa' ? 'Mesa ' + order.location_id.replace('M','') :
                     'Balcão ' + order.location_id;
 
-        const text = `Novo pedido, ${loc}. ${staffName}. ${itemsText}.`;
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'pt-BR';
-        utterance.rate = 1.1;
-        window.speechSynthesis.speak(utterance);
+        const text = `Novo pedido! ${loc}. Garçom ${staffName}. ${itemsText}.`;
+
+        // Tocamos o sininho cristalino primeiro
+        playBellChime();
+
+        // Aguardamos 500ms para a voz começar limpa após o sininho
+        setTimeout(() => {
+            try {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'pt-BR';
+                    utterance.rate = 1.05;
+                    utterance.pitch = 1.0;
+
+                    const voices = voicesList.length > 0 ? voicesList : window.speechSynthesis.getVoices();
+                    const ptBrVoice = voices.find(v => (v.lang === 'pt-BR' || v.lang === 'pt_BR') && (v.name.includes('Google') || v.name.includes('Luciana') || v.name.includes('Felipe') || v.name.includes('Francisca') || v.name.includes('Heloisa') || v.name.includes('Daniel') || v.name.includes('Brasil'))) ||
+                                      voices.find(v => v.lang === 'pt-BR' || v.lang === 'pt_BR') ||
+                                      voices.find(v => v.lang.startsWith('pt'));
+
+                    if (ptBrVoice) {
+                        utterance.voice = ptBrVoice;
+                        window.speechSynthesis.speak(utterance);
+                        return;
+                    }
+                }
+
+                // Fallback de voz neural em português do Brasil
+                const encodedText = encodeURIComponent(text);
+                const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&tl=pt-BR&client=tw-ob&q=${encodedText}`);
+                audio.play().catch(() => {});
+            } catch(e) {}
+        }, 500);
     } catch(e) {}
 }
 
