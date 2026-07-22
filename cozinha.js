@@ -24,7 +24,20 @@ let timerInterval = null;
 // ====== PIN ======
 let currentPin = '';
 
+let audioUnlocked = false;
+
 window.pinInput = async (digit) => {
+    if (!audioUnlocked) {
+        audioUnlocked = true;
+        try {
+            const audio = document.getElementById('notifSound');
+            audio.play().then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+            }).catch(() => {});
+        } catch(e) {}
+    }
+
     if (currentPin.length >= 4) return;
     currentPin += digit;
     updatePinDots();
