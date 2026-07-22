@@ -304,13 +304,33 @@ export async function renderFechamentoSemanal(container){
                 <div class="row"><span>Cartão Débito:</span><b>R$ ${r.payMethods.cartao_debito.toFixed(2)}</b></div>
                 <div class="row"><span>Cartão Crédito:</span><b>R$ ${r.payMethods.cartao_credito.toFixed(2)}</b></div>
                 
-                <h3>COMISSÕES DE GARÇONS (10%)</h3>
+                <h3>GARÇONS E COMISSÕES</h3>
                 ${Object.entries(r.garcomMap).map(([n,v]) => `
-                    <div class="row">
-                        <span>${n.substring(0,20)}</span>
-                        <b>R$ ${v.serviceFee.toFixed(2)}</b>
+                    <div style="border-bottom: 1px dashed #666; padding-bottom: 6px; margin-bottom: 6px;">
+                        <div class="row" style="font-weight: 900; font-size: 20px;"><span>${n.substring(0,20)}</span></div>
+                        <div class="row sub"><span>Vendas Brutas:</span><span>R$ ${v.total.toFixed(2)}</span></div>
+                        <div class="row sub"><span>Pag. Cartão:</span><span>R$ ${v.card.toFixed(2)}</span></div>
+                        <div class="row sub"><span>Pag. PIX:</span><span>R$ ${v.pix.toFixed(2)}</span></div>
+                        <div class="row sub"><span>Pag. Dinheiro:</span><span>R$ ${v.cash.toFixed(2)}</span></div>
+                        <div class="row sub" style="font-weight: 800; font-size: 18px; margin-top: 4px;"><span>10% a Pagar:</span><span>R$ ${v.serviceFee.toFixed(2)}</span></div>
                     </div>
-                `).join('') || '<div class="row">Nenhuma comissão.</div>'}
+                `).join('') || '<div class="row">Sem dados.</div>'}
+
+                <h3>FUNCIONÁRIOS E DIÁRIAS</h3>
+                ${(r.funcsData||[]).map(f => `
+                    <div class="row" style="border-bottom: 1px dashed #666; padding-bottom: 4px; margin-bottom: 4px;">
+                        <div><b style="font-size: 18px;">${f.nome}</b><br><span style="font-size: 14px;">${f.cargo||'freelancer'}</span></div>
+                        <b style="font-size: 18px;">R$ ${Number(f.diaria||0).toFixed(2)}</b>
+                    </div>
+                `).join('') || '<div class="row">Nenhum funcionário.</div>'}
+
+                <h3>RESERVAS DE CHALÉS</h3>
+                ${(r.bookingsData||[]).map(b => `
+                    <div style="border-bottom: 1px dashed #666; padding-bottom: 6px; margin-bottom: 6px;">
+                        <div class="row"><b>${b.guest_name||b.name||'Hóspede'}</b> <b>R$ ${Number(b.total_price||0).toFixed(2)}</b></div>
+                        <div class="row sub"><span>${b.checkin_date} a ${b.checkout_date}</span> <span>${b.status==='confirmed'?'CONFIRMADO':'PENDENTE'}</span></div>
+                    </div>
+                `).join('') || '<div class="row">Sem reservas.</div>'}
 
                 <h3>DETALHAMENTO DE PEDIDOS</h3>
                 ${r.ordersData.map(o => `
