@@ -20,6 +20,7 @@ const TIMER_CRITICAL = 50 * 60 * 1000;  // 50min = card inteiro vermelho
 let soundEnabled = true;
 let orders = [];
 let timerInterval = null;
+let isInitialLoad = true;
 
 // ====== PIN ======
 let currentPin = '';
@@ -190,20 +191,50 @@ async function loadOrders() {
     }
 
     // Filter orders that have items for this destination
-    orders = (data || []).filter(order => {
+    const newOrders = (data || []).filter(order => {
         const relevantItems = (order.order_items || []).filter(i => i.destination === DESTINATION);
         return relevantItems.length > 0;
     });
 
+    if (!isInitialLoad) {
+        const oldPendingIds = new Set(orders.filter(o => o.status === 'pendente').map(o => o.id));
+        const currentPending = newOrders.filter(o => o.status === 'pendente');
+        currentPending.forEach(o => {
+            if (!oldPendingIds.has(o.id)) {
+                playNotification();
+                speakOrder(o);
+            }
+        });
+    }
+
+    orders = newOrders;
+    isInitialLoad = false;
     renderOrders();
 }
 
 function handleRealtimeOrder(payload) {
     loadOrders();
+}
 
-    if (payload.eventType === 'INSERT') {
-        playNotification();
-    }
+function speakOrder(order) {
+    if (!soundEnabled) return;
+    try {
+        const relevantItems = (order.order_items || []).filter(i => i.destination === DESTINATION);
+        if (relevantItems.length === 0) return;
+
+        const itemsText = relevantItems.map(i => `${i.quantity} ${i.product_name}`).join(', ');
+        const staffName = order.staff_users?.name || 'Garçom';
+        const loc = order.location_type === 'chale' ? 'Chalé ' + order.location_id :
+                    order.location_type === 'mesa' ? 'Mesa ' + order.location_id.replace('M','') :
+                    'Balcão ' + order.location_id;
+
+        const text = `Novo pedido, ${loc}. ${staffName}. ${itemsText}.`;
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.1;
+        window.speechSynthesis.speak(utterance);
+    } catch(e) {}
 }
 
 // ====== RENDER ======
