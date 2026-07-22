@@ -48,27 +48,27 @@ export async function renderFuncionarios(container) {
                             ${(funcs || []).map(f => {
                                 const colors = ROLE_COLORS[f.role] || 'bg-gray-100 text-gray-700';
                                 const label = ROLE_LABELS[f.role] || f.role;
-                                return \`
+                                return `
                                 <tr class="hover:bg-gray-50 transition ${!f.is_active ? 'opacity-50' : ''}">
-                                    <td class="py-4 px-4 font-bold text-gray-800 text-sm">\${f.name}</td>
-                                    <td class="py-4 px-4"><span class="\${colors} px-2 py-0.5 rounded text-xs font-black">\${label}</span></td>
-                                    <td class="py-4 px-4 text-xs font-mono font-bold text-gray-600">\${f.pin || 'S/ PIN'}</td>
-                                    <td class="py-4 px-4 text-xs text-gray-500 font-mono">\${f.cpf || '—'}</td>
-                                    <td class="py-4 px-4 font-black text-emerald-600">R$ \${Number(f.diaria || 0).toFixed(2).replace('.',',')}</td>
-                                    <td class="py-4 px-4"><span class="\${f.is_active ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-2 py-0.5 rounded text-xs font-black">\${f.is_active ? 'Ativo' : 'Inativo'}</span></td>
+                                    <td class="py-4 px-4 font-bold text-gray-800 text-sm">${f.name}</td>
+                                    <td class="py-4 px-4"><span class="${colors} px-2 py-0.5 rounded text-xs font-black">${label}</span></td>
+                                    <td class="py-4 px-4 text-xs font-mono font-bold text-gray-600">${f.pin || 'S/ PIN'}</td>
+                                    <td class="py-4 px-4 text-xs text-gray-500 font-mono">${f.cpf || '—'}</td>
+                                    <td class="py-4 px-4 font-black text-emerald-600">R$ ${Number(f.diaria || 0).toFixed(2).replace('.',',')}</td>
+                                    <td class="py-4 px-4"><span class="${f.is_active ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-2 py-0.5 rounded text-xs font-black">${f.is_active ? 'Ativo' : 'Inativo'}</span></td>
                                     <td class="py-4 px-4 text-right space-x-2">
-                                        <button onclick="window._funcEdit('\${f.id}')" class="text-gray-400 hover:text-blue-600 transition" title="Editar / RH"><i class="fa-solid fa-pen"></i></button>
-                                        <button onclick="window._funcToggle('\${f.id}', \${!f.is_active})" class="text-gray-400 hover:text-emerald-600 transition" title="Ativar/Inativar"><i class="fa-solid fa-power-off"></i></button>
+                                        <button onclick="window._funcEdit('${f.id}')" class="text-gray-400 hover:text-blue-600 transition" title="Editar / RH"><i class="fa-solid fa-pen"></i></button>
+                                        <button onclick="window._funcToggle('${f.id}', ${!f.is_active})" class="text-gray-400 hover:text-emerald-600 transition" title="Ativar/Inativar"><i class="fa-solid fa-power-off"></i></button>
                                     </td>
                                 </tr>
-                                \`
+                                `
                             }).join('')}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-    \`;
+    `;
 }
 
 window._funcToggleInactive = () => {
@@ -78,29 +78,29 @@ window._funcToggleInactive = () => {
 
 function showFuncModal(title, f = {}) {
     const mc = document.getElementById('modalContainer');
-    mc.innerHTML = \`
+    mc.innerHTML = `
         <div class="modal-overlay" onclick="if(event.target===this) closeMod()">
             <div class="modal-box anim-fade max-w-md">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-black text-gray-800">\${title}</h3>
+                    <h3 class="text-xl font-black text-gray-800">${title}</h3>
                     <button onclick="closeMod()" class="text-gray-400 bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-200"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <form id="funcForm" class="space-y-4">
-                    <input type="hidden" id="funcId" value="\${f.id || ''}">
+                    <input type="hidden" id="funcId" value="${f.id || ''}">
                     <div>
                         <label class="label-sys">Nome Completo *</label>
-                        <input type="text" id="funcName" required class="input-sys" value="\${f.name || ''}" placeholder="Nome">
+                        <input type="text" id="funcName" required class="input-sys" value="${f.name || ''}" placeholder="Nome">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="label-sys">Cargo (Acesso Sistema)</label>
                             <select id="funcRole" class="input-sys">
-                                \${Object.entries(ROLE_LABELS).map(([val, label]) => \`<option value="\${val}" \${f.role===val?'selected':''}>\${label}</option>\`).join('')}
+                                ${Object.entries(ROLE_LABELS).map(([val, label]) => `<option value="${val}" ${f.role===val?'selected':''}>${label}</option>`).join('')}
                             </select>
                         </div>
                         <div>
                             <label class="label-sys">PIN de Acesso (4 digitos)</label>
-                            <input type="text" id="funcPin" class="input-sys" maxlength="4" value="\${f.pin || ''}" placeholder="0000">
+                            <input type="text" id="funcPin" class="input-sys" maxlength="4" value="${f.pin || ''}" placeholder="0000">
                         </div>
                     </div>
                     <hr class="border-gray-100">
@@ -108,26 +108,26 @@ function showFuncModal(title, f = {}) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="label-sys">CPF</label>
-                            <input type="text" id="funcCPF" class="input-sys" value="\${f.cpf || ''}" placeholder="000.000.000-00">
+                            <input type="text" id="funcCPF" class="input-sys" value="${f.cpf || ''}" placeholder="000.000.000-00">
                         </div>
                         <div>
                             <label class="label-sys">Diária (R$)</label>
-                            <input type="number" step="0.01" id="funcDiaria" class="input-sys" value="\${f.diaria || '0'}" placeholder="0,00">
+                            <input type="number" step="0.01" id="funcDiaria" class="input-sys" value="${f.diaria || '0'}" placeholder="0,00">
                         </div>
                     </div>
                     <div>
                         <label class="label-sys">Telefone</label>
-                        <input type="text" id="funcTel" class="input-sys" value="\${f.telefone || ''}" placeholder="(00) 00000-0000">
+                        <input type="text" id="funcTel" class="input-sys" value="${f.telefone || ''}" placeholder="(00) 00000-0000">
                     </div>
                     <div>
                         <label class="label-sys">Email</label>
-                        <input type="email" id="funcEmail" class="input-sys" value="\${f.email || ''}" placeholder="email@exemplo.com">
+                        <input type="email" id="funcEmail" class="input-sys" value="${f.email || ''}" placeholder="email@exemplo.com">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-black text-lg shadow-lg hover:bg-emerald-700 transition">SALVAR MEMBRO</button>
                 </form>
             </div>
         </div>
-    \`;
+    `;
     document.getElementById('funcForm').onsubmit = async (e) => {
         e.preventDefault();
         const id = document.getElementById('funcId').value;
@@ -159,7 +159,7 @@ window._funcEdit = async (id) => {
 };
 
 window._funcToggle = async (id, active) => {
-    if(!confirm(\`Deseja \${active ? 'ativar' : 'inativar'} este funcionário?\`)) return;
+    if(!confirm(`Deseja ${active ? 'ativar' : 'inativar'} este funcionário?`)) return;
     await supabase.from('staff_users').update({ is_active: active }).eq('id', id);
     loadModule('funcionarios');
 };
