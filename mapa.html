@@ -69,7 +69,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const staff = getCurrentStaff();
-            if(!staff || !['admin', 'caixa', 'portaria'].includes(staff.role)) {
+            if(!staff || !['admin', 'caixa', 'portaria', 'gerente', 'ceo'].includes(staff.role)) {
+
                 // Show modal if not logged in or wrong role
                 document.getElementById('mapaLoginModal').classList.remove('hidden');
                 document.getElementById('mapaLoginModal').classList.add('flex');

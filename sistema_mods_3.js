@@ -1,5 +1,5 @@
 import { supabase } from './scripts.js';
-import { getCurrentStaff } from './sistema_auth.js';
+import { getCurrentStaff, hasActionPermission } from './sistema_auth.js';
 
 let currentTab = 'abertas'; // abertas | fechadas
 let filterDate = new Date().toISOString().split('T')[0];
@@ -7,6 +7,7 @@ let selectedStaffId = 'all';
 let allStaffMembers = [];
 let caixaChannel = null;
 let caixaPollingInterval = null;
+
 
 export async function renderComandas(container) {
     container.innerHTML = `
@@ -112,8 +113,9 @@ async function loadComandas(silent = false) {
         }
     }
 
-    // Se o garçom entra, ele só vê as dele (ou admin/caixa vê de todos)
-    const isAdminOrCaixa = ['admin', 'caixa'].includes(staff.role);
+    // Se o garçom entra, ele só vê as dele (ou admin/caixa/gerente/ceo vê de todos)
+    const isAdminOrCaixa = ['admin', 'caixa', 'gerente', 'ceo'].includes(staff.role) || hasActionPermission(staff.role, 'close_cashier');
+
 
     try {
         let query = supabase.from('orders')
@@ -287,7 +289,8 @@ window.cmdViewDetails = async (type, id) => {
     }
     
     // Garçom filter
-    if(!['admin','caixa'].includes(staff.role)) query = query.eq('staff_id', staff.id);
+    if (!['admin', 'caixa', 'gerente', 'ceo'].includes(staff.role) && !hasActionPermission(staff.role, 'close_cashier')) query = query.eq('staff_id', staff.id);
+
     
     const { data: orders } = await query;
     if(!orders || orders.length === 0) return;
