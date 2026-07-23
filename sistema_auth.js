@@ -155,3 +155,114 @@ export const ROLE_COLORS = {
 export const ALLOWED_SISTEMA_ROLES = [
     'admin', 'gerente', 'ceo', 'caixa', 'garcom', 'bar', 'balcao', 'cozinha', 'portaria', 'marketing'
 ];
+
+// ====== ROLE PERMISSIONS MATRIX ======
+export const ALL_SYSTEM_MODULES = [
+    { id: 'dashboard', label: 'Visão Geral (Dashboard)', icon: 'chart-pie' },
+    { id: 'comandas', label: 'Comandas (Mesas/Chalés)', icon: 'receipt' },
+    { id: 'pdv', label: 'PDV (Balcão)', icon: 'cash-register' },
+    { id: 'portaria', label: 'Portaria & Visitantes', icon: 'door-open' },
+    { id: 'estoque', label: 'Estoque de Produtos', icon: 'boxes-stacked' },
+    { id: 'funcionarios', label: 'Gestão de Equipe (Staff)', icon: 'users' },
+    { id: 'fechamento_semanal', label: 'Relatórios e Fechamento', icon: 'file-csv' },
+    { id: 'permissoes', label: 'Permissões de Cargos (Exclusivo CEO)', icon: 'user-shield' }
+];
+
+export const ALL_SYSTEM_ACTIONS = [
+    { id: 'cancel_items', label: 'Cancelar / Remover Itens de Comandas', desc: 'Permite estornar ou cancelar lançamentos já confirmados' },
+    { id: 'apply_discounts', label: 'Aplicar Descontos em Vendas', desc: 'Permite conceder descontos em pagamentos do caixa' },
+    { id: 'edit_stock', label: 'Alterar e Adicionar Estoque', desc: 'Permite modificar quantidades, preços e cadastrar produtos' },
+    { id: 'manage_staff', label: 'Gerenciar Usuários e PINs da Equipe', desc: 'Permite criar, editar cargos e trocar PINs de funcionários' },
+    { id: 'close_cashier', label: 'Fechar Caixa e Gerar Relatórios', desc: 'Permite a extração e encerramento de caixa semanal/diário' },
+    { id: 'gate_control', label: 'Operar Entrada e Saída de Portaria', desc: 'Permite registrar visitantes e cobranças de Day Use' }
+];
+
+export const DEFAULT_ROLE_PERMISSIONS = {
+    ceo: {
+        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'permissoes'],
+        actions: ['cancel_items', 'apply_discounts', 'edit_stock', 'manage_staff', 'close_cashier', 'gate_control']
+    },
+    admin: {
+        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'permissoes'],
+        actions: ['cancel_items', 'apply_discounts', 'edit_stock', 'manage_staff', 'close_cashier', 'gate_control']
+    },
+    gerente: {
+        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal'],
+        actions: ['cancel_items', 'apply_discounts', 'edit_stock', 'manage_staff', 'close_cashier', 'gate_control']
+    },
+    caixa: {
+        modules: ['comandas', 'pdv'],
+        actions: ['apply_discounts', 'close_cashier']
+    },
+    garcom: {
+        modules: ['comandas'],
+        actions: []
+    },
+    bar: {
+        modules: ['pdv'],
+        actions: []
+    },
+    balcao: {
+        modules: ['pdv'],
+        actions: []
+    },
+    cozinha: {
+        modules: ['comandas'],
+        actions: []
+    },
+    portaria: {
+        modules: ['portaria'],
+        actions: ['gate_control']
+    },
+    marketing: {
+        modules: ['dashboard'],
+        actions: []
+    }
+};
+
+const PERMISSIONS_KEY = 'riopreto_role_permissions';
+
+export function getRolePermissions() {
+    try {
+        const raw = localStorage.getItem(PERMISSIONS_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS));
+        const saved = JSON.parse(raw);
+        const merged = { ...DEFAULT_ROLE_PERMISSIONS, ...saved };
+        merged.ceo = JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS.ceo)); // CEO permissions always locked to full access
+        return merged;
+    } catch (e) {
+        return JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS));
+    }
+}
+
+export function saveRolePermissions(permissionsMap) {
+    try {
+        const toSave = { ...permissionsMap };
+        toSave.ceo = JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS.ceo));
+        localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(toSave));
+        return true;
+    } catch (e) {
+        console.error('Error saving role permissions:', e);
+        return false;
+    }
+}
+
+export function hasModulePermission(role, moduleKey) {
+    if (!role) return false;
+    if (role === 'ceo') return true;
+    const perms = getRolePermissions();
+    const rolePerms = perms[role] || DEFAULT_ROLE_PERMISSIONS[role];
+    if (!rolePerms || !rolePerms.modules) return false;
+    return rolePerms.modules.includes(moduleKey);
+}
+
+export function hasActionPermission(role, actionKey) {
+    if (!role) return false;
+    if (role === 'ceo') return true;
+    const perms = getRolePermissions();
+    const rolePerms = perms[role] || DEFAULT_ROLE_PERMISSIONS[role];
+    if (!rolePerms || !rolePerms.actions) return false;
+    return rolePerms.actions.includes(actionKey);
+}
+
+

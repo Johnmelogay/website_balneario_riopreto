@@ -3,7 +3,7 @@
  * Routing and Core Logic
  */
 import { supabase } from './scripts.js';
-import { loginStaff, getCurrentStaff, logoutStaff, ROLE_LABELS, ROLE_COLORS, ALLOWED_SISTEMA_ROLES } from './sistema_auth.js';
+import { loginStaff, getCurrentStaff, logoutStaff, ROLE_LABELS, ROLE_COLORS, ALLOWED_SISTEMA_ROLES, hasModulePermission } from './sistema_auth.js';
 
 // ====== STATE ======
 let currentPin = '';
@@ -92,7 +92,8 @@ const MODULES = {
     portaria:           { icon: 'door-open',        label: 'Portaria',               roles: ['admin', 'gerente', 'ceo', 'portaria'] },
     estoque:            { icon: 'boxes-stacked',    label: 'Estoque',                roles: ['admin', 'gerente', 'ceo'] },
     funcionarios:       { icon: 'users',            label: 'Gestão de Equipe (Staff)', roles: ['admin', 'gerente', 'ceo'] },
-    fechamento_semanal: { icon: 'file-csv',         label: 'Gerar Relatório (Fechamento)', roles: ['admin', 'gerente', 'ceo'] }
+    fechamento_semanal: { icon: 'file-csv',         label: 'Gerar Relatório (Fechamento)', roles: ['admin', 'gerente', 'ceo'] },
+    permissoes:         { icon: 'user-shield',      label: 'Permissões de Cargos',   roles: ['ceo'] }
 };
 
 function renderSidebar(role) {
@@ -100,7 +101,7 @@ function renderSidebar(role) {
     nav.innerHTML = '';
 
     Object.entries(MODULES).forEach(([key, mod]) => {
-        if (mod.roles.includes(role)) {
+        if (hasModulePermission(role, key)) {
             const btn = document.createElement('button');
             btn.className = `sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-500 hover:bg-emerald-50 hover:text-emerald-700 text-left ${key === activeModule ? 'active' : ''}`;
             btn.innerHTML = `<i class="fa-solid fa-${mod.icon} w-5 text-center"></i> ${mod.label}`;
@@ -108,7 +109,7 @@ function renderSidebar(role) {
             nav.appendChild(btn);
             
             // Auto-select first available if current is not allowed
-            if(activeModule === 'dashboard' && key !== 'dashboard' && !MODULES.dashboard.roles.includes(role)) {
+            if(activeModule === 'dashboard' && key !== 'dashboard' && !hasModulePermission(role, 'dashboard')) {
                 activeModule = key;
             }
         }
@@ -160,9 +161,14 @@ window.loadModule = (key) => {
             subEl.textContent = 'Relatório Geral com Exportação e Impressão';
             import(`./sistema_mods_fechamento.js?v=${Date.now()}`).then(m => m.renderFechamentoSemanal(content));
             break;
+        case 'permissoes':
+            subEl.textContent = 'Gerenciamento de Acessos e Níveis por Cargo (Exclusivo CEO)';
+            import('./sistema_mods_permissoes.js').then(m => m.renderPermissoes(content));
+            break;
         default:
             content.innerHTML = '<p class="text-gray-500 p-10 text-center">Módulo em desenvolvimento</p>';
     }
+
     // Auto-close sidebar on mobile after clicking a link
     const sidebar = document.getElementById('sysSidebar');
     if(sidebar && !sidebar.classList.contains('-translate-x-full')) {
