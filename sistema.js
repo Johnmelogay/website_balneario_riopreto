@@ -163,6 +163,10 @@ window.loadModule = (key) => {
             subEl.textContent = 'Relatório Geral com Exportação e Impressão';
             import(`./sistema_mods_fechamento.js?v=${Date.now()}`).then(m => m.renderFechamentoSemanal(content));
             break;
+        case 'impressoes':
+            subEl.textContent = 'Imprima fotos e imagens na Elgin i8 térmica';
+            import('./sistema_mods_impressoes.js').then(m => m.renderImpressoes(content));
+            break;
         case 'permissoes':
             subEl.textContent = 'Gerenciamento de Acessos e Níveis por Cargo (Exclusivo CEO)';
             import('./sistema_mods_permissoes.js').then(m => m.renderPermissoes(content));
