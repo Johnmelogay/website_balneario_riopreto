@@ -151,16 +151,17 @@ async function loadComandas(silent = false) {
             });
         }
 
-        // Group by location_type + location_id
+        // Group by location_type + location_id for active, but by order.id for closed
         const comandas = {};
         let totalVal = 0;
 
         orders.forEach(o => {
-            const comandaId = `${o.location_type}_${o.location_id}`;
+            const comandaId = currentTab === 'fechadas' ? o.id : `${o.location_type}_${o.location_id}`;
             if (!comandas[comandaId]) {
                 comandas[comandaId] = {
                     type: o.location_type,
                     id: o.location_id,
+                    order_id: o.id,
                     total: 0,
                     orders: [],
                     staffNames: new Set(),
@@ -262,7 +263,7 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
                              Ver Detalhes
                          </button>
                     ` : `
-                         <button onclick="window.cmdViewDetails('${c.type}', '${c.id}')" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition mb-2">
+                         <button onclick="window.cmdViewDetails('${c.type}', '${c.id}', '${c.order_id}')" class="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition mb-2">
                              Recibo
                          </button>
                     `}
@@ -280,16 +281,21 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
     content.innerHTML = html;
 }
 
-window.cmdViewDetails = async (type, id) => {
+window.cmdViewDetails = async (type, id, orderId = null) => {
     // Show modal with full receipt details
     const staff = getCurrentStaff();
     let query = supabase.from('orders').select('*, order_items(*), staff_users(name)').eq('location_type', type).eq('location_id', id);
-    if(currentTab === 'abertas') query = query.eq('payment_status', 'aberto').neq('status','cancelado');
-    else {
-        const [year, month, day] = filterDate.split('-').map(Number);
-        const startOfDay = new Date(year, month - 1, day, 0, 0, 0).toISOString();
-        const endOfDay = new Date(year, month - 1, day, 23, 59, 59).toISOString();
-        query = query.eq('payment_status', 'pago').gte('updated_at', startOfDay).lte('updated_at', endOfDay);
+    if(currentTab === 'abertas') {
+        query = query.eq('payment_status', 'aberto').neq('status','cancelado');
+    } else {
+        if (orderId && orderId !== 'undefined') {
+            query = query.eq('id', orderId);
+        } else {
+            const [year, month, day] = filterDate.split('-').map(Number);
+            const startOfDay = new Date(year, month - 1, day, 0, 0, 0).toISOString();
+            const endOfDay = new Date(year, month - 1, day, 23, 59, 59).toISOString();
+            query = query.eq('payment_status', 'pago').gte('updated_at', startOfDay).lte('updated_at', endOfDay);
+        }
     }
     
     // Garçom filter
