@@ -722,8 +722,9 @@ window.printCashierReceipt = async (type, id) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                location: `${type.toUpperCase()}: ${id}`,
-                customer: customerName,
+                type: type,
+                id: id,
+                customerName: customerName,
                 staff: staffName,
                 subtotal: subtotal,
                 serviceFee: serviceFee,
