@@ -36,6 +36,7 @@ export async function renderFechamentoSemanal(container){
 
     <div id="fsActions" class="hidden flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-200">
       <button id="fsCsv" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-black shadow-lg hover:bg-emerald-700 transition"><i class="fa-solid fa-file-csv mr-2"></i>Exportar CSV</button>
+      <button id="fsAi" class="bg-purple-600 text-white px-5 py-3 rounded-xl font-black shadow-lg hover:bg-purple-700 transition"><i class="fa-solid fa-robot mr-2"></i>Análise IA</button>
       <button id="fsSave" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-black shadow-lg hover:bg-blue-700 transition"><i class="fa-solid fa-floppy-disk mr-2"></i>Salvar no Banco</button>
       
       <div class="flex bg-indigo-50 rounded-xl overflow-hidden shadow-lg border border-indigo-200">
@@ -54,8 +55,14 @@ export async function renderFechamentoSemanal(container){
     const s = document.getElementById('fsStart').value, e = document.getElementById('fsEnd').value;
     if (!s || !e) return;
     document.getElementById('fsContent').innerHTML = '<div class="flex justify-center py-20"><i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600"></i></div>';
-    reportData = await loadReport(s, e);
-    renderReport(reportData);
+    try {
+        reportData = await loadReport(s, e);
+        renderReport(reportData);
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao gerar relatório: ' + err.message);
+        document.getElementById('fsContent').innerHTML = `<div class="text-center py-10 text-red-500 font-bold">Erro: ${err.message}</div>`;
+    }
   };
 
   async function loadReport(startDate, endDate){
@@ -184,7 +191,7 @@ export async function renderFechamentoSemanal(container){
         .limit(1);
 
     if (weekSnapshots && weekSnapshots.length > 0) {
-        (weekSnapshots[0].details.snapshot || []).forEach(s => initialStockMap[s.id] = s.qty);
+        (weekSnapshots[0]?.details?.snapshot || []).forEach(s => initialStockMap[s.id] = s.qty);
     } else {
         // Fallback to latest snapshot before period
         const { data: beforeSnapshots } = await supabase
@@ -195,7 +202,7 @@ export async function renderFechamentoSemanal(container){
             .order('created_at', { ascending: false })
             .limit(1);
         if (beforeSnapshots && beforeSnapshots.length > 0) {
-            (beforeSnapshots[0].details.snapshot || []).forEach(s => initialStockMap[s.id] = s.qty);
+            (beforeSnapshots[0]?.details?.snapshot || []).forEach(s => initialStockMap[s.id] = s.qty);
         }
     }
 
@@ -427,6 +434,7 @@ export async function renderFechamentoSemanal(container){
 
     document.getElementById('fsActions').classList.remove('hidden');
     document.getElementById('fsCsv').onclick = () => exportCSV(r);
+    document.getElementById('fsAi').onclick = () => exportToAI(r);
     document.getElementById('fsSave').onclick = () => saveClosing(r);
     
     document.getElementById('fsPrintAll').onclick = (e) => printReportElgin(r, 'all', e.target);
@@ -461,6 +469,44 @@ export async function renderFechamentoSemanal(container){
     const a = document.createElement('a');
     a.href = url; a.download = `fechamento_${r.startDate}_${r.endDate}.csv`;
     a.click(); URL.revokeObjectURL(url);
+  }
+
+  function exportToAI(r) {
+    let text = `Você é um consultor financeiro e de estoque analisando o fechamento do Balneário Rio Preto.\n\n`;
+    text += `PERÍODO: ${r.startDate} a ${r.endDate}\n\n`;
+    text += `RESUMO FINANCEIRO (Valores Pagos):\n`;
+    text += `- Cozinha: ${fmt(r.totalCozinha)}\n`;
+    text += `- Bar: ${fmt(r.totalBar)}\n`;
+    text += `- Portaria: ${fmt(r.totalPortaria)}\n`;
+    text += `- Chalés: ${fmt(r.totalChalets)}\n`;
+    text += `=> TOTAL RECEBIDO: ${fmt(r.totalEfetivoPago)}\n\n`;
+    
+    text += `COMANDAS EM ABERTO (A RECEBER):\n`;
+    text += `Total Pendente: ${fmt(r.totalOpenOrdersAmount)} (${r.openOrdersData.length} comandas)\n\n`;
+    
+    text += `FORMAS DE PAGAMENTO:\n`;
+    text += `- Dinheiro: ${fmt(r.payMethods.dinheiro)}\n`;
+    text += `- PIX: ${fmt(r.payMethods.pix)}\n`;
+    text += `- Crédito: ${fmt(r.payMethods.cartao_credito)}\n`;
+    text += `- Débito: ${fmt(r.payMethods.cartao_debito)}\n\n`;
+
+    text += `AUDITORIA DE ESTOQUE (PRODUTOS COM DIFERENÇA):\n`;
+    const losses = r.stockComparison.filter(p => p.diff !== 0);
+    if (losses.length === 0) {
+        text += `Sem perdas detectadas no estoque.\n\n`;
+    } else {
+        losses.forEach(p => {
+            text += `- ${p.name}: Inicial (${p.initialStock}) - Vendidos (${p.qtySold}) = Esperado (${p.finalExpected}). Mas o Real é (${p.finalReal}). Diferença: ${p.diff} un.\n`;
+        });
+    }
+
+    text += `\nPor favor, analise esses dados e me diga:\n1. Onde estão os possíveis furos ou anomalias financeiras?\n2. Como posso melhorar o controle do que apresentou perda no estoque?\n3. Qual é o resumo geral da saúde dessa semana?`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Dados formatados copiados para a área de transferência! Cole no ChatGPT ou Claude para analisar.');
+    }).catch(err => {
+        alert('Erro ao copiar. Use o arquivo CSV. ' + err);
+    });
   }
 
   async function saveClosing(r){
