@@ -378,6 +378,7 @@ window.cmdPromptClose = async (type, id) => {
 
 function renderCashierModal(type, id) {
     const locLabel = type === 'chale' ? `CHALÉ ${id}` : type === 'mesa' ? `MESA ${id.replace('M','')}` : `BALCÃO ${id}`;
+    const allItems = cashierActiveOrders.flatMap(o => o.order_items || []);
     const customerName = cashierActiveOrders.find(o => o.customer_name?.trim())?.customer_name?.trim() || '';
     const staffNames = Array.from(new Set(cashierActiveOrders.map(o => o.staff_users?.name).filter(Boolean)));
     const staffLabel = staffNames.length > 0 ? staffNames.join(', ') : 'Equipe Rio Preto';
