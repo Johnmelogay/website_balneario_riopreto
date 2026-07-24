@@ -1,5 +1,5 @@
 // elgin_printer_server.js
-// Servidor de Impressão Direta em Alta Resolução (Logo Ampliada + Margem Superior/Inferior Equilibrada)
+// Servidor de Impressão Direta em Alta Resolução (Suporte a Relatórios Longos Sem Corte de Buffer)
 
 const http = require('http');
 const usb = require('usb');
@@ -10,7 +10,18 @@ const PNG = require('pngjs').PNG;
 
 const PORT = 3001;
 
-// ====== RENDERIZA HTML E CORTA O ESPAÇO EM BRANCO AUTOMATICAMENTE ======
+/**
+ * Envia o buffer para o endpoint USB em pacotes menores (16 KB)
+ * Evita estouro de buffer no controlador USB do macOS e na impressora.
+ */
+async function sendUsbBufferInChunks(dev, endpointAddr, buffer, chunkSize = 16384) {
+    for (let i = 0; i < buffer.length; i += chunkSize) {
+        const chunk = buffer.subarray(i, i + chunkSize);
+        await dev.transferOut(endpointAddr, chunk);
+    }
+}
+
+// ====== RENDERIZA HTML E FATIA EM BLOCOS ESC/POS (UNLIMITED HEIGHT) ======
 function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const tempHtmlPath = path.join(__dirname, 'temp_receipt_render.html');
     const tempPngPath = path.join(__dirname, 'temp_receipt_render.png');
@@ -18,7 +29,7 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     fs.writeFileSync(tempHtmlPath, htmlContent);
 
     const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    const cmd = `"${chromePath}" --headless --disable-gpu --hide-scrollbars --screenshot="${tempPngPath}" --window-size=576,16000 "${tempHtmlPath}"`;
+    const cmd = `"${chromePath}" --headless --disable-gpu --hide-scrollbars --screenshot="${tempPngPath}" --window-size=576,32000 "${tempHtmlPath}"`;
     
     execSync(cmd);
 
@@ -47,12 +58,11 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
         if (lastY > 0) break;
     }
 
-
     // Margem equilibrada de 45px no final para combinar com o topo
     const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 45) : png.height;
     const height = Math.floor(targetWidth * (croppedHeight / png.width));
 
-    const rasterData = Buffer.alloc(widthBytes * height);
+    const fullRasterData = Buffer.alloc(widthBytes * height);
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -72,7 +82,7 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
             if (isBlack) {
                 const byteIdx = y * widthBytes + Math.floor(x / 8);
                 const bitIdx = 7 - (x % 8);
-                rasterData[byteIdx] |= (1 << bitIdx);
+                fullRasterData[byteIdx] |= (1 << bitIdx);
             }
         }
     }
@@ -83,13 +93,32 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
         fs.unlinkSync(tempPngPath);
     } catch(e) {}
 
-    const header = Buffer.from([
-        0x1D, 0x76, 0x30, 0x00,
-        widthBytes % 256, Math.floor(widthBytes / 256),
-        height % 256, Math.floor(height / 256)
-    ]);
+    // Fatiar a imagem em blocos verticais (chunks) de 256 linhas (dots) cada
+    // Isso evita o estouro do buffer da Elgin i8 e garante impressão contínua de relatórios longos sem cortes!
+    const CHUNK_HEIGHT = 256;
+    const chunks = [];
 
-    return Buffer.concat([header, rasterData]);
+    for (let chunkY = 0; chunkY < height; chunkY += CHUNK_HEIGHT) {
+        const sliceHeight = Math.min(CHUNK_HEIGHT, height - chunkY);
+        const sliceRaster = Buffer.alloc(widthBytes * sliceHeight);
+
+        for (let y = 0; y < sliceHeight; y++) {
+            const globalY = chunkY + y;
+            const srcByteIdx = globalY * widthBytes;
+            const dstByteIdx = y * widthBytes;
+            fullRasterData.copy(sliceRaster, dstByteIdx, srcByteIdx, srcByteIdx + widthBytes);
+        }
+
+        const chunkHeader = Buffer.from([
+            0x1D, 0x76, 0x30, 0x00,
+            widthBytes % 256, Math.floor(widthBytes / 256),
+            sliceHeight % 256, Math.floor(sliceHeight / 256)
+        ]);
+
+        chunks.push(Buffer.concat([chunkHeader, sliceRaster]));
+    }
+
+    return Buffer.concat(chunks);
 }
 
 let isPrinting = false;
@@ -173,16 +202,17 @@ async function printGenericHtml(htmlContent) {
             FEED_CUT
         ]);
 
-        await dev.transferOut(1, payload);
+        await sendUsbBufferInChunks(dev, 1, payload);
 
         try {
             await dev.releaseInterface(0);
         } catch (e) {}
 
-        console.log("🎨 RELATÓRIO IMPRESSO COM SUCESSO!");
+        console.log("🎨 RELATÓRIO IMPRESSO COM SUCESSO (SEM CORTE E ALTURA ILIMITADA)!");
 
     } finally {
         if (dev) {
+
             try {
                 await dev.close();
             } catch (e) {}
@@ -248,58 +278,36 @@ async function printVisualPdfHardware(data) {
                     .logo { width: 140px; height: 140px; margin: 0 auto 4px auto; display: block; object-fit: contain; filter: contrast(180%); }
                     .brand-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 30px; color: #000000; text-transform: uppercase; letter-spacing: -0.5px; line-height: 1.1; }
                     .subtitle { font-size: 15px; font-weight: 900; color: #000000; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-                    
-                    .info-box { border: 2.5px solid #000000; border-radius: 14px; padding: 12px 14px; margin: 12px 0; font-size: 18px; }
-                    .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-                    .info-row:last-child { margin-bottom: 0; }
-                    .info-label { color: #000000; font-weight: 800; }
-                    .info-val { color: #000000; font-weight: 900; }
-
-                    .items-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 19px; }
-                    .items-table th { font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 3px solid #000000; padding-bottom: 6px; text-align: left; }
-                    .items-table th.right { text-align: right; }
-
-                    .summary-box { border: 3px solid #000000; border-radius: 16px; padding: 14px; margin: 12px 0; }
-                    .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 18px; }
-                    .summary-row.total { border-top: 3px solid #000000; padding-top: 10px; margin-top: 8px; margin-bottom: 0; }
-                    .total-title { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 24px; color: #000000; }
-                    .total-amount { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 34px; color: #000000; }
-
-                    .footer { text-align: center; margin-top: 12px; padding-top: 10px; border-top: 2px dashed #000000; font-size: 14px; color: #000000; }
-                    .footer-highlight { font-weight: 900; color: #000000; font-size: 15px; margin-bottom: 3px; }
+                    .details-box { border: 2px solid #000000; border-radius: 8px; padding: 10px; margin: 12px 0; background: #ffffff; }
+                    .table-header { border-bottom: 3px solid #000000; font-weight: 900; font-size: 17px; padding-bottom: 6px; }
+                    .totals-card { border: 3px solid #000000; border-radius: 10px; padding: 12px; margin-top: 14px; background: #ffffff; }
+                    .total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; padding: 3px 0; color: #000000; }
+                    .grand-total { display: flex; justify-content: space-between; font-size: 26px; font-weight: 900; border-top: 3px solid #000000; padding-top: 8px; margin-top: 6px; color: #000000; }
+                    .footer { text-align: center; margin-top: 14px; font-size: 15px; font-weight: 800; color: #000000; }
                 </style>
             </head>
             <body>
                 <div class="header">
-                    <img src="https://balnearioriopreto.com.br/images/logo_opt.png" alt="Logo" class="logo" onerror="this.style.display='none'">
-                    <h1 class="brand-title">Balneário Rio Preto</h1>
-                    <div class="subtitle">Conferência de Consumo</div>
+                    <img src="https://balnearioriopreto.com.br/logo.png" class="logo" onerror="this.style.display='none'">
+                    <div class="brand-title">Balneário Rio Preto</div>
+                    <div class="subtitle">Extrato de Consumo • Comanda</div>
                 </div>
 
-                <div class="info-box">
-                    <div class="info-row">
-                        <span class="info-label">LOCAL / COMANDA:</span>
-                        <span class="info-val" style="font-size: 22px;">${data.location || 'MESA'}</span>
+                <div class="details-box">
+                    <div style="font-size: 20px; font-weight: 900; color: #000000; text-align: center; margin-bottom: 6px; text-transform: uppercase;">
+                        ${data.type?.toUpperCase()} ${data.id} ${data.customerName ? '• ' + data.customerName.toUpperCase() : ''}
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">CLIENTE:</span>
-                        <span class="info-val">${data.customer || 'Não Informado'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">ATENDENTE:</span>
-                        <span class="info-val">${data.staff || 'Caixa Central'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">DATA & HORA:</span>
-                        <span class="info-val">${nowStr}</span>
+                    <div style="font-size: 15px; font-weight: 800; color: #000000; display: flex; justify-content: space-between; border-top: 1px dashed #000; padding-top: 6px;">
+                        <span>Data: ${nowStr}</span>
+                        <span>Garçom: ${data.staff || 'Equipe'}</span>
                     </div>
                 </div>
 
-                <table class="items-table">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
                     <thead>
-                        <tr>
-                            <th>Item / Descrição</th>
-                            <th class="right">Valor</th>
+                        <tr class="table-header">
+                            <th style="text-align: left;">ITEM DE CONSUMO</th>
+                            <th style="text-align: right; width: 100px;">VALOR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -307,32 +315,30 @@ async function printVisualPdfHardware(data) {
                     </tbody>
                 </table>
 
-                <div class="summary-box">
-                    <div class="summary-row">
-                        <span style="font-weight: 800;">Consumo Produtos:</span>
-                        <span style="font-weight: 900;">R$ ${subtotal}</span>
+                <div class="totals-card">
+                    <div class="total-row">
+                        <span>Consumo Produtos:</span>
+                        <span>R$ ${subtotal}</span>
                     </div>
-                    <div class="summary-row">
-                        <span style="font-weight: 800;">Taxa de Serviço 10% (Garçons):</span>
-                        <span style="font-weight: 900;">R$ ${serviceFee}</span>
-                    </div>
-                    <div class="summary-row total">
-                        <span class="total-title">TOTAL A RECEBER:</span>
-                        <span class="total-amount">R$ ${grandTotal}</span>
+                    ${data.serviceFee > 0 ? `
+                        <div class="total-row">
+                            <span>Taxa de Serviço (10%):</span>
+                            <span>R$ ${serviceFee}</span>
+                        </div>
+                    ` : ''}
+                    <div class="grand-total">
+                        <span>TOTAL A PAGAR:</span>
+                        <span>R$ ${grandTotal}</span>
                     </div>
                 </div>
 
                 <div class="footer">
-                    <div class="footer-highlight">*** GUIA DE CONFERÊNCIA ***</div>
-                    <p style="margin: 3px 0; font-weight: 700;">A taxa de serviço de 10% é opcional aos garçons.</p>
-                    <p style="margin: 3px 0; font-weight: 900;">Obrigado pela preferência e volte sempre! 🌿</p>
-                    <p style="margin-top: 6px; font-size: 13px; color: #000000; font-weight: 800;">balnearioriopreto.com.br</p>
+                    Obrigado pela preferência! Volte Sempre 🍃
                 </div>
             </body>
             </html>
         `;
 
-        // Render HTML to 576-dot full-width raster bitmap
         const rasterBuffer = htmlToEscPosRaster(receiptHtml, 576);
 
         await dev.open();
@@ -347,13 +353,13 @@ async function printVisualPdfHardware(data) {
             FEED_CUT
         ]);
 
-        await dev.transferOut(1, payload);
+        await sendUsbBufferInChunks(dev, 1, payload);
 
         try {
             await dev.releaseInterface(0);
         } catch (e) {}
 
-        console.log("🎨 IMPRESSÃO COM LOGO AMPLIADA E MARGENS EQUILIBRADAS CONCLUÍDA NA ELGIN i8!");
+        console.log("🎨 IMPRESSÃO CONCLUÍDA NA ELGIN i8 SEM NENHUM CORTE!");
     } finally {
         if (dev) {
             try {
@@ -365,5 +371,5 @@ async function printVisualPdfHardware(data) {
 }
 
 server.listen(PORT, () => {
-    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Logo Ampliada + Margens Equilibradas) ativo na porta ${PORT}`);
+    console.log(`🖨️ Servidor Direto de Hardware Elgin i8 (Suporte a Relatórios Longos Sem Corte) ativo na porta ${PORT}`);
 });
