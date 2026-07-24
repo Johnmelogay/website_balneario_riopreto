@@ -18,7 +18,7 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     fs.writeFileSync(tempHtmlPath, htmlContent);
 
     const chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    const cmd = `"${chromePath}" --headless --disable-gpu --screenshot="${tempPngPath}" --window-size=576,1600 "${tempHtmlPath}"`;
+    const cmd = `"${chromePath}" --headless --disable-gpu --hide-scrollbars --screenshot="${tempPngPath}" --window-size=576,16000 "${tempHtmlPath}"`;
     
     execSync(cmd);
 
@@ -32,10 +32,10 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
     const width = targetWidth;
     const widthBytes = Math.ceil(width / 8);
 
-    // Encontrar a última linha vertical com pixels pretos para ajustar o corte equilibrado no final
+    // Encontrar a última linha vertical com conteúdo real (ignorando bordas extremas do viewport)
     let lastY = 0;
     for (let y = png.height - 1; y >= 0; y--) {
-        for (let x = 0; x < png.width; x++) {
+        for (let x = 8; x < png.width - 8; x++) {
             const idx = (y * png.width + x) * 4;
             const a = png.data[idx + 3];
             const lum = png.data[idx] * 0.299 + png.data[idx + 1] * 0.587 + png.data[idx + 2] * 0.114;
@@ -46,6 +46,7 @@ function htmlToEscPosRaster(htmlContent, targetWidth = 576) {
         }
         if (lastY > 0) break;
     }
+
 
     // Margem equilibrada de 45px no final para combinar com o topo
     const croppedHeight = lastY > 0 ? Math.min(png.height, lastY + 45) : png.height;

@@ -414,7 +414,8 @@ export async function renderFechamentoSemanal(container){
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
                 <style>
                     * { box-sizing: border-box; }
-                    body { font-family: 'Inter', monospace; width: 576px; margin: 0; padding: 12px 16px 20px 16px; color: black; background: white; font-size: 18px; line-height: 1.3; }
+                    body { font-family: 'Inter', monospace; width: 576px; margin: 0; padding: 12px 16px 30px 16px; color: black; background: #ffffff; font-size: 18px; line-height: 1.3; overflow: hidden; }
+
                     h2 { text-align: center; margin: 0 0 10px 0; border-bottom: 3px solid black; padding-bottom: 8px; font-size: 28px; font-weight: 900; text-transform: uppercase; }
                     h3 { font-size: 20px; font-weight: 900; margin: 16px 0 6px 0; text-transform: uppercase; border-bottom: 1px solid black; padding-bottom: 2px; }
                     .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
