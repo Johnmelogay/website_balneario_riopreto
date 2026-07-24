@@ -150,9 +150,10 @@ window.loadModule = (key) => {
             import('./sistema_mods_func.js').then(m => m.renderFuncionarios(content));
             break;
         case 'pdv':
-            subEl.textContent = 'Lançamento rápido (Balcão)';
-            import('./sistema_mods_pdv.js').then(m => m.renderPDV(content));
+            subEl.textContent = 'Frente de Caixa Balcão • Vendas Rápidas, Sangria e Suprimento';
+            import(`./sistema_mods_pdv.js?v=${Date.now()}`).then(m => m.renderPDV(content));
             break;
+
         case 'portaria':
             subEl.textContent = 'Registro de visitantes e Day Use';
             import('./sistema_mods_2.js').then(m => m.renderPortaria(content));
