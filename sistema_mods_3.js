@@ -281,7 +281,7 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
 window.cmdViewDetails = async (type, id) => {
     // Show modal with full receipt details
     const staff = getCurrentStaff();
-    let query = supabase.from('orders').select('*, order_items(*)').eq('location_type', type).eq('location_id', id);
+    let query = supabase.from('orders').select('*, order_items(*), staff_users(name)').eq('location_type', type).eq('location_id', id);
     if(currentTab === 'abertas') query = query.eq('payment_status', 'aberto').neq('status','cancelado');
     else {
         const [year, month, day] = filterDate.split('-').map(Number);
@@ -298,6 +298,10 @@ window.cmdViewDetails = async (type, id) => {
     if(!orders || orders.length === 0) return;
     
     const allItems = orders.flatMap(o => o.order_items);
+    const customerName = orders.find(o => o.customer_name?.trim())?.customer_name?.trim() || '';
+    const waiterNames = Array.from(new Set(orders.map(o => o.staff_users?.name).filter(Boolean)));
+    const waiterLabel = waiterNames.length > 0 ? waiterNames.join(', ') : 'Sem Garçom';
+    const typeLabel = type === 'chale' ? 'CHALÉ' : type === 'barraca' ? 'BARRACA' : 'MESA';
     let total = 0;
     
     document.getElementById('modalContainer').innerHTML = `
@@ -307,8 +311,13 @@ window.cmdViewDetails = async (type, id) => {
                     <button onclick="window.closeMod()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
                     <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3 text-white text-2xl border border-white/20"><i class="fa-solid fa-receipt"></i></div>
                     <h3 class="text-white font-black tracking-widest uppercase mb-1">Extrato de Consumo</h3>
-                    <p class="text-emerald-400 font-bold text-xs uppercase tracking-widest">${type} ${id}</p>
+                    <p class="text-emerald-400 font-black text-sm uppercase tracking-widest">${typeLabel} ${id} ${customerName ? '• ' + customerName.toUpperCase() : ''}</p>
+                    <div class="mt-3 flex flex-wrap justify-center gap-2 text-xs font-bold text-gray-300">
+                        <span class="bg-white/10 px-2.5 py-1 rounded-lg border border-white/10"><i class="fa-solid fa-user-tag text-amber-400 mr-1.5"></i>Cliente: ${customerName || 'Não Informado'}</span>
+                        <span class="bg-white/10 px-2.5 py-1 rounded-lg border border-white/10"><i class="fa-solid fa-user-tie text-emerald-400 mr-1.5"></i>Garçom: ${waiterLabel}</span>
+                    </div>
                 </div>
+
                 
                 <div class="p-6 bg-white overflow-y-auto max-h-[50vh]">
                     <div class="space-y-3">
@@ -368,7 +377,7 @@ window.cmdPromptClose = async (type, id) => {
 
 function renderCashierModal(type, id) {
     const locLabel = type === 'chale' ? `CHALÉ ${id}` : type === 'mesa' ? `MESA ${id.replace('M','')}` : `BALCÃO ${id}`;
-    const allItems = cashierActiveOrders.flatMap(o => o.order_items || []);
+    const customerName = cashierActiveOrders.find(o => o.customer_name?.trim())?.customer_name?.trim() || '';
     const staffNames = Array.from(new Set(cashierActiveOrders.map(o => o.staff_users?.name).filter(Boolean)));
     const staffLabel = staffNames.length > 0 ? staffNames.join(', ') : 'Equipe Rio Preto';
 
@@ -382,10 +391,11 @@ function renderCashierModal(type, id) {
                         <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white text-2xl border border-white/20"><i class="fa-solid fa-cash-register"></i></div>
                         <div>
                             <h3 class="font-black text-lg leading-tight">Caixa Central • Fechamento</h3>
-                            <p class="text-emerald-300 text-xs font-bold uppercase tracking-wider">${locLabel} • Atendente: ${staffLabel}</p>
+                            <p class="text-emerald-300 text-xs font-black uppercase tracking-wider">${locLabel} ${customerName ? '• ' + customerName.toUpperCase() : ''} • Garçom: ${staffLabel}</p>
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Financial Summary -->
                 <div class="p-6 bg-white space-y-4 overflow-y-auto flex-1 min-h-0">

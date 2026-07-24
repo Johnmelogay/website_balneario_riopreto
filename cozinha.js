@@ -254,14 +254,17 @@ function speakOrder(order) {
 
         const itemsText = relevantItems.map(i => `${i.quantity} ${i.product_name}`).join(', ');
         const staffName = order.staff_users?.name || 'Garçom';
+        const customerName = order.customer_name?.trim() || '';
         const loc = order.location_type === 'chale' ? 'Chalé ' + order.location_id :
                     order.location_type === 'mesa' ? 'Mesa ' + order.location_id.replace('M','') :
                     'Balcão ' + order.location_id;
 
-        const text = `Novo pedido! ${loc}. Garçom ${staffName}. ${itemsText}.`;
+        const custText = customerName ? `. Cliente: ${customerName}` : '';
+        const text = `Novo pedido número ${order.order_number}! ${loc}${custText}. Garçom: ${staffName}. Itens: ${itemsText}.`;
 
         // Tocamos o sininho cristalino primeiro
         playBellChime();
+
 
         // Aguardamos 500ms para a voz começar limpa após o sininho
         setTimeout(() => {
@@ -391,6 +394,7 @@ function orderCard(order) {
             : 'Balcão';
 
     const staffName = order.staff_users?.name || '—';
+    const customerName = order.customer_name?.trim() || '';
 
     return `
         <div id="card-${order.id}" class="order-card-container ${cardBg} ${statusClass} rounded-2xl overflow-hidden border border-stone-700" data-created="${order.created_at}" data-status="${order.status}">
@@ -398,22 +402,30 @@ function orderCard(order) {
             <div class="px-4 pt-4 pb-2 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="${statusBg} text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase">${statusLabel}</span>
-                    <span class="text-white font-black text-lg">#${order.order_number}</span>
+                    <span class="text-white font-black text-lg">#${order.order_number}${customerName ? ' • ' + customerName.toUpperCase() : ''}</span>
                 </div>
                 <div class="text-right">
                     <p class="${timeColor} time-display font-mono font-bold text-sm"><i class="fa-regular fa-clock mr-1"></i>${timeStr}</p>
                 </div>
             </div>
 
-            <!-- Location -->
-            <div class="px-4 pb-3 flex items-center justify-between">
-                <p class="text-stone-400 text-xs font-bold">
-                    <i class="fa-solid fa-location-dot mr-1"></i>${locLabel}
-                </p>
-                <p class="text-stone-500 text-[10px] font-medium">
-                    <i class="fa-solid fa-user mr-1"></i>${staffName}
-                </p>
+            <!-- Location & Customer / Garçom Info -->
+            <div class="px-4 pb-3 flex flex-col space-y-1 border-b border-stone-700/50 mb-2">
+                <div class="flex items-center justify-between">
+                    <p class="text-emerald-400 font-black text-xs">
+                        <i class="fa-solid fa-location-dot mr-1"></i>${locLabel}
+                    </p>
+                    <p class="text-stone-300 text-xs font-bold">
+                        <i class="fa-solid fa-user-tie mr-1 text-emerald-400"></i>Garçom: ${staffName}
+                    </p>
+                </div>
+                ${customerName ? `
+                    <p class="text-amber-300 text-xs font-black truncate">
+                        <i class="fa-solid fa-user-tag mr-1"></i>Cliente: ${customerName}
+                    </p>
+                ` : ''}
             </div>
+
 
             <!-- Items -->
             <div class="px-4 pb-3 space-y-2">
