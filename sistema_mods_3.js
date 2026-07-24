@@ -103,15 +103,12 @@ async function loadComandas(silent = false) {
                 const selectEl = document.getElementById('cmdFilterStaff');
                 if (selectEl) {
                     selectEl.innerHTML = `
-                        <option value="all" ${selectedStaffId === 'all' ? 'selected' : ''}>Todos os Garçons</option>
-                        ${allStaffMembers.map(s => `<option value="${s.id}" ${selectedStaffId === s.id ? 'selected' : ''}>${s.name} (${s.role})</option>`).join('')}
-                    `;
-                }
-            }
-        } catch(e) {
-            console.warn('Error fetching staff members:', e);
-        }
-    }
+    loadComandas();
+};
+
+window.loadComandas = async () => {
+    const staff = getCurrentStaff();
+    if(!staff) return;
 
     // Se o garçom entra, ele só vê as dele (ou admin/caixa/gerente/ceo vê de todos)
     const isAdminOrCaixa = ['admin', 'caixa', 'gerente', 'ceo'].includes(staff.role) || hasActionPermission(staff.role, 'close_cashier');
@@ -124,13 +121,11 @@ async function loadComandas(silent = false) {
         if (currentTab === 'abertas') {
             query = query.eq('payment_status', 'aberto').neq('status', 'cancelado');
         } else {
-            // Histórico (Fechadas) - Filter by updated_at to show when comandas were closed
-            const [year, month, day] = filterDate.split('-').map(Number);
-            const startOfDay = new Date(year, month - 1, day, 0, 0, 0).toISOString();
-            const endOfDay = new Date(year, month - 1, day, 23, 59, 59).toISOString();
-            query = query.eq('payment_status', 'pago')
-                         .gte('updated_at', startOfDay)
-                         .lte('updated_at', endOfDay);
+            // Histórico (Fechadas) - Query wide range around filterDate and filter by Porto Velho timezone in JS
+            const [y, m, d] = filterDate.split('-').map(Number);
+            const fetchStart = new Date(Date.UTC(y, m - 1, d - 1, 0, 0, 0)).toISOString();
+            const fetchEnd = new Date(Date.UTC(y, m - 1, d + 2, 23, 59, 59)).toISOString();
+            query = query.eq('payment_status', 'pago').gte('created_at', fetchStart).lte('created_at', fetchEnd);
         }
 
         // Apply staff filter
@@ -140,15 +135,23 @@ async function loadComandas(silent = false) {
             query = query.eq('staff_id', staff.id);
         }
 
-        const { data: orders, error } = await query;
+        const { data: rawOrders, error } = await query;
         
         if (error) throw error;
+
+        let orders = rawOrders || [];
+        if (currentTab === 'fechadas') {
+            orders = orders.filter(o => {
+                const orderLocalDate = new Date(o.created_at || o.updated_at).toLocaleDateString('sv-SE', { timeZone: 'America/Porto_Velho' });
+                return orderLocalDate === filterDate;
+            });
+        }
 
         // Group by location_type + location_id
         const comandas = {};
         let totalVal = 0;
 
-        (orders || []).forEach(o => {
+        orders.forEach(o => {
             const comandaId = `${o.location_type}_${o.location_id}`;
             if (!comandas[comandaId]) {
                 comandas[comandaId] = {
@@ -160,18 +163,14 @@ async function loadComandas(silent = false) {
                     daily_seq: o.daily_seq || 999999
                 };
             }
-            if (o.daily_seq && o.daily_seq < comandas[comandaId].daily_seq) {
-                comandas[comandaId].daily_seq = o.daily_seq;
-            }
-            comandas[comandaId].total += Number(o.total);
             comandas[comandaId].orders.push(o);
-            if(o.staff_users?.name) comandas[comandaId].staffNames.add(o.staff_users.name.split(' ')[0]);
-            totalVal += Number(o.total);
+            comandas[comandaId].total += Number(o.total || 0);
+            if (o.staff_users?.name) comandas[comandaId].staffNames.add(o.staff_users.name);
+            totalVal += Number(o.total || 0);
         });
 
-        // Sort by daily_seq ascending
-        const comandasArr = Object.values(comandas).sort((a, b) => a.daily_seq - b.daily_seq);
-        renderComandasGrid(comandasArr, isAdminOrCaixa, totalVal);
+        renderComandasGrid(Object.values(comandas), isAdminOrCaixa, totalVal);
+
 
     } catch (e) {
         console.error(e);
