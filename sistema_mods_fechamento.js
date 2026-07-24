@@ -589,6 +589,26 @@ export async function renderFechamentoSemanal(container){
             `;
         }
 
+        let pedidosHtml = '';
+        if (type === 'all' || type === 'pedidos') {
+            pedidosHtml = `
+                <h3>PEDIDOS PAGOS</h3>
+                ${(r.paidOrdersData || []).map(o => {
+                    let pms = [];
+                    if (o.split_pix > 0) pms.push('Pix'); if (o.split_dinheiro > 0) pms.push('Dinheiro');
+                    if (o.split_credito > 0) pms.push('Crédito'); if (o.split_debito > 0) pms.push('Débito');
+                    let pgto = pms.join(', ') || String(o.payment_method || '').toUpperCase();
+                    return \`
+                    <div style="border-bottom: 1px dashed #666; padding-bottom: 6px; margin-bottom: 6px;">
+                        <div class="row"><b style="font-size: 18px;">#\${o.order_number || o.id.substring(0,5)} • \${(o.location_type || 'Mesa').toUpperCase()} \${o.location_id}</b> <b>R$ \${Number(Number(o.total || 0) + Number(o.service_fee || 0)).toFixed(2)}</b></div>
+                        <div class="row sub"><span>Cliente: \${o.customer_name || 'Não informado'}</span> <span>Garçom: \${o.staff_users?.name || 'Sistema'}</span></div>
+                        <div class="row sub" style="font-size: 14px;"><span>Pgto: \${pgto}</span> <span>Taxa 10%: R$ \${Number(o.service_fee || 0).toFixed(2)}</span></div>
+                    </div>
+                    \`;
+                }).join('') || '<div class="row">Nenhum pedido pago.</div>'}
+            `;
+        }
+
         let html = `
             <html>
             <head>
@@ -609,6 +629,7 @@ export async function renderFechamentoSemanal(container){
                 ${resumoHtml}
                 ${abertasHtml}
                 ${estoqueHtml}
+                ${pedidosHtml}
                 <div style="text-align: center; font-size: 16px; margin-top: 20px; font-weight: bold;">-- FIM DO RELATÓRIO --</div>
             </body>
             </html>
