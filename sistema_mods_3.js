@@ -128,7 +128,7 @@ async function loadComandas(silent = false) {
             const [y, m, d] = filterDate.split('-').map(Number);
             const fetchStart = new Date(Date.UTC(y, m - 1, d - 1, 0, 0, 0)).toISOString();
             const fetchEnd = new Date(Date.UTC(y, m - 1, d + 2, 23, 59, 59)).toISOString();
-            query = query.eq('payment_status', 'pago').gte('created_at', fetchStart).lte('created_at', fetchEnd);
+            query = query.eq('payment_status', 'pago').gte('updated_at', fetchStart).lte('updated_at', fetchEnd);
         }
 
         // Apply staff filter
@@ -145,7 +145,8 @@ async function loadComandas(silent = false) {
         let orders = rawOrders || [];
         if (currentTab === 'fechadas') {
             orders = orders.filter(o => {
-                const orderLocalDate = new Date(o.created_at || o.updated_at).toLocaleDateString('sv-SE', { timeZone: 'America/Porto_Velho' });
+                // For closed orders, the relevant date is when it was closed (updated_at)
+                const orderLocalDate = new Date(o.updated_at).toLocaleDateString('sv-SE', { timeZone: 'America/Porto_Velho' });
                 return orderLocalDate === filterDate;
             });
         }
