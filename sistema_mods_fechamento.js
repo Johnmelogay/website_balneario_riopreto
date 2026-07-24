@@ -365,24 +365,24 @@ export async function renderFechamentoSemanal(container){
           <tbody>
             ${(r.stockComparison || []).map(p => {
               let auditBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">OK (Bateu)</span>';
-              if (p.diff < 0) auditBadge = \`<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Perda: \${p.diff} un</span>\`;
-              else if (p.diff > 0) auditBadge = \`<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Sobra: +\${p.diff} un</span>\`;
+              if (p.diff < 0) auditBadge = `<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Perda: ${p.diff} un</span>`;
+              else if (p.diff > 0) auditBadge = `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Sobra: +${p.diff} un</span>`;
               
               if (!p.hasSnapshot) auditBadge = '<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[10px] font-black uppercase" title="Baseado em cálculo reverso">Sem Saldo</span>';
 
-              return \`
+              return `
                 <tr class="border-t border-gray-100 hover:bg-gray-50/50 transition">
                   <td class="py-2.5 px-3 font-bold text-gray-800">
-                    <div>\${p.name}</div>
-                    <div class="text-[10px] text-gray-400">\${p.category}</div>
+                    <div>${p.name}</div>
+                    <div class="text-[10px] text-gray-400">${p.category}</div>
                   </td>
-                  <td class="py-2.5 px-3 text-center font-bold text-gray-600">\${p.initialStock} un</td>
-                  <td class="py-2.5 px-3 text-center font-black text-rose-600">-\${p.qtySold} un</td>
-                  <td class="py-2.5 px-3 text-center font-black text-gray-800 border-l border-gray-200 bg-gray-50/30">\${p.finalExpected} un</td>
-                  <td class="py-2.5 px-3 text-center font-black text-gray-800">\${p.finalReal} un</td>
-                  <td class="py-2.5 px-3 text-center">\${auditBadge}</td>
+                  <td class="py-2.5 px-3 text-center font-bold text-gray-600">${p.initialStock} un</td>
+                  <td class="py-2.5 px-3 text-center font-black text-rose-600">-${p.qtySold} un</td>
+                  <td class="py-2.5 px-3 text-center font-black text-gray-800 border-l border-gray-200 bg-gray-50/30">${p.finalExpected} un</td>
+                  <td class="py-2.5 px-3 text-center font-black text-gray-800">${p.finalReal} un</td>
+                  <td class="py-2.5 px-3 text-center">${auditBadge}</td>
                 </tr>
-              \`;
+              `;
             }).join('') || '<tr><td colspan="6" class="py-4 text-center text-gray-400">Nenhum produto controlado cadastrado.</td></tr>'}
           </tbody>
         </table>

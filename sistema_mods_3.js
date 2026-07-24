@@ -103,12 +103,15 @@ async function loadComandas(silent = false) {
                 const selectEl = document.getElementById('cmdFilterStaff');
                 if (selectEl) {
                     selectEl.innerHTML = `
-    loadComandas();
-};
-
-window.loadComandas = async () => {
-    const staff = getCurrentStaff();
-    if(!staff) return;
+                        <option value="all" ${selectedStaffId === 'all' ? 'selected' : ''}>Todos os Garçons</option>
+                        ${allStaffMembers.map(s => `<option value="${s.id}" ${selectedStaffId === s.id ? 'selected' : ''}>${s.name} (${s.role})</option>`).join('')}
+                    `;
+                }
+            }
+        } catch(e) {
+            console.warn('Error fetching staff members:', e);
+        }
+    }
 
     // Se o garçom entra, ele só vê as dele (ou admin/caixa/gerente/ceo vê de todos)
     const isAdminOrCaixa = ['admin', 'caixa', 'gerente', 'ceo'].includes(staff.role) || hasActionPermission(staff.role, 'close_cashier');
@@ -170,7 +173,6 @@ window.loadComandas = async () => {
         });
 
         renderComandasGrid(Object.values(comandas), isAdminOrCaixa, totalVal);
-
 
     } catch (e) {
         console.error(e);
