@@ -172,18 +172,58 @@ export async function renderFechamentoSemanal(container){
     // Open Comandas Total
     const totalOpenOrdersAmount = openOrdersData.reduce((s, o) => s + Number(o.total || 0), 0);
 
-    // 5. STOCK COMPARISON (Estoque Inicial Estimado vs Vendas no Período vs Estoque Final Atual)
+    // 5. STOCK COMPARISON (Estoque Inicial Salvo vs Vendas vs Estoque Final Atual)
+    let initialStockMap = {};
+    const { data: weekSnapshots } = await supabase
+        .from('audit_logs')
+        .select('details, created_at')
+        .eq('action_type', 'STOCK_SNAPSHOT')
+        .gte('created_at', startDate + 'T00:00:00')
+        .lte('created_at', endDate + 'T23:59:59')
+        .order('created_at', { ascending: true }) // Earliest in week
+        .limit(1);
+
+    if (weekSnapshots && weekSnapshots.length > 0) {
+        (weekSnapshots[0].details.snapshot || []).forEach(s => initialStockMap[s.id] = s.qty);
+    } else {
+        // Fallback to latest snapshot before period
+        const { data: beforeSnapshots } = await supabase
+            .from('audit_logs')
+            .select('details, created_at')
+            .eq('action_type', 'STOCK_SNAPSHOT')
+            .lt('created_at', startDate + 'T00:00:00')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        if (beforeSnapshots && beforeSnapshots.length > 0) {
+            (beforeSnapshots[0].details.snapshot || []).forEach(s => initialStockMap[s.id] = s.qty);
+        }
+    }
+
     const stockComparison = productsData.filter(p => p.is_stock_controlled).map(prod => {
       const qtySold = allItemsData.filter(item => item.product_id === prod.id).reduce((s, item) => s + Number(item.quantity || 0), 0);
-      const finalStock = Number(prod.stock_qty || 0);
-      const initialStock = finalStock + qtySold;
+      const finalReal = Number(prod.stock_qty || 0);
+      
+      let initialStock = initialStockMap[prod.id];
+      let hasSnapshot = true;
+      if (initialStock === undefined) {
+          // Fallback se não existir snapshot
+          initialStock = finalReal + qtySold;
+          hasSnapshot = false;
+      }
+      
+      const finalExpected = initialStock - qtySold;
+      const diff = finalReal - finalExpected;
+
       return {
         id: prod.id,
         name: prod.name,
         category: prod.categories?.name || 'Geral',
         initialStock,
         qtySold,
-        finalStock
+        finalExpected,
+        finalReal,
+        diff,
+        hasSnapshot
       };
     });
 
@@ -297,9 +337,9 @@ export async function renderFechamentoSemanal(container){
       <div class="flex justify-between items-center pb-2 border-b border-gray-100">
         <div>
           <h3 class="text-xl font-black text-gray-800 flex items-center gap-2">
-            <i class="fa-solid fa-boxes-stacked text-blue-600"></i> Comparativo de Estoque (Inicial vs Final no Período)
+            <i class="fa-solid fa-boxes-stacked text-blue-600"></i> Comparativo de Estoque (Auditoria de Perdas)
           </h3>
-          <p class="text-xs font-bold text-gray-400">Apuração das saídas de produtos controlados durante o período selecionado</p>
+          <p class="text-xs font-bold text-gray-400">Apuração usando a última contagem de estoque antes/no início do período. Compara o esperado vs real.</p>
         </div>
       </div>
 
@@ -308,29 +348,34 @@ export async function renderFechamentoSemanal(container){
           <thead>
             <tr class="bg-gray-50 text-gray-600">
               <th class="py-2.5 px-3 text-left text-xs font-black">Produto</th>
-              <th class="py-2.5 px-3 text-left text-xs font-black">Categoria</th>
-              <th class="py-2.5 px-3 text-center text-xs font-black">Estoque Inicial Estimado</th>
-              <th class="py-2.5 px-3 text-center text-xs font-black">Vendas no Período</th>
-              <th class="py-2.5 px-3 text-center text-xs font-black">Estoque Final Atual</th>
-              <th class="py-2.5 px-3 text-center text-xs font-black">Status</th>
+              <th class="py-2.5 px-3 text-center text-xs font-black">Inicial (Salvo)</th>
+              <th class="py-2.5 px-3 text-center text-xs font-black">Saídas (Vendas)</th>
+              <th class="py-2.5 px-3 text-center text-xs font-black border-l border-gray-200">Final Esperado</th>
+              <th class="py-2.5 px-3 text-center text-xs font-black">Final Real</th>
+              <th class="py-2.5 px-3 text-center text-xs font-black">Auditoria</th>
             </tr>
           </thead>
           <tbody>
             ${(r.stockComparison || []).map(p => {
-              let statusBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Normal</span>';
-              if (p.finalStock === 0) statusBadge = '<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Esgotado</span>';
-              else if (p.finalStock <= 5) statusBadge = '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Estoque Baixo</span>';
+              let auditBadge = '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">OK (Bateu)</span>';
+              if (p.diff < 0) auditBadge = \`<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Perda: \${p.diff} un</span>\`;
+              else if (p.diff > 0) auditBadge = \`<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-black uppercase">Sobra: +\${p.diff} un</span>\`;
               
-              return `
+              if (!p.hasSnapshot) auditBadge = '<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[10px] font-black uppercase" title="Baseado em cálculo reverso">Sem Saldo</span>';
+
+              return \`
                 <tr class="border-t border-gray-100 hover:bg-gray-50/50 transition">
-                  <td class="py-2.5 px-3 font-bold text-gray-800">${p.name}</td>
-                  <td class="py-2.5 px-3 text-xs text-gray-500 font-bold">${p.category}</td>
-                  <td class="py-2.5 px-3 text-center font-bold text-gray-600">${p.initialStock} un</td>
-                  <td class="py-2.5 px-3 text-center font-black text-rose-600">-${p.qtySold} un</td>
-                  <td class="py-2.5 px-3 text-center font-black text-emerald-700">${p.finalStock} un</td>
-                  <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+                  <td class="py-2.5 px-3 font-bold text-gray-800">
+                    <div>\${p.name}</div>
+                    <div class="text-[10px] text-gray-400">\${p.category}</div>
+                  </td>
+                  <td class="py-2.5 px-3 text-center font-bold text-gray-600">\${p.initialStock} un</td>
+                  <td class="py-2.5 px-3 text-center font-black text-rose-600">-\${p.qtySold} un</td>
+                  <td class="py-2.5 px-3 text-center font-black text-gray-800 border-l border-gray-200 bg-gray-50/30">\${p.finalExpected} un</td>
+                  <td class="py-2.5 px-3 text-center font-black text-gray-800">\${p.finalReal} un</td>
+                  <td class="py-2.5 px-3 text-center">\${auditBadge}</td>
                 </tr>
-              `;
+              \`;
             }).join('') || '<tr><td colspan="6" class="py-4 text-center text-gray-400">Nenhum produto controlado cadastrado.</td></tr>'}
           </tbody>
         </table>
@@ -406,9 +451,9 @@ export async function renderFechamentoSemanal(container){
     });
 
     csv += `\nCOMPARATIVO DE ESTOQUE\n`;
-    csv += `Produto;Categoria;Estoque Inicial Estimado;Vendas no Periodo;Estoque Final Atual\n`;
+    csv += `Produto;Categoria;Estoque Inicial Salvo;Vendas no Periodo;Final Esperado;Final Real;Diferenca (Auditoria)\n`;
     (r.stockComparison || []).forEach(p => {
-      csv += `${p.name};${p.category};${p.initialStock};${p.qtySold};${p.finalStock}\n`;
+      csv += `${p.name};${p.category};${p.initialStock};${p.qtySold};${p.finalExpected};${p.finalReal};${p.diff}\n`;
     });
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -491,7 +536,8 @@ export async function renderFechamentoSemanal(container){
                 ${(r.stockComparison || []).map(p => `
                     <div style="border-bottom: 1px dashed #666; padding-bottom: 6px; margin-bottom: 6px;">
                         <div class="row"><b style="font-size: 18px;">${p.name}</b> <span>${p.category}</span></div>
-                        <div class="row sub"><span>Inicial: <b>${p.initialStock}</b> | Vendas: <b style="color:red;">-${p.qtySold}</b></span> <span>Atual: <b>${p.finalStock} un</b></span></div>
+                        <div class="row sub"><span>Inicial (Salvo): <b>${p.initialStock}</b> | Vendas: <b style="color:red;">-${p.qtySold}</b></span></div>
+                        <div class="row sub"><span>Esperado: <b>${p.finalExpected} un</b> | Real: <b style="${p.diff !== 0 ? 'color:red;' : ''}">${p.finalReal} un</b></span></div>
                     </div>
                 `).join('') || '<div class="row">Sem dados de estoque.</div>'}
             `;

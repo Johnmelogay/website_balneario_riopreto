@@ -714,6 +714,13 @@ window.saveStockAdj = async (id, curr) => {
         staff_id: staff.id
     });
     
+    if (typeof window.createStockSnapshot === 'function') {
+        await window.createStockSnapshot('ajuste_admin', { staff_id: staff.id });
+    } else {
+        const { createStockSnapshot } = await import('./scripts.js');
+        await createStockSnapshot('ajuste_admin', { staff_id: staff.id });
+    }
+    
     closeMod();
     loadEstoqueTable();
 };

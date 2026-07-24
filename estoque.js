@@ -294,6 +294,14 @@ window.saveAllStock = async () => {
             items: auditItems
         }, { type: 'cozinha', id: 'estoque' });
 
+        // Save a full stock snapshot for closing reports
+        if (typeof createStockSnapshot === 'function') {
+            await createStockSnapshot('estoque_do_dia', { type: 'cozinha', id: 'estoque' });
+        } else {
+            const { createStockSnapshot } = await import('./scripts.js');
+            await createStockSnapshot('estoque_do_dia', { type: 'cozinha', id: 'estoque' });
+        }
+
         pendingChanges.clear();
         renderProducts();
         updateCounters();

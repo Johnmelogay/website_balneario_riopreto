@@ -73,3 +73,29 @@ export async function captureLead({ name, email, intention, details = {} }) {
     console.error('Unexpected error capturing lead:', err);
   }
 }
+
+// --- STOCK SNAPSHOT ---
+export async function createStockSnapshot(triggeredBy, context = {}) {
+  try {
+    const { data: products } = await supabase.from('products').select('id, name, stock_qty, is_stock_controlled').eq('is_stock_controlled', true);
+    if (!products || products.length === 0) return;
+    
+    // Store array of {id, qty} to save space
+    const snapshotData = products.map(p => ({
+      id: p.id,
+      qty: p.stock_qty || 0
+    }));
+
+    await supabase.from('audit_logs').insert([{
+      action_type: 'STOCK_SNAPSHOT',
+      details: {
+        trigger: triggeredBy,
+        snapshot: snapshotData
+      },
+      ...context
+    }]);
+    console.log('Stock snapshot saved:', snapshotData.length, 'items');
+  } catch(e) {
+    console.error('Error creating stock snapshot:', e);
+  }
+}
