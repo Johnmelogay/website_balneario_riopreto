@@ -6,7 +6,9 @@ window.openExtrato = async () => {
     document.getElementById('extratoScreen').classList.remove('hidden');
     document.getElementById('extratoScreen').classList.add('flex');
     
-    document.getElementById('extratoLocation').textContent = `${window.currentLocationType.toUpperCase()}: ${window.currentLocationId}`;
+    const custNameFromInput = document.getElementById('customerName')?.value?.trim() || '';
+    document.getElementById('extratoLocation').textContent = `${window.currentLocationType.toUpperCase()} ${window.currentLocationId}${custNameFromInput ? ' • ' + custNameFromInput.toUpperCase() : ''}`;
+
     const list = document.getElementById('extratoList');
     list.innerHTML = '<div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl text-gray-300"></i></div>';
     document.getElementById('extratoTotal').textContent = 'R$ 0,00';

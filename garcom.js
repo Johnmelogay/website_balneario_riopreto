@@ -333,7 +333,49 @@ function createLocationBtn(label, id, icon, stats) {
     return btn;
 }
 
-function openMainApp(label) {
+function updateHeaderLocationLabel(upperType, locId, customerName) {
+    const el = document.getElementById('locationLabel');
+    if (!el) return;
+    const nameStr = customerName ? customerName.trim().toUpperCase() : '';
+    el.textContent = `${upperType} ${locId}${nameStr ? ' • ' + nameStr : ''}`;
+}
+
+window.promptCustomerNameModal = (upperType, locId) => {
+    const modal = document.getElementById('customerNameModal');
+    const title = document.getElementById('customerModalTitle');
+    const input = document.getElementById('modalCustomerNameInput');
+    if (!modal) return;
+
+    if (title) title.textContent = `${upperType || 'COMANDA'} ${locId || ''}`;
+    if (input) {
+        input.value = document.getElementById('customerName')?.value || '';
+        setTimeout(() => input.focus(), 250);
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.confirmCustomerNameModal = () => {
+    const input = document.getElementById('modalCustomerNameInput');
+    const val = input ? input.value.trim() : '';
+    if (!val) {
+        alert('Por favor, informe o Nome do Cliente para identificar a comanda!');
+        return;
+    }
+    const custInput = document.getElementById('customerName');
+    if (custInput) custInput.value = val;
+
+    const modal = document.getElementById('customerNameModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    const upperType = window.currentLocationType === 'chale' ? 'CHALÉ' : (window.currentLocationType === 'mesa' ? 'MESA' : 'BALCÃO');
+    updateHeaderLocationLabel(upperType, currentLocation.id, val);
+};
+
+async function openMainApp(label) {
     const staff = getCurrentStaff();
     window.currentStaff = staff; // Store current staff
     window.currentLocationType = currentLocation.type; // Store current location type
@@ -348,13 +390,48 @@ function openMainApp(label) {
     updateCartUI();
             
     const upperType = window.currentLocationType === 'chale' ? 'CHALÉ' : (window.currentLocationType === 'mesa' ? 'MESA' : 'BALCÃO');
-    document.getElementById('locationLabel').textContent = `${upperType} ${currentLocation.id}`;
+
+    // Check if there is an existing active comanda for this location to fetch customer_name
+    let existingCustomerName = '';
+    let existingCustomerPhone = '';
+    try {
+        const { data: activeOrders } = await supabase
+            .from('orders')
+            .select('customer_name, customer_phone')
+            .eq('location_type', currentLocation.type)
+            .eq('location_id', currentLocation.id)
+            .eq('payment_status', 'aberto')
+            .neq('status', 'cancelado')
+            .order('created_at', { ascending: true })
+            .limit(1);
+
+        if (activeOrders && activeOrders.length > 0 && activeOrders[0].customer_name) {
+            existingCustomerName = activeOrders[0].customer_name || '';
+            existingCustomerPhone = activeOrders[0].customer_phone || '';
+        }
+    } catch(e) {}
+
+    const custNameInput = document.getElementById('customerName');
+    const custPhoneInput = document.getElementById('customerPhone');
+
+    if (existingCustomerName) {
+        if (custNameInput) custNameInput.value = existingCustomerName;
+        if (custPhoneInput) custPhoneInput.value = existingCustomerPhone;
+        updateHeaderLocationLabel(upperType, currentLocation.id, existingCustomerName);
+    } else {
+        if (custNameInput) custNameInput.value = '';
+        if (custPhoneInput) custPhoneInput.value = '';
+        updateHeaderLocationLabel(upperType, currentLocation.id, '');
+        // Prompt waiter to enter customer name right away!
+        window.promptCustomerNameModal(upperType, currentLocation.id);
+    }
             
     // Listen for ready orders
     if (typeof window.listenForReadyOrders === 'function') {
         window.listenForReadyOrders();
     }
 }
+
 
 // ====== BOTTOM NAVBAR & TAB SWITCHING ======
 let currentGarcomNavTab = 'fazer_pedido';
@@ -1200,9 +1277,18 @@ window.executeOrder = async (selectedStaffId) => {
         }
 
         const total = cart.reduce((sum, c) => sum + (c.qty * Number(c.product.price)), 0);
-        const orderNotes = document.getElementById('orderNotes').value;
-        const customerName = document.getElementById('customerName').value || null;
-        const customerPhone = document.getElementById('customerPhone').value || null;
+        const orderNotes = document.getElementById('orderNotes')?.value || '';
+        const customerName = document.getElementById('customerName')?.value?.trim() || '';
+        const customerPhone = document.getElementById('customerPhone')?.value?.trim() || null;
+
+        if (!customerName) {
+            const upperType = window.currentLocationType === 'chale' ? 'CHALÉ' : (window.currentLocationType === 'mesa' ? 'MESA' : 'BALCÃO');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> CONFIRMAR E ENVIAR';
+            window.promptCustomerNameModal(upperType, currentLocation.id);
+            return;
+        }
+
 
         // 1. Group cart items by destination
         const cartByDest = { 'cozinha': [], 'bar': [] };

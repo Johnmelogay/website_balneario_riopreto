@@ -212,6 +212,7 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
         const donoDaMesa = sortedOrders.length > 0 && sortedOrders[0].staff_users?.name 
                            ? sortedOrders[0].staff_users.name.split(' ')[0] 
                            : 'Sem garçom';
+        const customerName = sortedOrders.find(o => o.customer_name?.trim())?.customer_name?.trim() || '';
         const staffTeam = donoDaMesa;
         const typeLabel = c.type === 'chale' ? 'Chalé' : c.type === 'barraca' ? 'Barraca' : 'Mesa';
         
@@ -226,17 +227,18 @@ function renderComandasGrid(comandas, canClose, totalGeral) {
                 }
                 
                 <div class="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-widest flex items-center gap-1 w-fit">
+                    <div class="w-full">
+                        <div class="flex items-center justify-between gap-2 mb-2 w-full">
+                            <span class="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl text-xs md:text-sm font-black uppercase tracking-tight flex items-center gap-1.5 truncate">
                                 <i class="fa-solid ${c.type === 'chale' ? 'fa-house' : c.type === 'barraca' ? 'fa-campground' : 'fa-chair'}"></i>
-                                ${typeLabel} ${c.id}
+                                ${typeLabel} ${c.id} ${customerName ? '• ' + customerName.toUpperCase() : ''}
                             </span>
-                            <span class="text-xs font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-lg border border-gray-200">#${c.daily_seq < 999999 ? c.daily_seq : '?'}</span>
+                            <span class="text-xs font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-lg border border-gray-200 shrink-0">#${c.daily_seq < 999999 ? c.daily_seq : '?'}</span>
                         </div>
-                        <p class="text-[10px] font-bold text-gray-400 truncate"><i class="fa-solid fa-user-tag mr-1"></i>${staffTeam}</p>
+                        <p class="text-[10px] font-bold text-gray-400 truncate"><i class="fa-solid fa-user-tag mr-1"></i>Garçom: ${staffTeam}</p>
                     </div>
                 </div>
+
 
                 <div class="flex-1 space-y-2 mb-4">
                     ${allItems.slice(0, 3).map(i => `
