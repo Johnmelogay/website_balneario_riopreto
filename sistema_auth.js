@@ -165,6 +165,7 @@ export const ALL_SYSTEM_MODULES = [
     { id: 'estoque', label: 'Estoque de Produtos', icon: 'boxes-stacked' },
     { id: 'funcionarios', label: 'Gestão de Equipe (Staff)', icon: 'users' },
     { id: 'fechamento_semanal', label: 'Relatórios e Fechamento', icon: 'file-csv' },
+    { id: 'impressoes', label: 'Imprimir Imagens/Fotos', icon: 'print' },
     { id: 'permissoes', label: 'Permissões de Cargos (Exclusivo CEO)', icon: 'user-shield' }
 ];
 
@@ -179,19 +180,19 @@ export const ALL_SYSTEM_ACTIONS = [
 
 export const DEFAULT_ROLE_PERMISSIONS = {
     ceo: {
-        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'permissoes'],
+        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'impressoes', 'permissoes'],
         actions: ['cancel_items', 'apply_discounts', 'edit_stock', 'manage_staff', 'close_cashier', 'gate_control']
     },
     admin: {
-        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'permissoes'],
+        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'impressoes', 'permissoes'],
         actions: ['cancel_items', 'apply_discounts', 'edit_stock', 'manage_staff', 'close_cashier', 'gate_control']
     },
     gerente: {
-        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal'],
+        modules: ['dashboard', 'comandas', 'pdv', 'portaria', 'estoque', 'funcionarios', 'fechamento_semanal', 'impressoes'],
         actions: ['cancel_items', 'apply_discounts', 'edit_stock', 'manage_staff', 'close_cashier', 'gate_control']
     },
     caixa: {
-        modules: ['comandas', 'pdv'],
+        modules: ['comandas', 'pdv', 'impressoes'],
         actions: ['apply_discounts', 'close_cashier']
     },
     garcom: {

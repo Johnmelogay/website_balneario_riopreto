@@ -93,6 +93,7 @@ const MODULES = {
     estoque:            { icon: 'boxes-stacked',    label: 'Estoque',                roles: ['admin', 'gerente', 'ceo'] },
     funcionarios:       { icon: 'users',            label: 'Gestão de Equipe (Staff)', roles: ['admin', 'gerente', 'ceo'] },
     fechamento_semanal: { icon: 'file-csv',         label: 'Gerar Relatório (Fechamento)', roles: ['admin', 'gerente', 'ceo'] },
+    impressoes:         { icon: 'print',            label: 'Imprimir Imagens/Fotos', roles: ['admin', 'gerente', 'ceo', 'caixa'] },
     permissoes:         { icon: 'user-shield',      label: 'Permissões de Cargos',   roles: ['ceo'] }
 };
 
