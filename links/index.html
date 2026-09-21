@@ -977,7 +977,7 @@
           <i class="fa-solid fa-chevron-down faq-chevron"></i>
         </div>
         <div class="faq-answer">
-          Funcionamos de <strong>terça-feira a domingo (e feriados)</strong>, das <strong>08h00 às 18h00</strong> para visitantes de Day Use.<br><br>
+          Funcionamos de <strong>terça-feira a domingo (e feriados)</strong>, das <strong>08h00 às 17h30</strong> para visitantes de Day Use.<br><br>
           Para hóspedes dos chalés privativos, o acesso às dependências é liberado 24 horas.
         </div>
       </div>
@@ -1134,7 +1134,7 @@
       <div class="price-card featured">
         <div class="price-label">Day Use</div>
         <div class="price-tag">R$ 20 <span>/pessoa</span></div>
-        <p class="price-desc">Acesso das 08h às 18h ao rio, piscinas e toboágua.</p>
+        <p class="price-desc">Acesso das 08h às 17h30 ao rio, piscinas e toboágua.</p>
       </div>
 
       <!-- Card Churrasqueira -->
@@ -1246,23 +1246,23 @@
       const statusDot = document.getElementById('statusDot');
       const statusText = document.getElementById('statusText');
 
-      // Schedule: Tuesday (2) to Sunday (0): 08:00 to 18:00. Monday (1): Closed
+      // Schedule: Tuesday (2) to Sunday (0): 08:00 to 17:30. Monday (1): Closed
       if (day === 1) {
         // Monday (Closed)
         statusDot.className = 'status-dot closed';
         statusText.innerHTML = 'Fechado às segundas • <strong>Abre amanhã às 08h</strong>';
       } else {
         // Tuesday to Sunday
-        if (curTimeDecimal >= 8.0 && curTimeDecimal < 18.0) {
+        if (curTimeDecimal >= 8.0 && curTimeDecimal < 17.5) {
           // Currently Open
           statusDot.className = 'status-dot open';
-          statusText.innerHTML = '🟢 <strong>Aberto hoje</strong> • Fecha às 18h00';
+          statusText.innerHTML = '🟢 <strong>Aberto hoje</strong> • Fecha às 17h30';
         } else if (curTimeDecimal < 8.0) {
           // Early Morning
           statusDot.className = 'status-dot closed';
           statusText.innerHTML = 'Fechado agora • <strong>Abre hoje às 08h00</strong>';
         } else {
-          // After 18h
+          // After 17h30
           statusDot.className = 'status-dot closed';
           if (day === 0) {
             // Sunday night -> Next day is Monday (closed)
