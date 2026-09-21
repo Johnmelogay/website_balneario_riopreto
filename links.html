@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Balneário Rio Preto • Links Oficiais & Informações</title>
+  <meta name="description" content="Informações rápidas, Como Chegar, Valores de Day Use e Chalés, Perguntas Frequentes e Reservas do Balneário Rio Preto em Candeias do Jamari - RO.">
+  <link rel="canonical" href="https://balnearioriopreto.com.br/links">
+  <link rel="icon" type="image/webp" href="images/logo_opt.webp">
+  <meta name="theme-color" content="#062113">
+
+  <!-- Open Graph / Instagram / WhatsApp Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://balnearioriopreto.com.br/links">
+  <meta property="og:title" content="Balneário Rio Preto • Links & Informações">
+  <meta property="og:description" content="Como Chegar, Tabela de Valores, FAQ, Reservas de Chalés e Atendimento via WhatsApp.">
+  <meta property="og:image" content="https://balnearioriopreto.com.br/images/hero-image.webp">
+
+  <!-- Google Fonts: Lexend & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X77VW91S4X"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-X77VW91S4X');
+    function trackClick(label, category = 'bio_link') {
+      if (window.gtag) {
+        gtag('event', 'click_bio_link', {
+          event_category: category,
+          event_label: label
+        });
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --primary: #2E7D32;
+      --primary-light: #4CAF50;
+      --primary-dark: #1B5E20;
+      --primary-glow: rgba(46, 125, 50, 0.45);
+      --accent-orange: #FF6D00;
+      --river-blue: #0288D1;
+      --bg-dark: #07150e;
+      --bg-surface: rgba(18, 36, 26, 0.72);
+      --bg-surface-hover: rgba(28, 54, 40, 0.88);
+      --card-border: rgba(255, 255, 255, 0.09);
+      --card-border-active: rgba(76, 175, 80, 0.4);
+      --text-main: #FFFFFF;
+      --text-muted: #9CA3AF;
+      --text-sub: #D1D5DB;
+      --font-heading: 'Lexend', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Background tropical/river ambient lighting */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(46, 125, 50, 0.35) 0%, transparent 45%),
+        radial-gradient(circle at 90% 60%, rgba(2, 136, 209, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(255, 109, 0, 0.15) 0%, transparent 50%),
+        linear-gradient(180deg, #07150e 0%, #050e09 100%);
+    }
+
+    .ambient-texture {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.18;
+      background-image: url('images/hero-image.webp');
+      background-size: cover;
+      background-position: center;
+      filter: blur(28px);
+      transform: scale(1.15);
+      pointer-events: none;
+    }
+
+    /* Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
+      padding: 24px 18px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top bar buttons (share) */
+    .top-actions {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .icon-action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.25s ease;
+      font-size: 15px;
+    }
+
+    .icon-action-btn:hover, .icon-action-btn:active {
+      background: rgba(255, 255, 255, 0.18);
+      transform: scale(1.05);
+      border-color: var(--primary-light);
+    }
+
+    /* Profile Header */
+    .profile-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 24px;
+      width: 100%;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      margin-bottom: 14px;
+    }
+
+    /* Glowing Story Ring */
+    .avatar-ring {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4CAF50, #0288D1, #FF9800);
+      animation: rotateRing 6s linear infinite;
+      padding: 3px;
+    }
+
+    @keyframes rotateRing {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .avatar-img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #0d281a;
+      border: 3px solid #07150e;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .profile-title-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 4px;
+    }
+
+    .profile-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .verified-badge {
+      color: #22c55e;
+      font-size: 1.05rem;
+    }
+
+    .profile-handle {
+      font-size: 0.86rem;
+      color: var(--primary-light);
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-decoration: none;
+    }
+
+    .profile-bio {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      max-width: 340px;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    /* Live Business Status Pill */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .status-dot.open {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    .status-dot.open::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid #22c55e;
+      animation: pulseDot 2s infinite;
+    }
+
+    .status-dot.closed {
+      background: #9ca3af;
+    }
+
+    @keyframes pulseDot {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* Links List */
+    .links-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    /* General Link Card */
+    .link-card {
+      position: relative;
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .link-card:hover, .link-card:active {
+      background: var(--bg-surface-hover);
+      border-color: var(--card-border-active);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .link-card-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .link-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .link-card:hover .link-card-icon {
+      transform: scale(1.08);
+    }
+
+    .link-card-content {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .link-card-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .link-card-subtitle {
+      font-size: 0.77rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .link-card-arrow {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 0.88rem;
+      transition: transform 0.2s ease, color 0.2s ease;
+      margin-left: 8px;
+    }
+
+    .link-card:hover .link-card-arrow {
+      color: #FFFFFF;
+      transform: translateX(3px);
+    }
+
+    /* FEATURED CTA: Reservas (Pulsing / Hero card) */
+    .link-card.featured {
+      background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(27, 94, 32, 0.9));
+      border: 1px solid rgba(76, 175, 80, 0.6);
+      box-shadow: 0 8px 30px rgba(46, 125, 50, 0.45);
+    }
+
+    .link-card.featured:hover {
+      background: linear-gradient(135deg, rgba(56, 142, 60, 1), rgba(27, 94, 32, 1));
+      box-shadow: 0 10px 36px rgba(46, 125, 50, 0.65);
+      border-color: #81c784;
+    }
+
+    .link-card.featured .link-card-icon {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+    }
+
+    .link-card.featured .link-card-subtitle {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .link-badge {
+      position: absolute;
+      top: -10px;
+      right: 16px;
+      background: linear-gradient(135deg, #FF6D00, #FFA000);
+      color: #FFFFFF;
+      font-size: 0.67rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px rgba(255, 109, 0, 0.4);
+      animation: bounceBadge 2.5s infinite;
+    }
+
+    @keyframes bounceBadge {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    /* Icon Variants */
+    .icon-location { background: rgba(2, 136, 209, 0.2); color: #38bdf8; }
+    .icon-price { background: rgba(255, 179, 0, 0.2); color: #fbbf24; }
+    .icon-whatsapp { background: rgba(37, 211, 102, 0.22); color: #25D366; }
+    .icon-globe { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+    .icon-menu { background: rgba(249, 115, 22, 0.2); color: #fb923c; }
+
+    /* Interactive Section: FAQ Accordion directly on page */
+    .section-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 16px 0 12px;
+      padding: 0 4px;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .faq-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .faq-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .faq-item.active {
+      border-color: var(--card-border-active);
+      background: rgba(22, 44, 32, 0.88);
+    }
+
+    .faq-question {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #FFFFFF;
+      user-select: none;
+    }
+
+    .faq-question-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .faq-chevron {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      transition: transform 0.25s ease;
+    }
+
+    .faq-item.active .faq-chevron {
+      transform: rotate(180deg);
+      color: var(--primary-light);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
+      padding: 0 16px;
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: var(--text-sub);
+    }
+
+    .faq-item.active .faq-answer {
+      max-height: 280px;
+      padding: 0 16px 14px;
+      transition: max-height 0.35s ease-in-out;
+    }
+
+    /* Social Icons Bar */
+    .social-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 6px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .social-link {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      font-size: 1.15rem;
+      transition: all 0.22s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .social-link:hover, .social-link:active {
+      transform: translateY(-3px);
+      background: var(--primary);
+      border-color: var(--primary-light);
+      box-shadow: 0 6px 18px var(--primary-glow);
+    }
+
+    /* Footer */
+    .app-footer {
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      width: 100%;
+    }
+
+    .app-footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* MODAL / BOTTOM SHEET SYSTEM */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 990;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sheet-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sheet-modal {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      max-width: 500px;
+      margin: 0 auto;
+      background: #0d1e16;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-top-left-radius: 26px;
+      border-top-right-radius: 26px;
+      padding: 12px 20px 32px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+      transform: translateY(105%);
+      transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 88vh;
+      max-height: 88dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sheet-modal.active {
+      transform: translateY(0);
+    }
+
+    .sheet-drag-handle {
+      width: 44px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      margin: 4px auto 16px;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .sheet-title {
+      font-family: var(--font-heading);
+      font-size: 1.22rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sheet-close-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .sheet-close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+    }
+
+    /* Modal Sub-cards & Buttons */
+    .sheet-action-btn {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.06);
+      color: #FFFFFF;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+    }
+
+    .sheet-action-btn:hover, .sheet-action-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .sheet-action-btn.maps {
+      background: #1a73e8;
+      border-color: #4285f4;
+      box-shadow: 0 4px 16px rgba(26, 115, 232, 0.35);
+    }
+
+    .sheet-action-btn.waze {
+      background: #00d3d3;
+      color: #032b2b;
+      border-color: #33ffff;
+      box-shadow: 0 4px 16px rgba(0, 211, 211, 0.35);
+    }
+
+    .sheet-action-btn.copy {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sheet-action-btn.primary {
+      background: var(--primary);
+      border-color: var(--primary-light);
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+
+    .sheet-info-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      font-size: 0.84rem;
+      color: var(--text-sub);
+    }
+
+    .sheet-info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .sheet-info-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .sheet-info-item i {
+      color: var(--primary-light);
+      font-size: 1rem;
+      margin-top: 2px;
+    }
+
+    /* Pricing Cards in Sheet */
+    .price-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .price-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 14px 12px;
+      text-align: center;
+      position: relative;
+    }
+
+    .price-card.featured {
+      border-color: var(--primary-light);
+      background: rgba(46, 125, 50, 0.25);
+    }
+
+    .price-tag {
+      font-family: var(--font-heading);
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin: 4px 0;
+    }
+
+    .price-tag span {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .price-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--primary-light);
+    }
+
+    .price-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e293b;
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1100;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Light & Soft Texture Background -->
+  <div class="ambient-bg"></div>
+  <div class="ambient-texture"></div>
+
+  <!-- Main App Shell -->
+  <main class="app-container">
+
+    <!-- Top Action Bar (Share) -->
+    <div class="top-actions">
+      <button class="icon-action-btn" id="shareBtn" onclick="handleShare()" title="Compartilhar Perfil" aria-label="Compartilhar">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      </button>
+    </div>
+
+    <!-- Profile Info Header -->
+    <section class="profile-section">
+      <div class="avatar-wrapper">
+        <div class="avatar-ring"></div>
+        <img 
+          src="images/logo_opt.webp" 
+          onerror="this.onerror=null; this.src='images/logo.png';" 
+          alt="Balneário Rio Preto" 
+          class="avatar-img"
+          width="96" 
+          height="96"
+        >
+      </div>
+
+      <div class="profile-title-row">
+        <h1 class="profile-title">Balneário Rio Preto</h1>
+        <i class="fa-solid fa-circle-check verified-badge" title="Página Oficial"></i>
+      </div>
+
+      <a href="https://instagram.com/balneario_riopreto" target="_blank" class="profile-handle">
+        @balneario_riopreto
+      </a>
+
+      <p class="profile-bio">
+        O melhor refúgio natural de Rondônia 🌴☀️ Banho de rio, piscinas, chalés aconchegantes e gastronomia regional a 40km de Porto Velho.
+      </p>
+
+      <!-- Dynamic Status Pill (JS Driven) -->
+      <div class="status-pill" id="businessStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Verificando horário...</span>
+      </div>
+    </section>
+
+    <!-- Links Group (Fast Conversion CTAs) -->
+    <nav class="links-group" aria-label="Links rápidos">
+
+      <!-- 1. DESTAQUE: Reservas de Chalés Online -->
+      <a href="reservas.html" class="link-card featured" onclick="trackClick('reservas_online')">
+        <span class="link-badge">Mais Procurado</span>
+        <div class="link-card-left">
+          <div class="link-card-icon">
+            <i class="fa-solid fa-house-chimney-window"></i>
+          </div>
+          <div class="link-card-content">
+            <span class="link-card-title">Reservar Chalé Online</span>
+            <span class="link-card-subtitle">Ver datas disponíveis e tarifas</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right link-card-arrow"></i>
+      </a>
+
+      <!-- 2. COMO CHEGAR (Modal Interativo) -->
+      <div class="link-card" onclick="openSheet('sheetLocation'); trackClick('como_chegar')" role="button" tabindex="0">
+        <div class="link-card-left">
+          <div class="link-card-icon icon-location">
+            <i class="fa-solid fa-diamond-turn-right"></i>
+          </div>
+          <div class="link-card-content">
+            <span class="link-card-title">Como Chegar</span>
+            <span class="link-card-subtitle">Google Maps, Waze e Endereço</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right link-card-arrow"></i>
+      </div>
+
+      <!-- 3. VALORES & INGRESSOS (Modal Interativo) -->
+      <div class="link-card" onclick="openSheet('sheetPricing'); trackClick('valores_ingressos')" role="button" tabindex="0">
+        <div class="link-card-left">
+          <div class="link-card-icon icon-price">
+            <i class="fa-solid fa-tags"></i>
+          </div>
+          <div class="link-card-content">
+            <span class="link-card-title">Valores & Ingressos</span>
+            <span class="link-card-subtitle">Day Use, chalés e gratuidades</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right link-card-arrow"></i>
+      </div>
+
+      <!-- 4. WHATSAPP (Atendimento Rápido) -->
+      <a href="https://wa.me/5569993129559?text=Ol%C3%A1!%20Vim%20pelo%20Instagram%20do%20Balne%C3%A1rio%20Rio%20Preto%20e%20gostaria%20de%20informa%C3%A7%C3%B5es." target="_blank" class="link-card" onclick="trackClick('whatsapp_contato')">
+        <div class="link-card-left">
+          <div class="link-card-icon icon-whatsapp">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div class="link-card-content">
+            <span class="link-card-title">Atendimento via WhatsApp</span>
+            <span class="link-card-subtitle">(69) 99312-9559 • Resposta rápida</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-up-right-from-square link-card-arrow"></i>
+      </a>
+
+      <!-- 5. SITE OFICIAL (Tour e Fotos) -->
+      <a href="index.html" class="link-card" onclick="trackClick('site_oficial')">
+        <div class="link-card-left">
+          <div class="link-card-icon icon-globe">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <div class="link-card-content">
+            <span class="link-card-title">Conhecer o Site Oficial</span>
+            <span class="link-card-subtitle">Galeria de fotos, estrutura e mais</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right link-card-arrow"></i>
+      </a>
+
+      <!-- 6. CARDÁPIO & BAR -->
+      <div class="link-card" onclick="openSheet('sheetCardapio'); trackClick('cardapio_bar')" role="button" tabindex="0">
+        <div class="link-card-left">
+          <div class="link-card-icon icon-menu">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <div class="link-card-content">
+            <span class="link-card-title">Cardápio & Restaurante</span>
+            <span class="link-card-subtitle">Peixes regionais, porções e bebidas</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right link-card-arrow"></i>
+      </div>
+
+    </nav>
+
+    <!-- SECTION: PERGUNTAS FREQUENTES (FAQ) -->
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="fa-regular fa-circle-question" style="color: var(--primary-light);"></i>
+        Perguntas Frequentes
+      </h2>
+    </div>
+
+    <section class="faq-container" id="faqAccordion">
+
+      <!-- FAQ 1 -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question-text">
+            <span>Pode levar comida e bebida?</span>
+          </div>
+          <i class="fa-solid fa-chevron-down faq-chevron"></i>
+        </div>
+        <div class="faq-answer">
+          <strong>Alimentação:</strong> Sim! É permitido levar carnes e alimentos para o seu churrasco. Temos aluguel de churrasqueira no local por <strong>R$ 45 a diária</strong> (ou é permitido trazer sua mini churrasqueira).<br><br>
+          <strong>Bebidas:</strong> Bebidas alcoólicas <em>não são permitidas</em> (possuímos bar completo no local). Água e refrigerantes são permitidos, desde que <em>não sejam em garrafas de vidro</em> por segurança de todos.
+        </div>
+      </div>
+
+      <!-- FAQ 2 -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question-text">
+            <span>Qual o horário de funcionamento?</span>
+          </div>
+          <i class="fa-solid fa-chevron-down faq-chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Funcionamos de <strong>terça-feira a domingo (e feriados)</strong>, das <strong>08h00 às 18h00</strong> para visitantes de Day Use.<br><br>
+          Para hóspedes dos chalés privativos, o acesso às dependências é liberado 24 horas.
+        </div>
+      </div>
+
+      <!-- FAQ 3 -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question-text">
+            <span>Qual o valor do Day Use e churrasqueira?</span>
+          </div>
+          <i class="fa-solid fa-chevron-down faq-chevron"></i>
+        </div>
+        <div class="faq-answer">
+          O Day Use custa <strong>R$ 20,00 por pessoa</strong> (dá acesso ao rio, piscinas, toboágua e estacionamento).<br><br>
+          <strong>Crianças até 5 anos não pagam!</strong><br><br>
+          🔥 <strong>Churrasqueira:</strong> O aluguel da churrasqueira custa <strong>R$ 45,00 a diária</strong>.
+        </div>
+      </div>
+
+      <!-- FAQ 4 -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question-text">
+            <span>Aceitam animais (Pet Friendly)?</span>
+          </div>
+          <i class="fa-solid fa-chevron-down faq-chevron"></i>
+        </div>
+        <div class="faq-answer">
+          <strong>Sim, somos Pet Friendly! 🐾</strong> Seu pet é muito bem-vindo em toda a nossa área externa arborizada (sempre com coleira/guia).<br><br>
+          Por normas sanitárias e de segurança, só não é permitida a entrada deles nas águas das piscinas/rio e no interior dos chalés.
+        </div>
+      </div>
+
+      <!-- FAQ 5 -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question-text">
+            <span>Como funcionam os chalés?</span>
+          </div>
+          <i class="fa-solid fa-chevron-down faq-chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Nossos chalés contam com <strong>ar-condicionado, frigobar privativo e Wi-Fi Starlink de alta velocidade</strong>. Diárias a partir de R$ 280 (casal).<br><br>
+          As reservas devem ser feitas antecipadamente pelo site na aba Reservas ou pelo nosso WhatsApp.
+        </div>
+      </div>
+
+      <!-- FAQ 6 -->
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question-text">
+            <span>Quais as formas de pagamento aceitas?</span>
+          </div>
+          <i class="fa-solid fa-chevron-down faq-chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Aceitamos <strong>Pix</strong>, <strong>Cartões de Crédito</strong>, <strong>Cartões de Débito</strong> e <strong>Dinheiro em Espécie</strong> tanto na portaria quanto no bar/restaurante.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Social Bar -->
+    <div class="social-bar">
+      <a href="https://instagram.com/balneario_riopreto" target="_blank" class="social-link" title="Instagram" aria-label="Instagram">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+      <a href="https://wa.me/5569993129559" target="_blank" class="social-link" title="WhatsApp" aria-label="WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+      </a>
+      <a href="https://www.google.com/maps/dir//balneario%20rio%20preto" target="_blank" class="social-link" title="Localização no Google Maps" aria-label="Google Maps">
+        <i class="fa-solid fa-location-dot"></i>
+      </a>
+      <a href="mailto:johnmelocontato@gmail.com" class="social-link" title="E-mail" aria-label="E-mail">
+        <i class="fa-regular fa-envelope"></i>
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; <span id="currentYear"></span> Balneário Rio Preto • Candeias do Jamari - RO</p>
+      <p style="margin-top: 4px;"><a href="index.html">balnearioriopreto.com.br</a></p>
+    </footer>
+
+  </main>
+
+  <!-- ================= BOTTOM SHEETS / MODALS ================= -->
+
+  <!-- Overlay -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="closeAllSheets()"></div>
+
+  <!-- 1. MODAL: COMO CHEGAR -->
+  <div class="sheet-modal" id="sheetLocation">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">
+        <i class="fa-solid fa-diamond-turn-right" style="color: #38bdf8;"></i>
+        <span>Como Chegar</span>
+      </div>
+      <button class="sheet-close-btn" onclick="closeAllSheets()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="sheet-info-box">
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-map-pin"></i>
+        <div>
+          <strong>Endereço:</strong><br>
+          Estrada do Rio Preto, Zona Rural • Candeias do Jamari, RO
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-road"></i>
+        <div>
+          <strong>Distância:</strong> Apenas 40 km de Porto Velho (acesso sinalizado).
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-square-parking"></i>
+        <div>
+          <strong>Estacionamento:</strong> Amplo e gratuito no local.
+        </div>
+      </div>
+    </div>
+
+    <a href="https://www.google.com/maps/dir//balneario%20rio%20preto" target="_blank" class="sheet-action-btn maps" onclick="trackClick('open_google_maps')">
+      <i class="fa-brands fa-google"></i>
+      Traçar Rota no Google Maps
+    </a>
+
+    <a href="https://waze.com/ul?q=Balne%C3%A1rio%20Rio%20Preto" target="_blank" class="sheet-action-btn waze" onclick="trackClick('open_waze')">
+      <i class="fa-brands fa-waze"></i>
+      Navegar com Waze
+    </a>
+
+    <button class="sheet-action-btn copy" onclick="copyAddress()">
+      <i class="fa-regular fa-copy"></i>
+      Copiar Endereço Completo
+    </button>
+  </div>
+
+  <!-- 2. MODAL: VALORES & INGRESSOS -->
+  <div class="sheet-modal" id="sheetPricing">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">
+        <i class="fa-solid fa-tags" style="color: #fbbf24;"></i>
+        <span>Valores & Tarifas</span>
+      </div>
+      <button class="sheet-close-btn" onclick="closeAllSheets()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="price-grid">
+      <!-- Card Day Use -->
+      <div class="price-card featured">
+        <div class="price-label">Day Use</div>
+        <div class="price-tag">R$ 20 <span>/pessoa</span></div>
+        <p class="price-desc">Acesso das 08h às 18h ao rio, piscinas e toboágua.</p>
+      </div>
+
+      <!-- Card Churrasqueira -->
+      <div class="price-card" style="border-color: rgba(255, 109, 0, 0.4); background: rgba(255, 109, 0, 0.12);">
+        <div class="price-label" style="color: #ff9800;">Churrasqueira</div>
+        <div class="price-tag">R$ 45 <span>/diária</span></div>
+        <p class="price-desc">Aluguel da churrasqueira / quiosque para a família.</p>
+      </div>
+    </div>
+
+    <div class="sheet-info-box">
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-child" style="color: #22c55e;"></i>
+        <div>
+          <strong>Crianças até 5 anos:</strong> Entrada 100% gratuita.
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-house-user"></i>
+        <div>
+          <strong>Chalés Privativos:</strong> Diárias a partir de <strong>R$ 280,00</strong> (casal) com ar-condicionado, frigobar e Wi-Fi Starlink.
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-tent"></i>
+        <div>
+          <strong>Camping:</strong> R$ 40,00 por pessoa / pernoite.
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-circle-check"></i>
+        <div>
+          <strong>Estacionamento:</strong> Gratuito com segurança para seu veículo.
+        </div>
+      </div>
+    </div>
+
+    <a href="reservas.html" class="sheet-action-btn primary" onclick="trackClick('pricing_to_reservas')">
+      <i class="fa-solid fa-calendar-check"></i>
+      Ver Disponibilidade de Chalés
+    </a>
+
+    <a href="simulador.html" class="sheet-action-btn copy" onclick="trackClick('pricing_to_simulador')">
+      <i class="fa-solid fa-calculator"></i>
+      Simular Orçamento para Grupos
+    </a>
+  </div>
+
+  <!-- 3. MODAL: CARDÁPIO & RESTAURANTE -->
+  <div class="sheet-modal" id="sheetCardapio">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">
+        <i class="fa-solid fa-utensils" style="color: #fb923c;"></i>
+        <span>Bar & Restaurante</span>
+      </div>
+      <button class="sheet-close-btn" onclick="closeAllSheets()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="sheet-info-box">
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-fish"></i>
+        <div>
+          <strong>Gastronomia Regional:</strong> Tambaqui frito, iscas de peixe, caldeiradas e pratos típicos da Amazônia.
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-beer-mug-empty"></i>
+        <div>
+          <strong>Bebidas Geladas:</strong> Cervejas, drinks tropicais, sucos naturais, refrigerantes e água.
+        </div>
+      </div>
+      <div class="sheet-info-item">
+        <i class="fa-solid fa-burger"></i>
+        <div>
+          <strong>Porções & Petiscos:</strong> Batata frita, calabresa, frango a passarinho e muito mais.
+        </div>
+      </div>
+    </div>
+
+    <a href="https://wa.me/5569993129559?text=Ol%C3%A1!%20Gostaria%20de%20receber%20o%20card%C3%A1pio%20completo%20do%20restaurante." target="_blank" class="sheet-action-btn primary" onclick="trackClick('pedir_cardapio_whatsapp')">
+      <i class="fa-brands fa-whatsapp"></i>
+      Solicitar Cardápio no WhatsApp
+    </a>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastMessage">
+    <i class="fa-solid fa-check text-green-400"></i>
+    <span id="toastText">Copiado com sucesso!</span>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Set Current Year in Footer
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    // 1. Business Hours & Live Status
+    function updateBusinessStatus() {
+      // Calculate Porto Velho (UTC-4) local time
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const pvhDate = new Date(utc + (3600000 * -4));
+      const day = pvhDate.getDay(); // 0: Dom, 1: Seg, 2: Ter, 3: Qua, 4: Qui, 5: Sex, 6: Sáb
+      const curHour = pvhDate.getHours();
+      const curMin = pvhDate.getMinutes();
+      const curTimeDecimal = curHour + (curMin / 60);
+
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+
+      // Schedule: Tuesday (2) to Sunday (0): 08:00 to 18:00. Monday (1): Closed
+      if (day === 1) {
+        // Monday (Closed)
+        statusDot.className = 'status-dot closed';
+        statusText.innerHTML = 'Fechado às segundas • <strong>Abre amanhã às 08h</strong>';
+      } else {
+        // Tuesday to Sunday
+        if (curTimeDecimal >= 8.0 && curTimeDecimal < 18.0) {
+          // Currently Open
+          statusDot.className = 'status-dot open';
+          statusText.innerHTML = '🟢 <strong>Aberto hoje</strong> • Fecha às 18h00';
+        } else if (curTimeDecimal < 8.0) {
+          // Early Morning
+          statusDot.className = 'status-dot closed';
+          statusText.innerHTML = 'Fechado agora • <strong>Abre hoje às 08h00</strong>';
+        } else {
+          // After 18h
+          statusDot.className = 'status-dot closed';
+          if (day === 0) {
+            // Sunday night -> Next day is Monday (closed)
+            statusText.innerHTML = 'Fechado agora • <strong>Abre terça às 08h00</strong>';
+          } else {
+            statusText.innerHTML = 'Fechado agora • <strong>Abre amanhã às 08h00</strong>';
+          }
+        }
+      }
+    }
+    updateBusinessStatus();
+
+    // 2. Bottom Sheet Modal Controller
+    function openSheet(sheetId) {
+      closeAllSheets();
+      const overlay = document.getElementById('sheetOverlay');
+      const sheet = document.getElementById(sheetId);
+      if (!sheet) return;
+
+      overlay.classList.add('active');
+      sheet.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAllSheets() {
+      const overlay = document.getElementById('sheetOverlay');
+      overlay.classList.remove('active');
+
+      document.querySelectorAll('.sheet-modal').forEach(modal => {
+        modal.classList.remove('active');
+      });
+      document.body.style.overflow = '';
+    }
+
+    // Keyboard escape listener
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllSheets();
+    });
+
+    // 3. FAQ Accordion Toggle
+    function toggleFaq(element) {
+      const faqItem = element.parentElement;
+      const isActive = faqItem.classList.contains('active');
+
+      // Close other open FAQs
+      document.querySelectorAll('.faq-item').forEach(item => {
+        if (item !== faqItem) item.classList.remove('active');
+      });
+
+      if (isActive) {
+        faqItem.classList.remove('active');
+      } else {
+        faqItem.classList.add('active');
+        const label = element.querySelector('.faq-question-text span')?.innerText || 'FAQ';
+        trackClick(label, 'faq_expand');
+      }
+    }
+
+    // 4. Copy Address to Clipboard
+    async function copyAddress() {
+      const address = "Estrada do Rio Preto, Zona Rural, Candeias do Jamari - RO, CEP 76860-000";
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(address);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = address;
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+        showToast("Endereço copiado para a área de transferência!");
+        trackClick('copy_address');
+      } catch (err) {
+        showToast("Erro ao copiar endereço.");
+      }
+    }
+
+    // 5. Toast Feedback
+    function showToast(text) {
+      const toast = document.getElementById('toastMessage');
+      const toastText = document.getElementById('toastText');
+      toastText.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // 6. Native Web Share API or Copy Link
+    async function handleShare() {
+      const shareData = {
+        title: 'Balneário Rio Preto',
+        text: 'Confira os links, valores de Day Use, chalés e como chegar ao Balneário Rio Preto:',
+        url: window.location.href
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          trackClick('web_share_api');
+        } catch (err) {
+          // User canceled or failed silently
+        }
+      } else {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          showToast("Link da página copiado!");
+          trackClick('share_copy_link');
+        } catch(e) {
+          showToast("Não foi possível copiar o link.");
+        }
+      }
+    }
+  </script>
+</body>
+</html>
