@@ -14,7 +14,17 @@ Deno.serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+        const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('DEEPSEEK_KEY');
+        if (!deepseekApiKey) {
+            return new Response(JSON.stringify({
+                success: false,
+                message: "Chave DEEPSEEK_API_KEY não encontrada nos Segredos do Supabase. Configure 'DEEPSEEK_API_KEY' no painel Supabase (Project Settings -> Edge Functions -> Secrets)."
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 500
+            });
+        }
+
         const { text, sender, image_url, madeby, device, location } = await req.json()
 
         // IP Fallback if not sent by client (e.g. CLI or direct curl)
@@ -23,72 +33,97 @@ Deno.serve(async (req) => {
         const finalDevice = device || req.headers.get('user-agent') || "Unknown Device";
         const finalMadeBy = madeby || "AI/Unknown";
 
-        console.log(`[Gemini Logic V4] Input: "${text.substring(0, 50)}..."`);
+        console.log(`[DeepSeek Logic V1] Input: "${text.substring(0, 50)}..."`);
 
         // --- 1. PROMPT ENGINEERING (REFINED FOR AGE RULES) ---
         const currentYear = new Date().getFullYear();
-        const prompt = `
-      Extract reservation details from this text into a specific JSON format.
-      Current Year: ${currentYear}.
-      
-      Input: "${text}"
-      
-      CRITICAL PRICING & AGE RULES:
-      1. "Casal" = 2 adults.
-      2. AGE 8+ (>=8 years old) counts as 1 ADULT.
-      3. AGE 5-7 (5, 6, 7 years old) counts as "children_5_7".
-      4. AGE 0-4 (<5 years old) is FREE (do not count in pricing fields).
-      
-      Keywords:
-      - "Pago", "sinal", "adiantou", "entrada" = 'advance_payment'.
-      - "Valor", "total" = 'total_price'.
-      
-      Output JSON ARRAY:
-      [{
-        "chalet_id": number | null,
-        "guest_name": string,
-        "contact_info": string (Phone/Email),
-        "checkin_date": "YYYY-MM-DD",
-        "checkout_date": "YYYY-MM-DD" (or null if not specified),
-        "total_price": number,
-        "advance_payment": number,
-        "arrival_time": "HH:MM" (default "14:00"),
-        "adults": number (Count of everyone >= 8 years old. Default 2 for "Casal"),
-        "children_5_7": number (Count of everyone aged 5 to 7),
-        "notes": string
-      }]
-    `;
+        const systemPrompt = `Extract reservation details from this text into a specific JSON array format.
+Current Year: ${currentYear}.
 
-        // CALL GEMINI
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${googleApiKey}`;
-        const geminiResp = await fetch(geminiUrl, {
+CRITICAL PRICING & AGE RULES:
+1. "Casal" = 2 adults.
+2. AGE 8+ (>=8 years old) counts as 1 ADULT.
+3. AGE 5-7 (5, 6, 7 years old) counts as "children_5_7".
+4. AGE 0-4 (<5 years old) is FREE (do not count in pricing fields).
+
+Keywords:
+- "Pago", "sinal", "adiantou", "entrada" = 'advance_payment'.
+- "Valor", "total" = 'total_price'.
+
+Output JSON ARRAY:
+[{
+  "chalet_id": number | null,
+  "guest_name": string,
+  "contact_info": string (Phone/Email),
+  "checkin_date": "YYYY-MM-DD",
+  "checkout_date": "YYYY-MM-DD" (or null if not specified),
+  "total_price": number,
+  "advance_payment": number,
+  "arrival_time": "HH:MM" (default "14:00"),
+  "adults": number (Count of everyone >= 8 years old. Default 2 for "Casal"),
+  "children_5_7": number (Count of everyone aged 5 to 7),
+  "notes": string
+}]
+
+Respond with ONLY the raw JSON array. Do not include markdown codeblocks or explanatory text.`;
+
+        // CALL DEEPSEEK (Model: deepseek-flash)
+        const deepseekUrl = 'https://api.deepseek.com/chat/completions';
+        const deepseekResp = await fetch(deepseekUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${deepseekApiKey}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-flash',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: text }
+                ],
+                temperature: 0.1,
+                stream: false
+            })
         });
-        const geminiData = await geminiResp.json();
-        console.log("Gemini status:", geminiResp.status);
-        console.log("Gemini data:", JSON.stringify(geminiData));
 
-        if (geminiData.error) {
+        const deepseekData = await deepseekResp.json();
+        console.log("DeepSeek status:", deepseekResp.status);
+
+        if (!deepseekResp.ok || deepseekData.error) {
+            const errDetail = deepseekData?.error?.message || `HTTP ${deepseekResp.status}: ${deepseekResp.statusText || 'Erro desconhecido'}`;
+            console.error("DeepSeek API error:", errDetail);
             return new Response(JSON.stringify({
                 success: false,
-                message: `Erro na API do Gemini: [${geminiData.error.code}] ${geminiData.error.message}`
+                message: `Erro na API do DeepSeek: ${errDetail}`
             }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
         }
 
         // PARSE AI
-        const aiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+        const aiText = deepseekData.choices?.[0]?.message?.content || "[]";
         let bookings = [];
         try {
-            let cleanText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-            if (!cleanText.endsWith(']')) cleanText += ']';
-            bookings = JSON.parse(cleanText);
+            let cleanText = aiText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            bookings = Array.isArray(parsed) ? parsed : (parsed.bookings || [parsed]);
         } catch (e) {
             console.error("JSON Parse Fail", e);
-            try { bookings = JSON.parse(aiText.substring(0, aiText.lastIndexOf('}') + 1) + "]"); } catch (e2) { }
+            try {
+                const s = aiText.indexOf('[');
+                const eIdx = aiText.lastIndexOf(']');
+                if (s !== -1 && eIdx !== -1) {
+                    bookings = JSON.parse(aiText.substring(s, eIdx + 1));
+                } else {
+                    const os = aiText.indexOf('{');
+                    const oe = aiText.lastIndexOf('}');
+                    if (os !== -1 && oe !== -1) {
+                        bookings = [JSON.parse(aiText.substring(os, oe + 1))];
+                    }
+                }
+            } catch (e2) {
+                console.error("Secondary JSON Parse Fail", e2);
+            }
         }
         if (!Array.isArray(bookings)) bookings = [bookings];
 
