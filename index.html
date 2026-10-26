@@ -96,6 +96,7 @@
         "@type": "PostalAddress",
         "streetAddress": "Estrada do Rio Preto, Zona Rural",
         "addressLocality": "Candeias do Jamari",
+        "postalCode": "76860-000",
         "addressRegion": "RO",
         "addressCountry": "BR"
       },
@@ -283,12 +284,16 @@
 
     <!-- 1. HERO SECTION CINEMATOGRÁFICA -->
     <section class="relative h-[95vh] flex items-center justify-center overflow-hidden">
-        <video class="hero-video" autoplay muted loop playsinline poster="images/droneview.webp">
-            <!-- Se o poster ainda não existir, o video carrega normalmente. -->
-            <source
-                src="videos/hero-video.mp4"
-                type="video/mp4">
-        </video>
+        <video id="hero-video" class="hero-video" autoplay muted loop playsinline preload="metadata" poster="images/droneview.webp"></video>
+        <script>
+            // Vídeo leve: versão menor no celular; sem vídeo quando o usuário ativa economia de dados
+            (function () {
+                var v = document.getElementById('hero-video');
+                var c = navigator.connection || {};
+                if (c.saveData) return;
+                v.src = window.innerWidth < 768 ? 'videos/hero-mobile.mp4' : 'videos/hero-web.mp4';
+            })();
+        </script>
 
         <!-- Gradiente para legibilidade -->
         <div id="hero-gradient" class="absolute inset-0 hero-gradient z-0 transition-opacity duration-700 opacity-0 pointer-events-none"></div>
@@ -765,6 +770,9 @@
             <div class="flex flex-wrap gap-3 mt-6">
                 <a href="reservas.html" class="rounded-full bg-primary-green px-6 py-3 font-bold text-white hover:bg-green-700 transition">Reservar chalé</a>
                 <a href="https://www.google.com/maps/dir//balneario%20rio%20preto" target="_blank" rel="noopener" class="rounded-full border-2 border-primary-green px-6 py-3 font-bold text-primary-green hover:bg-green-50 transition">Como chegar</a>
+                <a href="day-use" class="rounded-full border-2 border-gray-200 px-6 py-3 font-bold text-gray-700 hover:bg-gray-50 transition">Day Use</a>
+                <a href="camping" class="rounded-full border-2 border-gray-200 px-6 py-3 font-bold text-gray-700 hover:bg-gray-50 transition">Camping</a>
+                <a href="eventos" class="rounded-full border-2 border-gray-200 px-6 py-3 font-bold text-gray-700 hover:bg-gray-50 transition">Eventos</a>
                 <a href="blog.html" class="rounded-full border-2 border-gray-200 px-6 py-3 font-bold text-gray-700 hover:bg-gray-50 transition">O que fazer em Porto Velho</a>
             </div>
         </div>

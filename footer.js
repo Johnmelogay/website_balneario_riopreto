@@ -43,6 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <li><a href="index.html#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
                     <li><a href="index.html#gallery" class="hover:text-primary-green transition">Galeria</a></li>
                     <li><a href="index.html#loja" class="hover:text-primary-green transition">Loja</a></li>
+                    <li><a href="/day-use" class="hover:text-primary-green transition">Day Use em Porto Velho</a></li>
+                    <li><a href="/camping" class="hover:text-primary-green transition">Camping</a></li>
+                    <li><a href="/eventos" class="hover:text-primary-green transition">Eventos</a></li>
                 </ul>
             </div>
 
@@ -51,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <ul class="space-y-3 text-gray-400 text-sm">
                     <li class="flex items-center gap-2"><i class="fab fa-whatsapp text-primary-green"></i> (69) 99312-9559</li>
                     <li class="flex items-center gap-2"><i class="far fa-envelope text-primary-green"></i> johnmelocontato@gmail.com</li>
-                    <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary-green mt-1"></i> BR-364, Km 40<br>Candeias do Jamari, RO</li>
+                    <li class="flex items-start gap-2"><i class="fas fa-map-marker-alt text-primary-green mt-1"></i> Estrada do Rio Preto, Zona Rural<br>Candeias do Jamari - RO, 76860-000</li>
                 </ul>
             </div>
 
