@@ -91,6 +91,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // SEO: se existir a página estática do post (/blog/<slug>), redireciona para ela
+        try {
+            const staticUrl = `/blog/${encodeURIComponent(slug)}`;
+            const head = await fetch(staticUrl, { method: 'HEAD' });
+            if (head.ok) {
+                window.location.replace(staticUrl);
+                return;
+            }
+        } catch (e) { /* segue com a versão dinâmica */ }
+
         const { data, error } = await supabase
             .from('blog_posts')
             .select('*')

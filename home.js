@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
 
                 slideDiv.innerHTML = `
-                    <img src="${slide.background_image_url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <img src="${slide.background_image_url}" alt="${slide.title || 'Balneário Rio Preto'}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                     <div class="absolute bottom-0 left-0 px-6 pb-2 md:px-10 md:pb-6 z-20 w-full md:max-w-3xl">
                         <div>
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 div.className = 'group bg-white rounded-2xl p-4 shadow-soft border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer';
                 div.innerHTML = `
                    <div class="relative overflow-hidden rounded-xl h-56 mb-4 bg-gray-50">
-                       <img src="${item.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                       <img src="${item.image_url}" alt="${item.title || 'Produto Balneário Rio Preto'}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                        <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                             ${formatCurrency(item.price)}
                        </div>
@@ -159,10 +159,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 div.innerHTML = `
                    <div class="relative h-48 mb-4 overflow-hidden rounded-2xl shadow-sm">
-                       <img src="${post.cover_image_url}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                       <img src="${post.cover_image_url}" alt="${post.title}" loading="lazy" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur font-bold text-xs px-3 py-1 rounded-lg shadow-sm uppercase text-accent-orange">${date}</div>
                    </div>
-                   <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-accent-orange transition-colors line-clamp-2">${post.title}</h3>
+                   <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-accent-orange transition-colors line-clamp-2"><a href="blog/${post.slug}">${post.title}</a></h3>
                    <p class="text-gray-500 text-sm line-clamp-3 mb-4 flex-1">${post.excerpt || ''}</p>
                    <div class="mt-auto pt-4 border-t border-gray-100">
                         <span class="text-accent-orange font-bold text-sm flex items-center gap-1">Ler Matéria <i class="fas fa-arrow-right"></i></span>
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         item_id: post.id,
                         item_name: post.title
                     });
-                    window.location.href = `detalhes.html?slug=${post.slug}`;
+                    window.location.href = `blog/${post.slug}`;
                 };
                 container.appendChild(div);
             });
