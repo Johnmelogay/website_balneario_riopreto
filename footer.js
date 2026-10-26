@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         </div>
         <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-            &copy; 2025 Balneário Rio Preto. Todos os direitos reservados.
+            &copy; ${new Date().getFullYear()} Balneário Rio Preto. Todos os direitos reservados.
         </div>
     </footer>
     `;

@@ -45,11 +45,11 @@ function renderGrid(posts) {
                  onclick="window.openBlogPost('${post.slug}', '${post.id}', '${titleEscaped}')">
                 
                 <div class="relative h-48 mb-4 overflow-hidden rounded-2xl shadow-sm">
-                    <img src="${imageUrl}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <img src="${imageUrl}" alt="${titleEscaped}" loading="lazy" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div class="absolute top-3 left-3 bg-white/90 backdrop-blur font-bold text-xs px-3 py-1 rounded-lg shadow-sm uppercase text-accent-orange">${date}</div>
                 </div>
 
-                <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-accent-orange transition-colors line-clamp-2">${post.title}</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-2 group-hover:text-accent-orange transition-colors line-clamp-2"><a href="blog/${post.slug}">${post.title}</a></h3>
                 <p class="text-gray-500 text-sm line-clamp-3 mb-4 flex-1">${post.excerpt || ''}</p>
                 
                 <div class="mt-auto pt-4 border-t border-gray-100">
@@ -66,5 +66,5 @@ window.openBlogPost = (slug, id, title) => {
         item_id: id,
         item_name: title
     });
-    window.location.href = `detalhes.html?slug=${slug}`;
+    window.location.href = `blog/${slug}`;
 }
