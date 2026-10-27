@@ -29,6 +29,7 @@ export function trackEvent(eventName, params = {}) {
 // WhatsApp Redirector
 export function openWhatsApp({ text, phone = CONSTANTS.WHATSAPP_NUMBER }) {
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  if (window.trackWhatsappLead) window.trackWhatsappLead();
   window.open(url, '_blank');
 }
 
