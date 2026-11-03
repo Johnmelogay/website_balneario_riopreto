@@ -2,6 +2,73 @@
 !function(w,d,s,u){if(w.oaiq)return;var q=function(){q.q.push(arguments)};q.q=[];w.oaiq=q;var j=d.createElement(s);j.async=1;j.src=u;var f=d.getElementsByTagName(s)[0];f.parentNode.insertBefore(j,f)}(window,document,"script","https://bzrcdn.openai.com/sdk/oaiq.min.js");
 oaiq("init",{pixelId:"DXBj4c1FBQYpPQMNtqoVdk",debug:false});
 
+// Eventos de navegação reais: page_viewed em toda página e contents_viewed nas páginas de oferta.
+// Melhora o aviso "Poucos tipos de evento observados" no OpenAI Ads Manager.
+(function () {
+  var path = location.pathname.replace(/\/index\.html$/, "/").replace(/\.html$/, "") || "/";
+  var pageId = path === "/" ? "home" : path.replace(/^\/+|\/+$/g, "").replace(/\//g, "-");
+  var offers = {
+    "/reservas": "Chalés",
+    "/detalhes": "Detalhes do chalé",
+    "/day-use": "Day Use",
+    "/camping": "Camping",
+    "/eventos": "Eventos"
+  };
+  try {
+    oaiq("measure", "page_viewed", {
+      type: "contents",
+      contents: [{ id: pageId, name: document.title || pageId, content_type: "page" }]
+    });
+    if (offers[path]) {
+      oaiq("measure", "contents_viewed", {
+        type: "contents",
+        contents: [{ id: pageId, name: offers[path], content_type: "product" }]
+      });
+    }
+  } catch (e) {}
+})();
+
+// Dados de correspondência: nome e e-mail que o cliente digita nos formulários do site,
+// sempre com hash SHA-256 no navegador. Nada é enviado em texto puro.
+(function () {
+  var sent = "";
+  function sha256Hex(v) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(v)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+        return b.toString(16).padStart(2, "0");
+      }).join("");
+    });
+  }
+  function cleanName(v) {
+    return v.toLowerCase().replace(/[\s!-\/:-@\[-`{-~]/g, "");
+  }
+  window.oaiSetUser = function (nome, email) {
+    if (!window.crypto || !crypto.subtle) return Promise.resolve();
+    email = (email || "").trim().toLowerCase();
+    var parts = (nome || "").trim().split(/\s+/).filter(Boolean);
+    var first = parts.length ? cleanName(parts[0]) : "";
+    var last = parts.length > 1 ? cleanName(parts[parts.length - 1]) : "";
+    var key = [email, first, last].join("|");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || key === sent) return Promise.resolve();
+    sent = key;
+    return Promise.all([sha256Hex(email), first && sha256Hex(first), last && sha256Hex(last)]).then(function (h) {
+      var user = { email_sha256: h[0], country: "BR" };
+      if (h[1]) user.first_name_sha256 = h[1];
+      if (h[2]) user.last_name_sha256 = h[2];
+      oaiq("init", { pixelId: "DXBj4c1FBQYpPQMNtqoVdk", user: user });
+    }).catch(function () {});
+  };
+  var forms = [["nome-reserva", "email-reserva"], ["name", "email"], ["storeName", "storeEmail"]];
+  document.addEventListener("change", function (e) {
+    var id = e.target && e.target.id;
+    forms.forEach(function (f) {
+      if (id !== f[0] && id !== f[1]) return;
+      var n = document.getElementById(f[0]), m = document.getElementById(f[1]);
+      if (n && m) window.oaiSetUser(n.value, m.value);
+    });
+  }, true);
+})();
+
 // Dispara a conversão quando alguém vai pro WhatsApp (links wa.me / api.whatsapp)
 window.trackWhatsappLead = function () {
   try { window.oaiq && window.oaiq("measure", "lead_created", { type: "customer_action" }); } catch (e) {}
