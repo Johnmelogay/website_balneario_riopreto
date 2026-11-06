@@ -19,11 +19,11 @@ export class Lightbox {
                     <i class="fa-solid fa-xmark text-3xl drop-shadow-md"></i>
                 </button>
 
-                <!-- Nav Buttons (Desktop) -->
-                <button id="lb-prev" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full items-center justify-center backdrop-blur-sm transition-all hover:scale-110 z-40">
+                <!-- Nav Buttons -->
+                <button id="lb-prev" aria-label="Anterior" class="flex absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-black/40 md:bg-white/10 hover:bg-white/20 text-white rounded-full items-center justify-center backdrop-blur-sm transition-all hover:scale-110 z-40">
                     <i class="fa-solid fa-chevron-left text-xl"></i>
                 </button>
-                <button id="lb-next" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full items-center justify-center backdrop-blur-sm transition-all hover:scale-110 z-40">
+                <button id="lb-next" aria-label="Próximo" class="flex absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-black/40 md:bg-white/10 hover:bg-white/20 text-white rounded-full items-center justify-center backdrop-blur-sm transition-all hover:scale-110 z-40">
                     <i class="fa-solid fa-chevron-right text-xl"></i>
                 </button>
 
