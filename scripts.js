@@ -29,8 +29,11 @@ export function trackEvent(eventName, params = {}) {
 // WhatsApp Redirector
 export function openWhatsApp({ text, phone = CONSTANTS.WHATSAPP_NUMBER }) {
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-  if (window.trackWhatsappLead) window.trackWhatsappLead();
-  window.open(url, '_blank');
+  try { if (window.trackWhatsappLead) window.trackWhatsappLead(); } catch (e) {}
+  // Abre na hora do clique. Se o navegador bloquear a nova aba (iPhone/Safari,
+  // navegador interno do Instagram/ChatGPT etc.), abre o WhatsApp na mesma aba.
+  const win = window.open(url, '_blank');
+  if (!win) window.location.href = url;
 }
 
 // Init Google Analytics (if not already handled by GTM/Script tag logic)

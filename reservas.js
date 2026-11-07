@@ -230,27 +230,26 @@ function enviarWhatsapp() {
     const [yOut, mOut, dOut] = checkout.split('-');
     const dataOut = `${dOut}/${mOut}/${yOut}`;
 
-    // --- CAPTURE LEAD ASYNC (FIRE AND FORGET OR AWAIT?) ---
-    // Since we open a new tab, async without await is risky if browser closes too fast, 
-    // but usually fine. For safety, we can await if we make function async, 
-    // but window.enviarWhatsapp is called by onclick HTML attribute.
-    // It's better to update it to be async and await captureLead.
+    const texto = `Olá! Me chamo *${nome}*.\nFiz uma simulação no site e gostaria de confirmar a disponibilidade:\n\n` +
+        `📅 *Data:* ${dataIn} até ${dataOut}\n` +
+        `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
+        `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
+        `🏠 *Preferência:* ${chale}\n` +
+        `💰 *Valor Estimado:* ${total}\n\n` +
+        `Aguardo confirmação para efetuar o pagamento.`;
+
+    // Salva o lead em segundo plano, sem esperar a resposta do banco.
+    // Antes o WhatsApp só abria depois do Supabase responder; nesse atraso o
+    // celular (principalmente iPhone) deixava de considerar a abertura como
+    // vinda do clique e bloqueava a nova aba sem aviso: o botão "não fazia nada".
     captureLead({
         name: nome,
         email: email,
         intention: 'reserva_simulador',
         details: { checkin, checkout, adultos, chale, total }
-    }).then(() => {
-        const texto = `Olá! Me chamo *${nome}*.\nFiz uma simulação no site e gostaria de confirmar a disponibilidade:\n\n` +
-            `📅 *Data:* ${dataIn} até ${dataOut}\n` +
-            `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
-            `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
-            `🏠 *Preferência:* ${chale}\n` +
-            `💰 *Valor Estimado:* ${total}\n\n` +
-            `Aguardo confirmação para efetuar o pagamento.`;
+    }).catch(() => { });
 
-        openWhatsApp({ text: texto });
-    });
+    openWhatsApp({ text: texto });
 }
 
 // --- SUPABASE AVAILABILITY LOGIC ---
