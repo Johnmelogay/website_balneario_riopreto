@@ -72,6 +72,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("adultos").addEventListener("change", calcular);
 
+    const servidorCheck = document.getElementById("servidorPublico");
+    if (servidorCheck) {
+        servidorCheck.addEventListener("change", () => {
+            document.getElementById("servidor-detalhes").classList.toggle("hidden", !servidorCheck.checked);
+            calcular();
+        });
+    }
+
     document.addEventListener("change", function (e) {
         if (e.target && e.target.name === "chale") {
             document.getElementById("erro-chale").classList.add("hidden");
@@ -132,6 +140,7 @@ function calcular() {
         elNoites.innerText = "--";
         elDiaria.innerText = "R$ 0,00";
         elTotal.innerText = "R$ 0,00";
+        document.getElementById("linhaDescontoServidor")?.classList.add("hidden");
         return;
     }
 
@@ -178,7 +187,16 @@ function calcular() {
 
     elDiaria.innerText = "R$ " + valorDiaria.toFixed(2).replace('.', ',');
 
-    let total = valorDiaria * noites;
+    // Viaja Mais Servidor: 10% só na diária do casal (adicionais não entram)
+    const servidor = document.getElementById("servidorPublico")?.checked;
+    const descontoServidor = servidor ? valorBase * 0.10 * noites : 0;
+    const elLinhaDesc = document.getElementById("linhaDescontoServidor");
+    if (elLinhaDesc) {
+        elLinhaDesc.classList.toggle("hidden", !servidor);
+        document.getElementById("resumoDescontoServidor").innerText = "- R$ " + descontoServidor.toFixed(2).replace('.', ',');
+    }
+
+    let total = valorDiaria * noites - descontoServidor;
 
     if (document.getElementById("discount-helper")) {
         document.getElementById("discount-helper").remove();
@@ -223,6 +241,7 @@ function enviarWhatsapp() {
     const chale = chaleInput.value;
     document.getElementById("erro-chale").classList.add("hidden");
     const total = document.getElementById("resumoTotal").innerText;
+    const servidor = !!document.getElementById("servidorPublico")?.checked;
 
     const [yIn, mIn, dIn] = checkin.split('-');
     const dataIn = `${dIn}/${mIn}/${yIn}`;
@@ -235,7 +254,8 @@ function enviarWhatsapp() {
         `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
         `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
         `🏠 *Preferência:* ${chale}\n` +
-        `💰 *Valor Estimado:* ${total}\n\n` +
+        (servidor ? `🏛️ *Servidor(a) público(a):* Sim, desconto Viaja Mais Servidor (10% na diária do casal). Vou apresentar a carteira funcional ou um contracheque de até 60 dias.\n` : '') +
+        `💰 *Valor Estimado${servidor ? ' (com desconto)' : ''}:* ${total}\n\n` +
         `Aguardo confirmação para efetuar o pagamento.`;
 
     // Salva o lead em segundo plano, sem esperar a resposta do banco.
@@ -246,7 +266,7 @@ function enviarWhatsapp() {
         name: nome,
         email: email,
         intention: 'reserva_simulador',
-        details: { checkin, checkout, adultos, chale, total }
+        details: { checkin, checkout, adultos, chale, total, servidor }
     }).catch(() => { });
 
     openWhatsApp({ text: texto });

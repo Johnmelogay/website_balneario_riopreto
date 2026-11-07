@@ -216,17 +216,6 @@
 
   <main class="max-w-7xl mx-auto px-4 py-4 md:py-16 gap-10">
 
-    <!-- Parceria Viaja Mais Servidor -->
-    <div id="viaja-mais-servidor" class="mb-8 rounded-3xl border-2 border-primary-green/30 bg-green-50 p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-4">
-      <div class="flex-1">
-        <p class="text-xs font-bold uppercase tracking-wider text-primary-green">Parceiro Viaja Mais Servidor</p>
-        <h2 class="mt-1 text-xl md:text-2xl font-extrabold text-gray-900">Servidor público tem 10% de desconto</h2>
-        <p class="mt-2 text-gray-700">Chalé casal de <s>R$ 280</s> por <strong>R$ 252</strong> a diária. O desconto também vale para a entrada (Day Use), o aluguel de churrasqueira e o pernoite em camping. Adicionais do chalé não entram no desconto.</p>
-        <p class="mt-1 text-sm text-gray-600">Basta apresentar a carteira funcional ou um contracheque de até 60 dias.</p>
-      </div>
-      <a href="https://wa.me/5569993129559?text=Ol%C3%A1!%20Sou%20servidor(a)%20p%C3%BAblico(a)%20e%20quero%20reservar%20com%20o%20desconto%20Viaja%20Mais%20Servidor." target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','click_whatsapp',{source:'viaja_mais_servidor'})" class="shrink-0 rounded-full bg-primary-green px-6 py-3 text-center font-bold text-white hover:bg-green-700 transition">Reservar com desconto</a>
-    </div>
-
     <div class="grid lg:grid-cols-12 gap-8 items-start">
 
       <!-- COLUNA ESQUERDA: SIMULADOR -->
@@ -402,6 +391,22 @@
               </p>
             </div>
 
+            <!-- SERVIDOR PÚBLICO (Viaja Mais Servidor) -->
+            <div id="servidor-box" class="rounded-2xl border border-gray-200 bg-white p-4">
+              <label for="servidorPublico" class="flex items-center justify-between gap-3 cursor-pointer">
+                <span>
+                  <span class="block font-bold text-gray-800 text-sm">É servidor(a) público(a)?</span>
+                  <span class="block text-[11px] text-gray-500">Parceiro Viaja Mais Servidor • 10% na diária do casal</span>
+                </span>
+                <input type="checkbox" id="servidorPublico" class="h-5 w-5 shrink-0 accent-green-700 cursor-pointer">
+              </label>
+              <div id="servidor-detalhes" class="hidden mt-3 border-t border-gray-100 pt-3 space-y-2 text-xs text-gray-600">
+                <p>A diária do casal sai de <s>R$ 280</s> por <strong class="text-gray-800">R$ 252</strong>. Pessoas adicionais do chalé não entram no desconto.</p>
+                <p>O desconto também vale para a entrada (Day Use), o aluguel de churrasqueira e o pernoite em camping.</p>
+                <p class="font-semibold text-gray-700"><i class="fa-solid fa-id-card text-primary-green mr-1"></i>Na chegada, apresente a carteira funcional ou um contracheque de até 60 dias.</p>
+              </div>
+            </div>
+
             <!-- CARD DE RESUMO FINANCEIRO -->
             <div
               class="rounded-2xl bg-gradient-to-br from-orange-50 to-white border border-orange-100 p-5 space-y-3 relative shadow-sm">
@@ -413,6 +418,11 @@
               <div class="flex justify-between text-sm text-gray-600">
                 <span>Valor Base (Casal):</span>
                 <span id="resumoDiaria" class="font-bold text-gray-800">R$ 0,00</span>
+              </div>
+
+              <div id="linhaDescontoServidor" class="hidden flex justify-between text-sm text-primary-green">
+                <span>Desconto servidor (10%):</span>
+                <span id="resumoDescontoServidor" class="font-bold">- R$ 0,00</span>
               </div>
 
               <div class="border-t border-orange-200 my-1 border-dashed"></div>
