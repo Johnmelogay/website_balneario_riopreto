@@ -81,6 +81,24 @@ document.addEventListener("click", function (e) {
   if (/wa\.me\/\d|api\.whatsapp\.com\/send\?phone=/.test(h)) window.trackWhatsappLead();
 }, true);
 
+// Conversão "Como chegar (Maps/Waze)": mede quem abre a rota pro balneário.
+// Serve pra medir o público de Day Use, que não precisa reservar pelo WhatsApp.
+(function () {
+  var last = 0;
+  document.addEventListener("click", function (e) {
+    var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a) return;
+    var h = a.getAttribute("href") || "";
+    if (!/google\.[a-z.]+\/maps|maps\.google\.|maps\.app\.goo\.gl|goo\.gl\/maps|waze\.com/i.test(h)) return;
+    var now = Date.now();
+    if (now - last < 2000) return;
+    last = now;
+    try {
+      window.oaiq && window.oaiq("measure", "custom", { type: "custom" }, { custom_event_name: "directions_clicked" });
+    } catch (err) {}
+  }, true);
+})();
+
 // ---------------------------------------------------------------------------
 // Google Ads (AW-17816218661) + conversão "Clique no WhatsApp (reserva)"
 // Reaproveita o window.trackWhatsappLead acima, que já dispara em todo clique
