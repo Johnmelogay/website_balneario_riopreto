@@ -19,6 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Verify availability (Supabase)
     setTimeout(verificarDisponibilidade, 500);
     renderGaleria();
+    renderFaixaFotos();
+    iniciarVideoHero();
+    iniciarBarraReserva();
+    iniciarEventosFunil();
 
     const checkinInput = document.getElementById("checkin");
     const checkoutInput = document.getElementById("checkout");
@@ -111,19 +115,141 @@ document.addEventListener("DOMContentLoaded", () => {
         // Trigger calculation
         setTimeout(calcular, 500);
     }
+
+    // Mostra o preço já na abertura (antes ficava "R$ 0,00" até a pessoa mexer em algo)
+    calcular();
 });
 
+// --- MEDIÇÃO (Microsoft Clarity) ---
+// Funil: visitou /reservas -> simular_reserva -> inicio_formulario -> envio_whatsapp
+const eventosEnviados = new Set();
+function marcar(evento, umaVez = true) {
+    if (umaVez && eventosEnviados.has(evento)) return;
+    eventosEnviados.add(evento);
+    try { if (typeof window.clarity === 'function') window.clarity("event", evento); } catch (e) { }
+}
+
+function iniciarEventosFunil() {
+    const sim = document.getElementById("simulador");
+    if (sim) {
+        // Primeira mexida em datas, pessoas, chalé ou desconto conta como "simulou"
+        sim.addEventListener("change", () => marcar("simular_reserva"));
+        sim.addEventListener("click", (e) => {
+            if (e.target.closest(".stepper-btn")) marcar("simular_reserva");
+        });
+    }
+    ["nome-reserva", "email-reserva", "celular-reserva"].forEach(id => {
+        const campo = document.getElementById(id);
+        if (!campo) return;
+        campo.addEventListener("focus", () => marcar("inicio_formulario"));
+        campo.addEventListener("input", () => limparErro(id));
+    });
+    // Máscara do celular: (69) 99999-9999
+    const cel = document.getElementById("celular-reserva");
+    if (cel) cel.addEventListener("input", () => { cel.value = formatarCelular(cel.value); });
+}
+
+function formatarCelular(v) {
+    const d = v.replace(/\D/g, "").slice(0, 11);
+    if (d.length <= 2) return d.length ? `(${d}` : "";
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+// --- VÍDEO DO TOPO: só carrega no computador; no celular fica a foto ---
+function iniciarVideoHero() {
+    const video = document.getElementById("heroVideo");
+    if (!video || !window.matchMedia("(min-width: 768px)").matches) return;
+    video.src = video.dataset.src;
+    video.play().catch(() => { });
+}
+
+// --- BARRA FIXA DE RESERVA (celular) ---
+function iniciarBarraReserva() {
+    const barra = document.getElementById("barra-reserva");
+    const btnBarra = document.getElementById("btnBarraReservar");
+    const btnForm = document.getElementById("btnWhatsappReserva");
+    if (!barra || !btnBarra) return;
+
+    btnBarra.addEventListener("click", () => {
+        marcar("barra_reservar", false);
+        enviarWhatsapp();
+    });
+
+    // Esconde a barra quando o botão verde do formulário já está visível (evita dois botões iguais)
+    if (btnForm && "IntersectionObserver" in window) {
+        new IntersectionObserver((entries) => {
+            barra.classList.toggle("escondida", entries[0].isIntersecting);
+        }, { threshold: 0.4 }).observe(btnForm);
+    }
+}
+
+function limparErro(id) {
+    document.getElementById(`${id}-erro`)?.classList.add("hidden");
+    document.getElementById(`${id}-box`)?.classList.remove("campo-erro");
+    // Some o aviso geral quando não há mais nenhum campo marcado
+    if (!document.querySelector(".campo-erro")) document.getElementById("aviso-dados")?.classList.add("hidden");
+}
+
+// Marca todos os dados que faltam, mostra o aviso explicando o porquê e
+// leva a pessoa até o primeiro campo. Devolve true se faltou algo.
+function validarDados(nome, email, celularDigitos) {
+    const faltando = [];
+    if (!nome) faltando.push(["nome-reserva", "erro_reserva_nome"]);
+    if (celularDigitos.length < 10 || celularDigitos.length > 11) faltando.push(["celular-reserva", "erro_reserva_celular"]);
+    // E-mail é opcional; só avisa se a pessoa digitou algo que não é e-mail
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) faltando.push(["email-reserva", "erro_reserva_email"]);
+    if (!faltando.length) return false;
+
+    faltando.forEach(([id, evento]) => {
+        marcar(evento, false);
+        document.getElementById(`${id}-erro`)?.classList.remove("hidden");
+        document.getElementById(`${id}-box`)?.classList.add("campo-erro");
+    });
+    const aviso = document.getElementById("aviso-dados");
+    aviso?.classList.remove("hidden");
+    const primeiro = document.getElementById(faltando[0][0]);
+    (aviso || primeiro).scrollIntoView({ behavior: "smooth", block: "start" });
+    // focus no mesmo toque abre o teclado no celular
+    primeiro.focus({ preventScroll: true });
+    return true;
+}
 
 function changeValue(id, delta) {
     const input = document.getElementById(id);
     let val = parseInt(input.value) || 0;
     let min = parseInt(input.getAttribute('min')) || 0;
+    let max = parseInt(input.getAttribute('max')) || 99;
 
     let newVal = val + delta;
-    if (newVal >= min) {
+    if (newVal >= min && newVal <= max) {
         input.value = newVal;
         calcular();
     }
+}
+
+function formatarReais(v) {
+    return "R$ " + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Atualiza a barra fixa do celular com o total e um resumo curto
+function atualizarBarra(total, noites) {
+    const elTotal = document.getElementById("barraTotal");
+    const elDet = document.getElementById("barraDetalhe");
+    if (!elTotal || !elDet) return;
+    const adultos = parseInt(document.getElementById("adultos").value) || 0;
+    const criancas = (parseInt(document.getElementById("criancas5")?.value) || 0) + (parseInt(document.getElementById("criancas0")?.value) || 0);
+    const pessoas = adultos + criancas;
+    if (!noites || noites <= 0) {
+        elTotal.innerText = "Escolha as datas";
+        elDet.innerText = "Toque em Reservar para começar";
+        return;
+    }
+    elTotal.innerText = formatarReais(total);
+    const sel = document.querySelector('input[name="chale"]:checked');
+    const chale = sel && sel.dataset.curto ? ` • ${sel.dataset.curto}` : "";
+    elDet.innerText = `${noites} ${noites === 1 ? "noite" : "noites"} • ${pessoas} ${pessoas === 1 ? "pessoa" : "pessoas"}${chale}`;
 }
 
 function calcular() {
@@ -141,6 +267,7 @@ function calcular() {
         elDiaria.innerText = "R$ 0,00";
         elTotal.innerText = "R$ 0,00";
         document.getElementById("linhaDescontoServidor")?.classList.add("hidden");
+        atualizarBarra(0, 0);
         return;
     }
 
@@ -157,20 +284,20 @@ function calcular() {
     if (noites <= 0) {
         elNoites.innerText = "Data Inválida";
         elTotal.innerText = "---";
+        atualizarBarra(0, 0);
         return;
     }
 
-    elNoites.innerText = `${noites} noite(s)`;
+    elNoites.innerText = `${noites} ${noites === 1 ? "noite" : "noites"}`;
 
     const dayOfWeek = d1Day.getDay(); // 0-Dom, 1-Seg, ..., 5-Sex, 6-Sab
 
-    // Sunday Checkout Message
-    // Se checkout cai no domingo
+    // Linha de ajuda sob as datas: noites + horário de saída (domingo é estendido)
     const d2Day = new Date(y2, m2 - 1, d_2);
-    if (d2Day.getDay() === 0) { // 0 = Domingo
-        // Poderia injetar uma msg na UI, mas por enquanto só cálculo
-        // Se tiver local para msg:
-        // document.getElementById('msg-checkout').innerText = "Domingo: Saída estendida até 16h30!";
+    const elInfo = document.getElementById("infoNoites");
+    if (elInfo) {
+        const saida = d2Day.getDay() === 0 ? "Saída no domingo até 16h30" : "Saída até 12h";
+        elInfo.innerHTML = `<strong class="text-gray-700">${noites} ${noites === 1 ? "noite" : "noites"}</strong> • ${saida} • O horário de entrada aparece em cada chalé`;
     }
 
     let valorBase = 280;
@@ -202,29 +329,30 @@ function calcular() {
         document.getElementById("discount-helper").remove();
     }
 
-    elTotal.innerText = "R$ " + total.toFixed(2).replace('.', ',');
+    elTotal.innerText = formatarReais(total);
+    atualizarBarra(total, noites);
 }
 
 function enviarWhatsapp() {
     // --- LEAD CAPTURE VALIDATION ---
-    const nome = document.getElementById("nome-reserva").value;
-    const email = document.getElementById("email-reserva").value;
-
-    if (!nome || !email) {
-        alert("Por favor, preencha seu Nome e E-mail para continuar.");
-        document.getElementById("nome-reserva").focus();
-        return;
-    }
+    // Nome e celular são obrigatórios; e-mail é opcional (coleta prevista na política de privacidade).
+    const nome = document.getElementById("nome-reserva").value.trim();
+    const email = document.getElementById("email-reserva").value.trim();
+    const celular = document.getElementById("celular-reserva").value.trim();
+    const celularDigitos = celular.replace(/\D/g, "");
 
     const checkin = document.getElementById("checkin").value;
     const checkout = document.getElementById("checkout").value;
 
-    if (!checkin || !checkout) {
-        alert("Por favor, selecione as datas de entrada e saída.");
-        document.getElementById("checkin").scrollIntoView({ behavior: "smooth" });
-        document.getElementById("checkin").focus();
+    if (!checkin || !checkout || checkout <= checkin) {
+        marcar("erro_reserva_datas", false);
+        document.getElementById("checkin").scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById("infoNoites").innerHTML = '<span class="text-red-600 font-bold">Escolha a data de entrada e a de saída.</span>';
         return;
     }
+
+    // Dados da pessoa primeiro: sem nome e celular não abre o WhatsApp
+    if (validarDados(nome, email, celularDigitos)) return;
 
     const adultos = document.getElementById("adultos").value;
     const criancas5 = document.getElementById("criancas5")?.value || 0;
@@ -233,8 +361,9 @@ function enviarWhatsapp() {
     const chaleInput = document.querySelector('input[name="chale"]:checked');
 
     if (!chaleInput) {
+        marcar("erro_reserva_chale", false);
         document.getElementById("erro-chale").classList.remove("hidden");
-        document.getElementById("chale-opcoes").scrollIntoView({ behavior: "smooth" });
+        document.getElementById("chale-opcoes").scrollIntoView({ behavior: "smooth", block: "center" });
         return;
     }
 
@@ -249,8 +378,13 @@ function enviarWhatsapp() {
     const [yOut, mOut, dOut] = checkout.split('-');
     const dataOut = `${dOut}/${mOut}/${yOut}`;
 
+    marcar("envio_whatsapp", false);
+    try { if (typeof window.clarity === 'function') window.clarity("set", "servidor_publico", servidor ? "sim" : "nao"); } catch (e) { }
+
     const texto = `Olá! Me chamo *${nome}*.\nFiz uma simulação no site e gostaria de confirmar a disponibilidade:\n\n` +
         `📅 *Data:* ${dataIn} até ${dataOut}\n` +
+        `📱 *Celular:* ${celular}\n` +
+        (email ? `✉️ *E-mail:* ${email}\n` : '') +
         `👥 *Pessoas:* ${adultos} Adultos, ${criancas5} Crianças (5-8), ${criancas0} Bebês\n` +
         `⏰ *Horário previsto de chegada:* ${horarioChegada}\n` +
         `🏠 *Preferência:* ${chale}\n` +
@@ -265,8 +399,9 @@ function enviarWhatsapp() {
     captureLead({
         name: nome,
         email: email,
+        celular,
         intention: 'reserva_simulador',
-        details: { checkin, checkout, adultos, chale, total, servidor }
+        details: { checkin, checkout, adultos, chale, total, servidor, celular }
     }).catch(() => { });
 
     openWhatsApp({ text: texto });
@@ -435,7 +570,7 @@ function renderOpcoesChale(blockedIds = [], turnoverIds = []) {
 
             const cardHtml = `
         <label class="relative block w-full">
-            <input type="radio" name="chale" value="Chalé ${num} (${area})" class="peer sr-only chale-radio" ${disabledAttr}>
+            <input type="radio" name="chale" value="Chalé ${num} (${area})" data-curto="Chalé ${num}" class="peer sr-only chale-radio" ${disabledAttr}>
             <div class="${wrapperClass}">
                 <i class="fa-solid ${iconName} ${iconClass} opacity-80"></i>
                 <span class="font-bold text-gray-800 text-sm leading-none mb-0.5">Chalé ${num}</span>
@@ -459,8 +594,10 @@ const BASE_VIDEO_URL = "https://hihaipaslnpaqnqotrwm.supabase.co/storage/v1/obje
 
 // Use images present in repo as temporary placeholders for video covers to speed up loading
 const galeriaMidia = [
+    // Tour por dentro do chalé primeiro (antes ficava escondido no meio do vídeo "Aconchego").
+    // Vídeo recortado: interior primeiro, depois a área externa; sem áudio.
+    { type: 'video', src: "videos/aconchego-interior.mp4", thumb: "images/chale-interior-quarto.webp", caption: "Por dentro do chalé" },
     { type: 'image', src: "images/img-aerea.jpg", caption: "Chalé 10" },
-    { type: 'video', src: `${BASE_VIDEO_URL}/aconchego720p.mp4`, thumb: "images/aconchego_thumbnail.png", caption: "Aconchego" },
     { type: 'video', src: `${BASE_VIDEO_URL}/hero-video720p.mp4`, thumb: "images/hero-video_thumbnail.png", caption: "Destaques" },
     { type: 'video', src: `${BASE_VIDEO_URL}/pool720p.mp4`, thumb: "images/pool_thumbnail.png", caption: "Piscina" },
     { type: 'video', src: `${BASE_VIDEO_URL}/toboagua720p.mp4`, thumb: "images/toboagua_thumbnail.png", caption: "Toboágua" },
@@ -469,6 +606,41 @@ const galeriaMidia = [
     { type: 'video', src: `${BASE_VIDEO_URL}/paradise720p.mp4`, thumb: "images/paradise_thumbnail.png", caption: "Paraíso" },
     { type: 'video', src: `${BASE_VIDEO_URL}/beach720p.mp4`, thumb: "images/beach_thumbnail.png", caption: "Praia" },
 ];
+
+// Faixa curta de fotos acima do simulador (celular): os 5 primeiros itens da galeria
+function renderFaixaFotos() {
+    const faixa = document.getElementById("faixa-fotos");
+    if (!faixa) return;
+    faixa.innerHTML = "";
+    galeriaMidia.slice(0, 5).forEach((item, index) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `relative shrink-0 snap-start overflow-hidden rounded-xl bg-gray-100 h-32 ${index === 0 ? "w-44" : "w-28"}`;
+        btn.setAttribute("aria-label", item.caption || "Abrir foto");
+        btn.onclick = () => { marcar("faixa_fotos", false); galleryLightbox.open(galeriaMidia, index); };
+
+        const img = document.createElement("img");
+        img.src = item.thumb || item.src;
+        img.alt = item.caption || "";
+        img.loading = index === 0 ? "eager" : "lazy";
+        img.className = "w-full h-full object-cover";
+        btn.appendChild(img);
+
+        if (item.type === "video") {
+            btn.insertAdjacentHTML("beforeend", `
+                <span class="absolute inset-0 flex items-center justify-center bg-black/15">
+                    <span class="w-10 h-10 rounded-full bg-white/25 backdrop-blur-md border border-white/60 flex items-center justify-center">
+                        <i class="fa-solid fa-play text-white ml-0.5"></i>
+                    </span>
+                </span>`);
+        }
+        if (item.caption) {
+            btn.insertAdjacentHTML("beforeend",
+                `<span class="absolute bottom-1.5 left-1.5 right-1.5 text-left text-[11px] font-bold text-white drop-shadow-md leading-tight">${item.caption}</span>`);
+        }
+        faixa.appendChild(btn);
+    });
+}
 
 function renderGaleria() {
     const grid = document.getElementById("galeria-grid");

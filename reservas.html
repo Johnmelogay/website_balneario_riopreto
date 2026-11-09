@@ -40,7 +40,6 @@
     /* Hero Section */
     .hero-reservas {
       position: relative;
-      min-height: 380px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -82,39 +81,44 @@
       height: 40px;
     }
 
-    /* Otimização para Mobile: Botão Flutuante */
-    .floating-cta {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #FF6D00;
-      color: #fff;
-      padding: 14px 28px;
-      border-radius: 50px;
-      font-size: 1rem;
-      font-weight: 700;
-      box-shadow: 0 10px 25px rgba(255, 109, 0, 0.4);
-      z-index: 40;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: transform 0.2s active;
-      width: 90%;
-      max-width: 320px;
-      justify-content: center;
-
+    /* Barra fixa de reserva (celular): some quando o botão do formulário está na tela */
+    #barra-reserva.escondida {
+      transform: translateY(110%);
     }
 
-    .floating-cta:active {
-      transform: translateX(-50%) scale(0.95);
+    /* Títulos dos passos do simulador */
+    .passo-titulo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .passo-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #E8F5E9;
+      color: #2E7D32;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .campo-erro,
+    .campo-erro:focus-within {
+      border-color: #dc2626 !important;
+      box-shadow: 0 0 0 1px #dc2626 !important;
+    }
+
+    .hero-reservas {
+      min-height: 230px;
     }
 
     @media (min-width: 768px) {
-      .floating-cta {
-        display: none;
-      }
-
       .hero-reservas {
         min-height: 450px;
         border-radius: 0;
@@ -143,9 +147,9 @@
 
     /* Stepper Control */
     .stepper-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       background-color: #ffffff;
       border: 1px solid #e5e7eb;
       display: flex;
@@ -184,149 +188,114 @@
   <div id="navbar-container"></div>
   <script src="navbar.js" defer></script>
 
-  <!-- CTA Flutuante Mobile -->
-  <a href="#simulador" class="floating-cta">
-    <i class="fa-solid fa-calculator"></i>
-    Simular Agora
-  </a>
+  <!-- BARRA FIXA (celular): total + botão de reserva sempre à mão -->
+  <div id="barra-reserva" class="md:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] px-4 pt-3 transition-transform duration-200"
+    style="padding-bottom: calc(12px + env(safe-area-inset-bottom));">
+    <div class="flex items-center gap-3 max-w-md mx-auto">
+      <div class="min-w-0 flex-1 leading-tight">
+        <span id="barraTotal" class="block text-lg font-black text-gray-900 tabular-nums">R$ 280,00</span>
+        <span id="barraDetalhe" class="block text-[11px] text-gray-500 truncate">1 noite • 2 pessoas</span>
+      </div>
+      <button type="button" id="btnBarraReservar"
+        class="shrink-0 rounded-xl bg-primary-green active:bg-green-800 text-white font-bold px-5 py-3 flex items-center gap-2">
+        <i class="fa-brands fa-whatsapp text-xl"></i> Reservar
+      </button>
+    </div>
+  </div>
 
-  <!-- HERO SECTION -->
-  <section class="hero-reservas px-4 mb-8 md:mb-0">
-    <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/80 z-0"></div>
-    <img src="images/hero-image.PNG" alt="Balneário Rio Preto"
-      class="absolute inset-0 w-full h-full object-cover z-[-1]" />
-    <video class="hero-video" autoplay muted loop playsinline poster="images/hero-image.PNG">
-      <source src="videos/hero-video.mp4" type="video/mp4" />
-    </video>
+  <!-- HERO SECTION (curto no celular: o simulador aparece sem rolar muito) -->
+  <section class="hero-reservas px-4">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/45 to-black/80 z-0"></div>
+    <img src="images/hero-image.PNG" alt="Chalés do Balneário Rio Preto"
+      class="absolute inset-0 w-full h-full object-cover z-[-1]" fetchpriority="high" />
+    <!-- Vídeo só no computador: no celular fica a foto (página mais leve e rápida) -->
+    <video id="heroVideo" class="hero-video" muted loop playsinline preload="none" poster="images/hero-image.PNG"
+      data-src="videos/hero-video.mp4"></video>
 
-    <div class="relative z-10 max-w-4xl mx-auto py-12 flex flex-col items-center">
-      <span
-        class="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold text-white uppercase tracking-wider backdrop-blur-md">
-        <i class="fa-solid fa-shield-halved text-green-400"></i> Reserva Direta e Segura
-      </span>
-      <h1 class="text-3xl md:text-5xl font-black drop-shadow-xl leading-tight md:leading-tight mb-4 text-white">
-        Seu refúgio na <span
-          class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-yellow-500">Natureza</span>
+    <div class="relative z-10 max-w-4xl mx-auto py-8 md:py-12 flex flex-col items-center">
+      <h1 class="text-2xl md:text-5xl font-black drop-shadow-xl leading-tight mb-2 md:mb-4 text-white">
+        Reserve seu chalé
       </h1>
-      <p class="text-gray-200 text-sm md:text-lg max-w-xl drop-shadow-md font-medium">
-        Confira a disponibilidade em tempo real e receba o orçamento detalhado no seu WhatsApp.
+      <p class="text-gray-100 text-sm md:text-lg max-w-xl drop-shadow-md font-medium">
+        A partir de <strong class="text-white">R$ 280 a diária</strong> para o casal. Veja os chalés livres e envie o pedido pelo WhatsApp.
+      </p>
+      <p class="mt-3 inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/25 px-3 py-1 text-[11px] md:text-xs font-semibold text-white backdrop-blur-md">
+        <i class="fa-solid fa-id-card text-green-300"></i> Servidor público: 10% de desconto na diária
       </p>
     </div>
   </section>
 
-  <main class="max-w-7xl mx-auto px-4 py-4 md:py-16 gap-10">
+  <main class="max-w-7xl mx-auto px-4 pt-4 pb-8 md:py-16 gap-10">
+
+    <!-- FAIXA DE FOTOS (só celular): mostra o lugar antes do simulador, sem empurrá-lo para baixo.
+         Clarity: a galeria é muito tocada, mas só metade dos visitantes chegava até ela. -->
+    <div class="lg:hidden -mx-4 mb-4">
+      <div class="flex items-center justify-between px-4 mb-2">
+        <p class="text-sm font-bold text-gray-800">Conheça o chalé</p>
+        <a href="#galeria-grid" class="text-xs font-bold text-primary-green">Ver todas as fotos</a>
+      </div>
+      <div id="faixa-fotos" class="flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory" style="scrollbar-width: none;"></div>
+    </div>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">
 
       <!-- COLUNA ESQUERDA: SIMULADOR -->
       <div class="lg:col-span-5 lg:sticky lg:top-24 order-1 lg:order-2">
-        <div id="simulador" class="rounded-3xl bg-white shadow-soft border border-gray-100 overflow-hidden relative">
+        <div id="simulador" class="scroll-mt-20 rounded-3xl bg-white shadow-soft border border-gray-100 overflow-hidden relative">
 
           <!-- Cabeçalho do Simulador -->
-          <div class="bg-primary-green p-6 text-white relative overflow-hidden">
-            <!-- Decorative Circles -->
-            <div class="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-            <div class="absolute -left-4 bottom-0 w-20 h-20 bg-accent-orange opacity-20 rounded-full blur-xl"></div>
-
-            <p class="text-[10px] font-bold uppercase tracking-widest text-green-200 mb-2 flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Sistema Online
-            </p>
-            <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">
-              Simular Reserva
-            </h2>
-            <p class="text-green-100 text-xs mt-1 opacity-90">Preencha os dados abaixo para calcular.</p>
+          <div class="bg-primary-green px-5 py-4 md:p-6 text-white">
+            <h2 class="text-lg md:text-2xl font-bold">Monte sua reserva</h2>
+            <p class="text-green-100 text-xs mt-0.5">Leva menos de 1 minuto. Você só paga depois que confirmarmos no WhatsApp.</p>
           </div>
 
           <div class="p-5 md:p-6 space-y-6">
 
-            <!-- DADOS PESSOAIS -->
-            <div class="space-y-4">
-              <div class="space-y-1.5 group relative">
-                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Seu Nome</label>
-                <div
-                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fa-regular fa-user text-gray-400 group-focus-within:text-primary-green"></i>
+            <!-- 1. DATAS -->
+            <div class="space-y-2">
+              <p class="passo-titulo"><span class="passo-num">1</span> Quando?</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1 group relative">
+                  <label for="checkin" class="text-[11px] font-bold text-gray-500 uppercase ml-1">Entrada</label>
+                  <div
+                    class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i class="fa-regular fa-calendar text-gray-400"></i>
+                    </div>
+                    <input type="date" id="checkin"
+                      class="w-full pl-9 pr-2 py-3 text-base font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
                   </div>
-                  <input type="text" id="nome-reserva" placeholder="Como podemos te chamar?"
-                    class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
                 </div>
-              </div>
 
-              <div class="space-y-1.5 group relative">
-                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Seu E-mail</label>
-                <div
-                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fa-regular fa-envelope text-gray-400 group-focus-within:text-primary-green"></i>
+                <div class="space-y-1 group relative">
+                  <label for="checkout" class="text-[11px] font-bold text-gray-500 uppercase ml-1">Saída</label>
+                  <div
+                    class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i class="fa-regular fa-calendar-check text-gray-400"></i>
+                    </div>
+                    <input type="date" id="checkout"
+                      class="w-full pl-9 pr-2 py-3 text-base font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
                   </div>
-                  <input type="email" id="email-reserva" placeholder=" "
-                    class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
                 </div>
               </div>
+              <p id="infoNoites" class="text-xs text-gray-500 px-1">Saída até 12h (domingo até 16h30). O horário de entrada aparece em cada chalé.</p>
             </div>
 
-            <!-- DATAS (Grid lado a lado com ícones internos) -->
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-1.5 group relative">
-                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Entrada</label>
-                <div
-                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fa-regular fa-calendar text-gray-400 group-focus-within:text-primary-green"></i>
-                  </div>
-                  <input type="date" id="checkin"
-                    class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
-                </div>
-              </div>
-
-              <div class="space-y-1.5 group relative">
-                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Saída</label>
-                <div
-                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-accent-orange focus-within:ring-1 focus-within:ring-accent-orange transition-all">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fa-regular fa-calendar-check text-gray-400 group-focus-within:text-accent-orange"></i>
-                  </div>
-                  <input type="date" id="checkout"
-                    class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
-                </div>
-              </div>
-            </div>
-
-            <!-- Horário de Chegada -->
-            <div class="space-y-1.5 group relative">
-              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Horário Previsto</label>
-              <div
-                class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green transition-all">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i class="fa-regular fa-clock text-gray-400 group-focus-within:text-primary-green"></i>
-                </div>
-                <input type="time" id="horarioChegada"
-                  class="w-full pl-10 pr-3 py-3 text-sm font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
-              </div>
-              <p class="text-[10px] text-gray-400 px-1">
-                <i class="fa-solid fa-circle-info text-accent-orange mr-1"></i>Check-in até 17:00. Após, taxa de R$
-                50,00.
-              </p>
-            </div>
-
-            <hr class="border-gray-100">
-
-            <!-- CONTROLE DE PESSOAS -->
-            <div class="space-y-4">
+            <!-- 2. PESSOAS -->
+            <div class="space-y-3">
+              <p class="passo-titulo"><span class="passo-num">2</span> Quem vai?</p>
               <div class="flex items-center justify-between">
                 <div>
                   <p class="font-bold text-gray-800 text-sm">Adultos</p>
-                  <p class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded inline-block">+9 anos
-                    • R$ 40 extra</p>
+                  <p class="text-[11px] text-gray-500">A partir de 9 anos • 2 inclusos, +R$ 40 cada</p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <button type="button" class="stepper-btn" onclick="changeValue('adultos', -1)"><i
+                <div class="flex items-center gap-1">
+                  <button type="button" class="stepper-btn" aria-label="Menos um adulto" onclick="changeValue('adultos', -1)"><i
                       class="fa-solid fa-minus text-xs"></i></button>
-                  <!-- TYPE=TEL USADO AQUI PARA CENTRALIZAR CORRETAMENTE -->
-                  <input type="tel" id="adultos" value="2" min="1" readonly
-                    class="w-10 text-center p-0 appearance-none bg-transparent font-bold text-gray-700 text-lg focus:outline-none tabular-nums">
-                  <button type="button" class="stepper-btn" onclick="changeValue('adultos', 1)"><i
+                  <input type="tel" id="adultos" value="2" min="1" max="8" readonly tabindex="-1" aria-label="Adultos"
+                    class="w-9 text-center p-0 appearance-none bg-transparent font-bold text-gray-800 text-lg focus:outline-none tabular-nums">
+                  <button type="button" class="stepper-btn" aria-label="Mais um adulto" onclick="changeValue('adultos', 1)"><i
                       class="fa-solid fa-plus text-xs"></i></button>
                 </div>
               </div>
@@ -334,15 +303,14 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="font-bold text-gray-800 text-sm">Crianças</p>
-                  <p class="text-[10px] text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded inline-block">5 a 8
-                    anos • Taxa R$ 20</p>
+                  <p class="text-[11px] text-gray-500">5 a 8 anos • +R$ 20 cada</p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <button type="button" class="stepper-btn" onclick="changeValue('criancas5', -1)"><i
+                <div class="flex items-center gap-1">
+                  <button type="button" class="stepper-btn" aria-label="Menos uma criança" onclick="changeValue('criancas5', -1)"><i
                       class="fa-solid fa-minus text-xs"></i></button>
-                  <input type="tel" id="criancas5" value="0" min="0" readonly
-                    class="w-10 text-center p-0 appearance-none bg-transparent font-bold text-gray-700 text-lg focus:outline-none tabular-nums">
-                  <button type="button" class="stepper-btn" onclick="changeValue('criancas5', 1)"><i
+                  <input type="tel" id="criancas5" value="0" min="0" max="6" readonly tabindex="-1" aria-label="Crianças de 5 a 8 anos"
+                    class="w-9 text-center p-0 appearance-none bg-transparent font-bold text-gray-800 text-lg focus:outline-none tabular-nums">
+                  <button type="button" class="stepper-btn" aria-label="Mais uma criança" onclick="changeValue('criancas5', 1)"><i
                       class="fa-solid fa-plus text-xs"></i></button>
                 </div>
               </div>
@@ -350,24 +318,21 @@
               <div class="flex items-center justify-between">
                 <div>
                   <p class="font-bold text-gray-800 text-sm">Bebês</p>
-                  <p class="text-[10px] text-primary-green font-bold bg-green-50 px-2 py-0.5 rounded inline-block">0 a 4
-                    anos • Grátis</p>
+                  <p class="text-[11px] text-primary-green font-semibold">0 a 4 anos • Grátis</p>
                 </div>
-                <div class="flex items-center gap-2">
-                  <button type="button" class="stepper-btn" onclick="changeValue('criancas0', -1)"><i
+                <div class="flex items-center gap-1">
+                  <button type="button" class="stepper-btn" aria-label="Menos um bebê" onclick="changeValue('criancas0', -1)"><i
                       class="fa-solid fa-minus text-xs"></i></button>
-                  <input type="tel" id="criancas0" value="0" min="0" readonly
-                    class="w-10 text-center p-0 appearance-none bg-transparent font-bold text-gray-700 text-lg focus:outline-none tabular-nums">
-                  <button type="button" class="stepper-btn" onclick="changeValue('criancas0', 1)"><i
+                  <input type="tel" id="criancas0" value="0" min="0" max="6" readonly tabindex="-1" aria-label="Bebês"
+                    class="w-9 text-center p-0 appearance-none bg-transparent font-bold text-gray-800 text-lg focus:outline-none tabular-nums">
+                  <button type="button" class="stepper-btn" aria-label="Mais um bebê" onclick="changeValue('criancas0', 1)"><i
                       class="fa-solid fa-plus text-xs"></i></button>
                 </div>
               </div>
             </div>
 
-            <hr class="border-gray-100">
-
-            <!-- Seleção de Chalé REFEITA -->
-            <div class="space-y-3">
+            <!-- 3. CHALÉ -->
+            <div class="space-y-2">
               <div class="flex justify-between items-center">
                 <label class="text-xs font-bold text-gray-500 uppercase ml-1">Escolha seu Chalé</label>
                 <span
@@ -398,7 +363,7 @@
                   <span class="block font-bold text-gray-800 text-sm">É servidor(a) público(a)?</span>
                   <span class="block text-[11px] text-gray-500">Parceiro Viaja Mais Servidor • 10% na diária do casal</span>
                 </span>
-                <input type="checkbox" id="servidorPublico" class="h-5 w-5 shrink-0 accent-green-700 cursor-pointer">
+                <input type="checkbox" id="servidorPublico" class="h-6 w-6 shrink-0 accent-green-700 cursor-pointer">
               </label>
               <div id="servidor-detalhes" class="hidden mt-3 border-t border-gray-100 pt-3 space-y-2 text-xs text-gray-600">
                 <p>A diária do casal sai de <s>R$ 280</s> por <strong class="text-gray-800">R$ 252</strong>. Pessoas adicionais do chalé não entram no desconto.</p>
@@ -416,7 +381,7 @@
               </div>
 
               <div class="flex justify-between text-sm text-gray-600">
-                <span>Valor Base (Casal):</span>
+                <span>Valor da diária:</span>
                 <span id="resumoDiaria" class="font-bold text-gray-800">R$ 0,00</span>
               </div>
 
@@ -433,15 +398,81 @@
               </div>
             </div>
 
+            <!-- 3. SEUS DADOS: nome e celular obrigatórios; e-mail opcional (coleta prevista na política de privacidade) -->
+            <div class="space-y-3">
+              <p class="passo-titulo"><span class="passo-num">3</span> Seus dados</p>
+              <div id="aviso-dados" class="hidden scroll-mt-24 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                <p class="font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i>Falta preencher seus dados</p>
+                <p class="text-xs mt-1">Precisamos do seu nome e do seu celular para identificar você na hora do atendimento pelo WhatsApp.</p>
+              </div>
+              <div class="space-y-1">
+                <label for="nome-reserva" class="text-[11px] font-bold text-gray-500 uppercase ml-1">Seu nome</label>
+                <div id="nome-reserva-box"
+                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-user text-gray-400"></i>
+                  </div>
+                  <input type="text" id="nome-reserva" placeholder="Como podemos te chamar?" autocomplete="name" aria-describedby="nome-reserva-erro"
+                    class="w-full pl-10 pr-3 py-3 text-base font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+                <p id="nome-reserva-erro" class="hidden text-red-600 text-xs font-bold px-1">
+                  <i class="fa-solid fa-circle-exclamation mr-1"></i>Digite seu nome.
+                </p>
+              </div>
+              <div class="space-y-1">
+                <label for="celular-reserva" class="text-[11px] font-bold text-gray-500 uppercase ml-1">Seu celular (WhatsApp)</label>
+                <div id="celular-reserva-box"
+                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-phone text-gray-400"></i>
+                  </div>
+                  <input type="tel" id="celular-reserva" placeholder="(69) 99999-9999" autocomplete="tel-national" inputmode="numeric" maxlength="15" aria-describedby="celular-reserva-erro"
+                    class="w-full pl-10 pr-3 py-3 text-base font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+                <p id="celular-reserva-erro" class="hidden text-red-600 text-xs font-bold px-1">
+                  <i class="fa-solid fa-circle-exclamation mr-1"></i>Digite seu celular com DDD.
+                </p>
+              </div>
+
+              <div class="space-y-1">
+                <label for="horarioChegada" class="text-[11px] font-bold text-gray-500 uppercase ml-1">Horário previsto de chegada <span class="font-medium normal-case">(opcional)</span></label>
+                <div class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green transition-all">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-clock text-gray-400"></i>
+                  </div>
+                  <input type="time" id="horarioChegada"
+                    class="w-full pl-10 pr-3 py-3 text-base font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+                <p class="text-[11px] text-gray-400 px-1">
+                  <i class="fa-solid fa-circle-info text-accent-orange mr-1"></i>Check-in até 17:00. Após, taxa de R$ 50,00.
+                </p>
+              </div>
+              <div class="space-y-1">
+                <label for="email-reserva" class="text-[11px] font-bold text-gray-500 uppercase ml-1">Seu e-mail <span class="font-medium normal-case">(opcional)</span></label>
+                <div id="email-reserva-box"
+                  class="relative bg-bg-light rounded-xl border border-gray-200 focus-within:border-primary-green focus-within:ring-1 focus-within:ring-primary-green transition-all">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-regular fa-envelope text-gray-400"></i>
+                  </div>
+                  <input type="email" id="email-reserva" placeholder="voce@email.com" autocomplete="email" inputmode="email" aria-describedby="email-reserva-erro"
+                    class="w-full pl-10 pr-3 py-3 text-base font-semibold text-gray-700 bg-transparent rounded-xl outline-none z-10 relative">
+                </div>
+                <p id="email-reserva-erro" class="hidden text-red-600 text-xs font-bold px-1">
+                  <i class="fa-solid fa-circle-exclamation mr-1"></i>Digite um e-mail válido.
+                </p>
+              </div>
+            </div>
+
             <!-- BOTÃO AÇÃO -->
-            <button onclick="enviarWhatsapp()" id="btnWhatsappReserva"
+            <button onclick="enviarWhatsapp()" id="btnWhatsappReserva" type="button"
               class="group w-full rounded-2xl bg-primary-green hover:bg-green-700 text-white font-bold py-4 px-6 shadow-lg shadow-green-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-3">
               <i class="fa-brands fa-whatsapp text-2xl"></i>
               <div class="text-left leading-tight">
-                <span class="block text-xs font-medium text-green-100 uppercase">Finalizar Reserva</span>
-                <span class="block text-lg">Solicitar no WhatsApp</span>
+                <span class="block text-xs font-medium text-green-100 uppercase">Sem pagamento agora</span>
+                <span class="block text-lg">Enviar pedido no WhatsApp</span>
               </div>
             </button>
+            <p class="-mt-3 text-center text-[11px] text-gray-500">Respondemos confirmando o chalé e como pagar.</p>
 
           </div>
         </div>
@@ -452,7 +483,7 @@
 
         <!-- GALERIA DESTAQUE -->
         <div class="space-y-4">
-          <div id="galeria-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-auto">
+          <div id="galeria-grid" class="scroll-mt-24 grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-auto">
           </div>
         </div>
 
@@ -551,7 +582,7 @@
     <video id="fullscreenVideo" class="max-h-full max-w-full rounded-xl shadow-xl hidden" controls></video>
   </div>
 
-  <script type="module" src="reservas.js?v=20261106"></script>
+  <script type="module" src="reservas.js?v=20261109"></script>
 
 </body>
 

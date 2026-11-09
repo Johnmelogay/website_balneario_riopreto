@@ -46,19 +46,27 @@ export function initAnalytics() {
 }
 
 // --- LEAD CAPTURE ---
-export async function captureLead({ name, email, intention, details = {} }) {
+export async function captureLead({ name, email, intention, details = {}, celular }) {
   try {
-    const { error } = await supabase
-      .from('leads')
-      .insert([
-        {
-          name,
-          email,
-          intention,
-          details,
-          created_at: new Date().toISOString()
-        }
-      ]);
+    const row = {
+      name,
+      email: email || '', // coluna email é obrigatória no banco; vazio quando a pessoa não informa
+      intention,
+      details,
+      created_at: new Date().toISOString()
+    };
+    // Coluna "celular" (nova). Só é enviada quando o formulário tem celular,
+    // então os outros formulários do site continuam iguais.
+    if (celular) row.celular = celular;
+
+    let { error } = await supabase.from('leads').insert([row]);
+
+    // Segurança: se a coluna "celular" ainda não existir no banco, grava sem ela
+    // (o celular continua salvo dentro de details), para nunca perder o lead.
+    if (error && row.celular && /celular/i.test(error.message || '')) {
+      delete row.celular;
+      ({ error } = await supabase.from('leads').insert([row]));
+    }
 
     if (error) {
       console.error('Supabase Error (Lead Capture):', error);
