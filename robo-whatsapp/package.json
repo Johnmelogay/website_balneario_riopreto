@@ -1,0 +1,13 @@
+{
+  "name": "robo-whatsapp-balneario",
+  "private": true,
+  "type": "module",
+  "description": "Robô de reservas do grupo da equipe. Roda no Android (Termux) e só responde quando é marcado.",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "7.0.0-rc14",
+    "pino": "10.4.0"
+  }
+}

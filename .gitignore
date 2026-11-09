@@ -4,3 +4,9 @@ node_modules/
 .env
 .env.*
 supabase/.temp/
+
+# Robô do WhatsApp: segredos, sessão e log ficam só no celular
+robo-whatsapp/.env
+robo-whatsapp/sessao/
+robo-whatsapp/robo.log
+robo-whatsapp/node_modules/
