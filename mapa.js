@@ -435,10 +435,12 @@ window.openDetails = (booking) => {
 
     // Parse Extra
     let extra = {};
+    let grupo = null; // reservas de vários chalés (leitura V2): chalés e total do grupo
     try {
         if (booking.raw_message && booking.raw_message.startsWith('{')) {
             const rawObj = JSON.parse(booking.raw_message);
             extra = rawObj.ai_parsed || {};
+            grupo = rawObj.group || null;
         }
     } catch (e) { }
 
@@ -459,6 +461,8 @@ window.openDetails = (booking) => {
             <span>Total: R$ ${total.toFixed(2)}</span>
             <span class="text-xs text-green-600">Pago: R$ ${paid.toFixed(2)}</span>
             ${pendingAmount > 0 ? `<span class="text-xs text-red-500 font-bold">Falta: R$ ${pendingAmount.toFixed(2)}</span>` : ''}
+            ${grupo ? `<span class="text-xs text-blue-600 mt-1">Grupo: chalés ${grupo.chalets.join(', ')} • total do grupo R$ ${Number(grupo.total).toFixed(2)} (pago R$ ${Number(grupo.paid).toFixed(2)})</span>` : ''}
+            ${extra.price_warning ? `<span class="text-xs text-amber-600 mt-1">Atenção: ${extra.price_warning}</span>` : ''}
         </div>
     `;
 
