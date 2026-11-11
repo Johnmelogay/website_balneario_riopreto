@@ -4,14 +4,11 @@
 // e saíam. Ninguém tocou em "Reservar": é um passo de compromisso para quem ainda está pesquisando.
 // A pré-reserva é um passo menor (sem pagamento, sem conversa no WhatsApp) que segura o chalé por 24h.
 //
-// Quando aparece: só para quem já mostrou interesse de verdade — escolheu um chalé, mexeu na quantidade
-// de pessoas e viu o valor total da simulação — e então dá um sinal de que vai sair:
-//   - volta para a página depois de ter saído (trocou de app/aba),
-//   - fecha a galeria de fotos/vídeos,
-//   - fica 25 segundos parado,
-//   - no computador, leva o mouse para fora da página (para fechar a aba).
-// Uma vez por aparelho a cada 24h. A OFERTA vale 20 minutos (temporizador na tela, para incentivar a decisão);
-// depois some. A pré-reserva em si vale 24h e isso aparece só escrito (sem contagem regressiva).
+// Quando aparece: assim que a pessoa escolhe um chalé livre — sem esperar sinal de saída.
+// Aparece como uma faixa/botão discreto no rodapé, com contagem regressiva: ela "ganhou" uma
+// pré-reserva grátis de 24h e tem 10 minutos para ativar. Clicou, abre a janela de nome/celular.
+// Uma vez por aparelho a cada 24h. A OFERTA (ativar) vale 10 minutos; a pré-reserva em si vale 24h
+// e a faixa que fica na tela mostra a contagem regressiva das 24h.
 //
 // O banco (função criar_pre_reserva, ver add_pre_reserva.sql) confere tudo: chalé livre,
 // datas válidas e 1 pré-reserva ativa por celular e por aparelho.
@@ -19,20 +16,16 @@
 const CHAVE_ATIVA = 'pr_ativa_v1';        // pré-reserva deste aparelho (para mostrar o temporizador)
 const CHAVE_OFERTA = 'pr_oferta_v1';      // { em, ate }: quando a oferta foi mostrada (1x a cada 24h) e até quando vale
 const CHAVE_APARELHO = 'pr_aparelho_v1';  // id aleatório do aparelho (limite de 1 por aparelho)
-const OCIOSO_MS = 25000;
 const DIA_MS = 24 * 60 * 60 * 1000;
-const OFERTA_MS = 20 * 60 * 1000;          // tempo para decidir se pega a pré-reserva
+const OFERTA_MS = 10 * 60 * 1000;          // tempo para ativar a pré-reserva
 
 let cfg = null;          // { supabase, openWhatsApp, estado, atualizarDisponibilidade, marcar }
-let armado = false;      // já escolheu datas + chalé
-let saiuEm = 0;
-let timerOcioso = null;
 let timerRelogio = null;
 let enviando = false;
 let timerOferta = null;
-let mexeuPessoas = false;  // tocou em + / − de adultos, crianças ou bebês
-let viuValor = false;      // o "Total Estimado" ficou na tela por pelo menos 1 segundo
 let modoTeste = false;   // ?pre_reserva=1 na URL: mostra a oferta assim que escolher o chalé
+let timerPill = null;
+let pillFechada = false; // a pessoa fechou a faixa: não insiste nesta oferta
 
 // --- armazenamento local (pode falhar em aba anônima / navegador interno) ---
 const ler = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
@@ -147,6 +140,17 @@ const CSS = `
 .pr-chip .pr-chip-txt{flex:1;min-width:0;font-size:13px;line-height:1.25}
 .pr-chip .pr-chip-tempo{font-variant-numeric:tabular-nums;font-weight:900;font-size:15px}
 .pr-chip .pr-chip-x{border:0;background:none;color:#92400E;font-size:18px;padding:0 2px;cursor:pointer}
+/* Faixa/botão da oferta: discreta, mas com cara de presente */
+.pr-pill{position:fixed;left:10px;right:10px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:46;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1.5px solid #F59E0B;border-radius:16px;padding:10px 12px;box-shadow:0 12px 30px rgba(180,83,9,.22);font-family:Inter,system-ui,sans-serif;cursor:pointer;max-width:460px;margin:0 auto;animation:pr-pill-in .35s ease}
+@media(min-width:768px){.pr-pill{left:auto;right:20px;bottom:96px;width:390px}}
+@keyframes pr-pill-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.pr-pill-ico{flex:0 0 auto;width:38px;height:38px;border-radius:12px;background:#F59E0B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 10px rgba(245,158,11,.35)}
+.pr-pill-txt{flex:1;min-width:0;line-height:1.2}
+.pr-pill-tit{display:block;font-size:12.5px;font-weight:900;color:#78350F}
+.pr-pill-sub{display:block;font-size:11px;color:#92400E;margin-top:2px}
+.pr-pill-sub b{font-variant-numeric:tabular-nums;font-weight:900;font-size:13px;color:#B45309}
+.pr-pill-cta{flex:0 0 auto;border:0;border-radius:10px;background:#B45309;color:#fff;font-weight:900;font-size:12px;padding:9px 12px;cursor:pointer}
+.pr-pill-x{position:absolute;top:-8px;right:-7px;width:22px;height:22px;border-radius:999px;background:#fff;border:1px solid #FCD34D;color:#92400E;font-size:14px;line-height:20px;padding:0;cursor:pointer}
 `;
 
 function injetarCss() {
@@ -199,10 +203,10 @@ function mostrarOferta(gatilho, reabrindo = false) {
     if (minhaPreReserva() || document.getElementById('pr-janela')) return;
     if (document.getElementById('marketing-lightbox') && !document.getElementById('marketing-lightbox').classList.contains('hidden')) return;
 
-    // Primeira vez: começam os 20 minutos. Reabrindo pela faixa: continua o mesmo tempo.
+    // Primeira vez: começam os 10 minutos. Reabrindo pela faixa: continua o mesmo tempo.
     if (!reabrindo) gravar(CHAVE_OFERTA, { em: Date.now(), ate: Date.now() + OFERTA_MS });
     if (ofertaRestaMs() <= 0) return;
-    desarmar();
+    removerPill();
     marcar('oferta_pre_reserva');
     try { window.clarity?.('set', 'gatilho_pre_reserva', gatilho); } catch (err) { }
 
@@ -212,8 +216,9 @@ function mostrarOferta(gatilho, reabrindo = false) {
 
     const j = abrirJanela(`
       <span class="pr-selo"><i class="fa-solid fa-gift"></i> Presente para você</span>
-      <p class="pr-oferta-tempo"><i class="fa-regular fa-clock"></i> Oferta válida por <b id="pr-oferta-relogio">${mmss(ofertaRestaMs())}</b></p>
-      <h2 class="pr-titulo">Ainda decidindo? Segure o ${esc(e.chaleNome)} grátis por 24 horas</h2>
+      <p class="pr-oferta-tempo"><i class="fa-regular fa-clock"></i> Ative em até <b id="pr-oferta-relogio">${mmss(ofertaRestaMs())}</b></p>
+      <h2 class="pr-titulo">Ative sua pré-reserva grátis de 24h</h2>
+      <p class="pr-sub">Você ganhou 24 horas para segurar o ${esc(e.chaleNome)} nessas datas, sem pagar nada.</p>
       ${resumoHtml(e)}
       ${escassez}
       <ul class="pr-lista">
@@ -267,7 +272,7 @@ function encerrarOferta(j) {
 function recusou(como) {
     marcar('pre_reserva_recusada');
     try { window.clarity?.('set', 'pre_reserva_recusa', como); } catch (e) { }
-    mostrarChipOferta();
+    mostrarOfertaPill();
 }
 
 async function garantir(j, e) {
@@ -382,140 +387,108 @@ function mostrarChipAtiva() {
     chip.className = 'pr-chip';
     chip.id = 'pr-chip';
     chip.innerHTML = `<i class="fa-solid fa-gift" style="font-size:18px"></i>
-      <span class="pr-chip-txt"><b>${esc(pr.chaleNome)}</b> pré-reservado para você até ${quando(pr.expires_at)}<br>Toque para confirmar</span>`;
+      <span class="pr-chip-txt"><b>${esc(pr.chaleNome)}</b> pré-reservado para você<br>Expira em <span id="pr-chip-relogio" style="font-variant-numeric:tabular-nums;font-weight:900">${restante(pr.expires_at).txt}</span> • toque para confirmar</span>`;
     chip.onclick = () => { marcar('pre_reserva_reaberta'); mostrarSucesso(pr, false); };
     document.body.appendChild(chip);
-    // Sem contagem regressiva: só confere de minuto em minuto se já venceu
+    // Contagem regressiva das 24h; quando vence, libera o chalé
     removerChip.t = setInterval(() => {
-        if (restante(pr.expires_at).ms <= 0) { apagar(CHAVE_ATIVA); removerChip(); cfg.atualizarDisponibilidade && cfg.atualizarDisponibilidade(); }
-    }, 60000);
-}
-
-// Quem disse "agora não" ainda pode voltar à oferta por uma faixa discreta (some se mudar o chalé)
-function mostrarChipOferta() {
-    const e = cfg.estado();
-    if (!e || !e.chaletId || minhaPreReserva() || ofertaRestaMs() <= 0) return;
-    removerChip();
-    const chip = document.createElement('div');
-    chip.className = 'pr-chip';
-    chip.id = 'pr-chip';
-    chip.innerHTML = `<i class="fa-solid fa-gift" style="font-size:18px"></i>
-      <span class="pr-chip-txt"><b>Pré-reserva grátis por 24h</b><br>Segure o ${esc(e.chaleNome)} sem pagar nada</span>
-      <span class="pr-chip-tempo" id="pr-chip-tempo">${mmss(ofertaRestaMs())}</span>
-      <button type="button" class="pr-chip-x" aria-label="Fechar">&times;</button>`;
-    chip.onclick = (ev) => {
-        if (ev.target.closest('.pr-chip-x')) { removerChip(); return; }
-        marcar('pre_reserva_reaberta');
-        removerChip();
-        mostrarOferta('faixa', true);
-    };
-    document.body.appendChild(chip);
-    removerChip.t = setInterval(() => {
-        const resta = ofertaRestaMs();
-        const el = document.getElementById('pr-chip-tempo');
-        if (el) el.textContent = mmss(resta);
-        if (resta <= 0) removerChip();
+        const r = restante(pr.expires_at);
+        const el = document.getElementById('pr-chip-relogio');
+        if (el) el.textContent = r.txt;
+        if (r.ms <= 0) { apagar(CHAVE_ATIVA); removerChip(); cfg.atualizarDisponibilidade && cfg.atualizarDisponibilidade(); }
     }, 1000);
 }
 
-// --- GATILHOS ---
+// --- FAIXA DA OFERTA (o "botão discreto mas chamativo") ---
+// Aparece assim que a pessoa escolhe um chalé livre. Tem 10 minutos para ativar.
+function mostrarOfertaPill() {
+    const e = cfg.estado();
+    if (!e || !e.chaletId || !(e.noites > 0)) return;
+    if (pillFechada || minhaPreReserva() || document.getElementById('pr-janela')) return;
+
+    if (modoTeste) { modoTeste = false; pillFechada = false; apagar(CHAVE_OFERTA); }
+
+    let o = ofertaGravada();
+    if (!o || o.ate - Date.now() <= 0) {
+        if (!podeOferecer()) return;
+        o = { em: Date.now(), ate: Date.now() + OFERTA_MS };
+        gravar(CHAVE_OFERTA, o);
+    }
+
+    removerPill();
+    marcar('oferta_pre_reserva');
+
+    const pill = document.createElement('div');
+    pill.className = 'pr-pill';
+    pill.id = 'pr-pill';
+    pill.setAttribute('role', 'button');
+    pill.setAttribute('tabindex', '0');
+    pill.setAttribute('aria-label', 'Ativar pré-reserva grátis de 24 horas');
+    pill.innerHTML = `
+      <span class="pr-pill-ico"><i class="fa-solid fa-gift"></i></span>
+      <span class="pr-pill-txt">
+        <span class="pr-pill-tit">Você ganhou uma pré-reserva grátis</span>
+        <span class="pr-pill-sub">${esc(e.chaleNome)} • 24h • ative em <b id="pr-pill-tempo">${mmss(ofertaRestaMs())}</b></span>
+      </span>
+      <button type="button" class="pr-pill-cta">Ativar</button>
+      <button type="button" class="pr-pill-x" aria-label="Fechar oferta">&times;</button>`;
+
+    const abrir = () => { removerPill(); mostrarOferta('faixa', true); };
+    pill.querySelector('.pr-pill-cta').onclick = (ev) => { ev.stopPropagation(); abrir(); };
+    pill.querySelector('.pr-pill-x').onclick = (ev) => {
+        ev.stopPropagation();
+        pillFechada = true;
+        removerPill();
+        marcar('pre_reserva_oferta_fechada');
+    };
+    pill.onclick = abrir;
+    pill.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abrir(); } };
+    document.body.appendChild(pill);
+
+    timerPill = setInterval(() => {
+        const resta = ofertaRestaMs();
+        const el = document.getElementById('pr-pill-tempo');
+        if (el) el.textContent = mmss(resta);
+        if (resta <= 0) { removerPill(); marcar('oferta_pre_reserva_expirou'); }
+    }, 1000);
+}
+
+function removerPill() {
+    document.getElementById('pr-pill')?.remove();
+    clearInterval(timerPill);
+}
+
+// --- OFERTA NO RODAPÉ ---
 function podeOferecer() {
     if (minhaPreReserva()) return false;
     const o = ofertaGravada();
     return !(o && Date.now() - o.em < DIA_MS);
 }
 
-function armar() {
-    const e = cfg.estado();
-    const escolheu = !!(e && e.chaletId && e.noites > 0);
-    if (!escolheu) { desarmar(); return; }
-    if (modoTeste) { modoTeste = false; apagar(CHAVE_OFERTA); armado = true; mostrarOferta('teste'); return; }
-    if (!podeOferecer()) return;
-    // Interesse suficiente: escolheu o chalé, mexeu na quantidade de pessoas e viu o valor total
-    if (!mexeuPessoas || !viuValor) return;
-    armado = true;
-    reiniciarOcioso();
-}
-function desarmar() { armado = false; clearTimeout(timerOcioso); }
-
-function reiniciarOcioso() {
-    clearTimeout(timerOcioso);
-    if (!armado) return;
-    timerOcioso = setTimeout(() => { if (armado && !document.hidden) disparar('parado_25s'); }, OCIOSO_MS);
-}
-
-function disparar(gatilho) {
-    if (!armado || !podeOferecer()) return;
-    // Não interrompe quem está digitando nos dados
-    const ativo = document.activeElement;
-    if (ativo && /^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName) && ['nome-reserva', 'celular-reserva', 'email-reserva', 'horarioChegada'].includes(ativo.id)) return;
-    mostrarOferta(gatilho);
-}
-
 export function iniciarPreReserva(opcoes) {
     cfg = opcoes;
     injetarCss();
 
-    // Já tem pré-reserva neste aparelho: mostra a faixa com o temporizador
+    // Já tem pré-reserva neste aparelho: mostra a faixa com a contagem das 24h
     if (minhaPreReserva()) mostrarChipAtiva();
 
     const sim = document.getElementById('simulador');
     if (sim) {
         sim.addEventListener('change', (ev) => {
-            if (['adultos', 'criancas5', 'criancas0'].includes(ev.target?.id)) mexeuPessoas = true;
-            setTimeout(armar, 0);
-        });
-        sim.addEventListener('click', (ev) => {
-            if (ev.target.closest('.stepper-btn')) mexeuPessoas = true;
-            setTimeout(armar, 0);
+            const alvo = ev.target;
+            if (alvo && alvo.name === 'chale' && !alvo.disabled) {
+                // Escolheu um chalé livre: mostra a oferta (dá um instante para o total atualizar)
+                setTimeout(() => mostrarOfertaPill(), 700);
+            }
         });
     }
 
-    // Viu o valor: o "Total Estimado" ficou visível por 1 segundo
-    const total = document.getElementById('resumoTotal');
-    if (total && 'IntersectionObserver' in window) {
-        let t = null;
-        const obs = new IntersectionObserver((entradas) => {
-            if (entradas[0].isIntersecting) {
-                t = setTimeout(() => { viuValor = true; obs.disconnect(); armar(); }, 1000);
-            } else clearTimeout(t);
-        }, { threshold: 0.9 });
-        obs.observe(total);
-    } else viuValor = true;
-
-    // Movimento reinicia a contagem de "parado"
-    ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach((ev) =>
-        window.addEventListener(ev, reiniciarOcioso, { passive: true }));
-
-    // Saiu (trocou de app/aba) e voltou
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) { saiuEm = Date.now(); clearTimeout(timerOcioso); return; }
-        if (saiuEm && Date.now() - saiuEm > 3000) setTimeout(() => disparar('voltou_para_pagina'), 600);
-        reiniciarOcioso();
+    // Mudou as datas: a escolha do chalé é refeita, então some a faixa até escolher de novo
+    ['checkin', 'checkout'].forEach((id) => {
+        const campo = document.getElementById(id);
+        if (campo) campo.addEventListener('change', removerPill);
     });
 
-    // Fechou a galeria de fotos/vídeos
-    const verGaleria = () => {
-        const lb = document.getElementById('marketing-lightbox');
-        if (!lb) return false;
-        let aberta = !lb.classList.contains('hidden');
-        new MutationObserver(() => {
-            const agora = !lb.classList.contains('hidden');
-            if (aberta && !agora) setTimeout(() => disparar('fechou_galeria'), 500);
-            aberta = agora;
-        }).observe(lb, { attributes: true, attributeFilter: ['class'] });
-        return true;
-    };
-    if (!verGaleria()) {
-        const obs = new MutationObserver(() => { if (verGaleria()) obs.disconnect(); });
-        obs.observe(document.body, { childList: true });
-    }
-
-    // Computador: mouse saindo pelo topo (indo fechar a aba)
-    document.addEventListener('mouseout', (ev) => {
-        if (!ev.relatedTarget && ev.clientY <= 0) disparar('mouse_saindo');
-    });
-
-    // Para testes: balnearioriopreto.com.br/reservas.html?pre_reserva=1 mostra a oferta assim que escolher um chalé
+    // Para testes: balnearioriopreto.com.br/reservas.html?pre_reserva=1
     if (new URLSearchParams(location.search).get('pre_reserva') === '1') modoTeste = true;
 }
