@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <li><a href="index.html#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
                     <li><a href="index.html#gallery" class="hover:text-primary-green transition">Galeria</a></li>
                     <li><a href="index.html#loja" class="hover:text-primary-green transition">Loja</a></li>
-                    <li><a href="/day-use" class="hover:text-primary-green transition">Day Use em Porto Velho</a></li>
+                    <li><a href="/day-use" class="hover:text-primary-green transition">Day Use perto de Porto Velho</a></li>
                     <li><a href="/camping" class="hover:text-primary-green transition">Camping</a></li>
                     <li><a href="/eventos" class="hover:text-primary-green transition">Eventos</a></li>
                 </ul>
