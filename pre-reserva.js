@@ -4,21 +4,24 @@
 // e saíam. Ninguém tocou em "Reservar": é um passo de compromisso para quem ainda está pesquisando.
 // A pré-reserva é um passo menor (sem pagamento, sem conversa no WhatsApp) que segura o chalé por 24h.
 //
-// Quando aparece: só para quem já escolheu datas E um chalé, e então dá um sinal de que vai sair:
+// Quando aparece: só para quem já mostrou interesse de verdade — escolheu um chalé, mexeu na quantidade
+// de pessoas e viu o valor total da simulação — e então dá um sinal de que vai sair:
 //   - volta para a página depois de ter saído (trocou de app/aba),
 //   - fecha a galeria de fotos/vídeos,
 //   - fica 25 segundos parado,
 //   - no computador, leva o mouse para fora da página (para fechar a aba).
-// Uma vez por aparelho a cada 24h. Quem já tem uma pré-reserva ativa vê o temporizador dela.
+// Uma vez por aparelho a cada 24h. A OFERTA vale 20 minutos (temporizador na tela, para incentivar a decisão);
+// depois some. A pré-reserva em si vale 24h e isso aparece só escrito (sem contagem regressiva).
 //
 // O banco (função criar_pre_reserva, ver add_pre_reserva.sql) confere tudo: chalé livre,
 // datas válidas e 1 pré-reserva ativa por celular e por aparelho.
 
 const CHAVE_ATIVA = 'pr_ativa_v1';        // pré-reserva deste aparelho (para mostrar o temporizador)
-const CHAVE_OFERTA = 'pr_oferta_v1';      // quando a oferta foi mostrada (1x a cada 24h)
+const CHAVE_OFERTA = 'pr_oferta_v1';      // { em, ate }: quando a oferta foi mostrada (1x a cada 24h) e até quando vale
 const CHAVE_APARELHO = 'pr_aparelho_v1';  // id aleatório do aparelho (limite de 1 por aparelho)
 const OCIOSO_MS = 25000;
 const DIA_MS = 24 * 60 * 60 * 1000;
+const OFERTA_MS = 20 * 60 * 1000;          // tempo para decidir se pega a pré-reserva
 
 let cfg = null;          // { supabase, openWhatsApp, estado, atualizarDisponibilidade, marcar }
 let armado = false;      // já escolheu datas + chalé
@@ -26,6 +29,9 @@ let saiuEm = 0;
 let timerOcioso = null;
 let timerRelogio = null;
 let enviando = false;
+let timerOferta = null;
+let mexeuPessoas = false;  // tocou em + / − de adultos, crianças ou bebês
+let viuValor = false;      // o "Total Estimado" ficou na tela por pelo menos 1 segundo
 let modoTeste = false;   // ?pre_reserva=1 na URL: mostra a oferta assim que escolher o chalé
 
 // --- armazenamento local (pode falhar em aba anônima / navegador interno) ---
@@ -72,6 +78,21 @@ function restante(isoTs) {
     const p = (n) => String(n).padStart(2, '0');
     return { ms, txt: `${p(Math.floor(s / 3600))}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}` };
 }
+function mmss(ms) {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+// Oferta mostrada: { em, ate }. (Versão antiga guardava só o número de quando foi mostrada.)
+function ofertaGravada() {
+    const v = ler(CHAVE_OFERTA);
+    if (!v) return null;
+    return typeof v === 'number' ? { em: v, ate: v + OFERTA_MS } : v;
+}
+function ofertaRestaMs() {
+    const o = ofertaGravada();
+    return o ? o.ate - Date.now() : 0;
+}
+
 function formatarCel(v) {
     const d = String(v || '').replace(/\D/g, '').slice(0, 11);
     if (d.length <= 2) return d.length ? `(${d}` : '';
@@ -91,6 +112,8 @@ const CSS = `
 @media(min-width:768px){.pr-caixa{border-radius:22px}}
 .pr-fechar{position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;border-radius:999px;background:#f3f4f6;color:#6b7280;font-size:20px;line-height:36px;cursor:pointer}
 .pr-selo{display:inline-flex;align-items:center;gap:6px;background:#FEF3C7;color:#92400E;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.pr-oferta-tempo{display:flex;align-items:center;gap:6px;margin:10px 0 0;font-size:13px;font-weight:700;color:#B45309}
+.pr-oferta-tempo b{font-variant-numeric:tabular-nums;font-weight:900;font-size:15px;color:#92400E}
 .pr-titulo{font-size:21px;line-height:1.2;font-weight:900;margin:10px 0 12px}
 .pr-sub{font-size:14px;color:#4b5563;margin:0 0 14px;line-height:1.4}
 .pr-resumo{border:2px solid #FCD34D;background:#FFFBEB;border-radius:16px;padding:12px 14px;margin-bottom:12px}
@@ -116,8 +139,8 @@ const CSS = `
 .pr-segundo{display:block;width:100%;margin-top:8px;border:0;background:none;color:#6b7280;font-size:14px;font-weight:600;padding:10px;cursor:pointer}
 .pr-letra{font-size:11px;color:#9ca3af;text-align:center;margin:8px 0 0;line-height:1.4}
 .pr-aviso{display:none;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B;border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:10px}
-.pr-relogio{font-variant-numeric:tabular-nums;font-size:40px;font-weight:900;letter-spacing:.02em;color:#92400E;text-align:center;margin:4px 0 0}
-.pr-relogio-leg{text-align:center;font-size:12px;font-weight:700;color:#B45309;text-transform:uppercase;letter-spacing:.06em;margin:0 0 14px}
+.pr-prazo{display:flex;gap:8px;align-items:flex-start;background:#FFFBEB;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:14px;line-height:1.4;color:#78350F}
+.pr-prazo i{margin-top:3px;color:#B45309}
 .pr-chip{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:45;display:flex;align-items:center;gap:10px;background:#FEF3C7;border:1.5px solid #FCD34D;color:#78350F;border-radius:14px;padding:9px 12px;box-shadow:0 6px 20px rgba(0,0,0,.12);font-family:Inter,system-ui,sans-serif;cursor:pointer;max-width:440px;margin:0 auto}
 @media(min-width:768px){.pr-chip{left:auto;right:20px;bottom:20px;width:360px}}
 .pr-chip b{font-weight:900}
@@ -156,6 +179,7 @@ function fecharJanela() {
     if (j) j.remove();
     document.body.style.overflow = '';
     clearInterval(timerRelogio);
+    clearInterval(timerOferta);
 }
 
 function resumoHtml(e) {
@@ -169,13 +193,15 @@ function resumoHtml(e) {
 }
 
 // --- OFERTA ---
-function mostrarOferta(gatilho) {
+function mostrarOferta(gatilho, reabrindo = false) {
     const e = cfg.estado();
     if (!e || !e.chaletId || !(e.noites > 0)) return;
     if (minhaPreReserva() || document.getElementById('pr-janela')) return;
     if (document.getElementById('marketing-lightbox') && !document.getElementById('marketing-lightbox').classList.contains('hidden')) return;
 
-    gravar(CHAVE_OFERTA, Date.now());
+    // Primeira vez: começam os 20 minutos. Reabrindo pela faixa: continua o mesmo tempo.
+    if (!reabrindo) gravar(CHAVE_OFERTA, { em: Date.now(), ate: Date.now() + OFERTA_MS });
+    if (ofertaRestaMs() <= 0) return;
     desarmar();
     marcar('oferta_pre_reserva');
     try { window.clarity?.('set', 'gatilho_pre_reserva', gatilho); } catch (err) { }
@@ -186,6 +212,7 @@ function mostrarOferta(gatilho) {
 
     const j = abrirJanela(`
       <span class="pr-selo"><i class="fa-solid fa-gift"></i> Presente para você</span>
+      <p class="pr-oferta-tempo"><i class="fa-regular fa-clock"></i> Oferta válida por <b id="pr-oferta-relogio">${mmss(ofertaRestaMs())}</b></p>
       <h2 class="pr-titulo">Ainda decidindo? Segure o ${esc(e.chaleNome)} grátis por 24 horas</h2>
       ${resumoHtml(e)}
       ${escassez}
@@ -215,6 +242,26 @@ function mostrarOferta(gatilho) {
     j.querySelector('#pr-nome').addEventListener('input', () => j.querySelector('#pr-campo-nome').classList.remove('pr-erro'));
     j.querySelector('#pr-agora-nao').onclick = () => { fecharJanela(); recusou('agora_nao'); };
     j.querySelector('#pr-garantir').onclick = () => garantir(j, e);
+
+    // Temporizador da oferta: quando acaba, o botão trava e a oferta não volta mais hoje
+    const rel = j.querySelector('#pr-oferta-relogio');
+    timerOferta = setInterval(() => {
+        const resta = ofertaRestaMs();
+        rel.textContent = mmss(resta);
+        if (resta <= 0) { clearInterval(timerOferta); encerrarOferta(j); }
+    }, 1000);
+}
+
+function encerrarOferta(j) {
+    if (enviando) return; // está garantindo neste momento: deixa terminar
+    marcar('oferta_pre_reserva_expirou');
+    const btn = j.querySelector('#pr-garantir');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-regular fa-clock"></i> Oferta encerrada';
+    const aviso = j.querySelector('#pr-aviso');
+    aviso.textContent = 'O tempo desta oferta acabou. Você ainda pode enviar seu pedido pelo WhatsApp no formulário.';
+    aviso.style.display = 'block';
+    j.querySelector('#pr-agora-nao').textContent = 'Fechar';
 }
 
 function recusou(como) {
@@ -232,6 +279,7 @@ async function garantir(j, e) {
     if (nome.length < 2) { j.querySelector('#pr-campo-nome').classList.add('pr-erro'); falta = true; }
     if (dig.length < 10 || dig.length > 11) { j.querySelector('#pr-campo-cel').classList.add('pr-erro'); falta = true; }
     if (falta) { marcar('pre_reserva_erro_dados'); (nome.length < 2 ? j.querySelector('#pr-nome') : j.querySelector('#pr-cel')).focus(); return; }
+    if (ofertaRestaMs() <= 0) { encerrarOferta(j); return; }
 
     // Leva os dados para o formulário da página também (se depois a pessoa usar o botão do WhatsApp)
     const n = document.getElementById('nome-reserva'), c = document.getElementById('celular-reserva');
@@ -308,25 +356,17 @@ function mostrarSucesso(pr, nova) {
     const primeiroNome = esc(String(pr.nome || '').split(' ')[0]);
     const j = abrirJanela(`
       <span class="pr-selo"><i class="fa-solid fa-circle-check"></i> ${nova ? 'Pré-reserva garantida' : 'Você já tem uma pré-reserva'}</span>
-      <h2 class="pr-titulo">${nova ? `Pronto${primeiroNome ? ', ' + primeiroNome : ''}! ` : ''}O ${esc(pr.chaleNome)} é seu até ${quando(pr.expires_at)}</h2>
-      <p class="pr-relogio" id="pr-relogio">${restante(pr.expires_at).txt}</p>
-      <p class="pr-relogio-leg">para você decidir</p>
+      <h2 class="pr-titulo">${nova ? `Pronto${primeiroNome ? ', ' + primeiroNome : ''}! ` : ''}O ${esc(pr.chaleNome)} está pré-reservado para você</h2>
+      <p class="pr-prazo"><i class="fa-solid fa-hourglass-half"></i><span>Você tem <b>24 horas</b> para decidir. Se não confirmar até <b>${quando(pr.expires_at)}</b>, a pré-reserva expira automaticamente.</span></p>
       ${pr.totalTexto ? resumoHtml({ ...pr, adultos: pr.adultos || 0, criancas: pr.criancas || 0 }) : `<div class="pr-resumo"><div class="pr-chale">${esc(pr.chaleNome)}</div><div class="pr-linha">${dataCurta(pr.checkin)} → ${dataCurta(pr.checkout)}</div></div>`}
       <ul class="pr-lista">
         <li><i class="fa-solid fa-lock"></i><span>O chalé já aparece como pré-reservado para os outros visitantes</span></li>
         <li><i class="fa-brands fa-whatsapp"></i><span>Para confirmar, é só mandar a mensagem pronta no WhatsApp</span></li>
-        <li><i class="fa-solid fa-hourglass-half"></i><span>Se não confirmar até lá, o chalé é liberado automaticamente</span></li>
       </ul>
       <button type="button" class="pr-botao pr-botao-zap" id="pr-zap"><i class="fa-brands fa-whatsapp" style="font-size:22px"></i> Confirmar pelo WhatsApp</button>
       <button type="button" class="pr-segundo" id="pr-depois">Decidir depois</button>
     `, () => mostrarChipAtiva());
 
-    const rel = j.querySelector('#pr-relogio');
-    timerRelogio = setInterval(() => {
-        const r = restante(pr.expires_at);
-        rel.textContent = r.txt;
-        if (r.ms <= 0) { clearInterval(timerRelogio); apagar(CHAVE_ATIVA); }
-    }, 1000);
     j.querySelector('#pr-zap').onclick = () => { marcar('pre_reserva_whatsapp'); cfg.openWhatsApp({ text: mensagemWhatsapp(pr) }); };
     j.querySelector('#pr-depois').onclick = () => { fecharJanela(); mostrarChipAtiva(); };
 }
@@ -342,51 +382,57 @@ function mostrarChipAtiva() {
     chip.className = 'pr-chip';
     chip.id = 'pr-chip';
     chip.innerHTML = `<i class="fa-solid fa-gift" style="font-size:18px"></i>
-      <span class="pr-chip-txt"><b>${esc(pr.chaleNome)}</b> pré-reservado para você<br>Toque para confirmar</span>
-      <span class="pr-chip-tempo" id="pr-chip-tempo">${restante(pr.expires_at).txt}</span>`;
+      <span class="pr-chip-txt"><b>${esc(pr.chaleNome)}</b> pré-reservado para você até ${quando(pr.expires_at)}<br>Toque para confirmar</span>`;
     chip.onclick = () => { marcar('pre_reserva_reaberta'); mostrarSucesso(pr, false); };
     document.body.appendChild(chip);
+    // Sem contagem regressiva: só confere de minuto em minuto se já venceu
     removerChip.t = setInterval(() => {
-        const r = restante(pr.expires_at);
-        const el = document.getElementById('pr-chip-tempo');
-        if (el) el.textContent = r.txt;
-        if (r.ms <= 0) { apagar(CHAVE_ATIVA); removerChip(); cfg.atualizarDisponibilidade && cfg.atualizarDisponibilidade(); }
-    }, 1000);
+        if (restante(pr.expires_at).ms <= 0) { apagar(CHAVE_ATIVA); removerChip(); cfg.atualizarDisponibilidade && cfg.atualizarDisponibilidade(); }
+    }, 60000);
 }
 
 // Quem disse "agora não" ainda pode voltar à oferta por uma faixa discreta (some se mudar o chalé)
 function mostrarChipOferta() {
     const e = cfg.estado();
-    if (!e || !e.chaletId || minhaPreReserva()) return;
+    if (!e || !e.chaletId || minhaPreReserva() || ofertaRestaMs() <= 0) return;
     removerChip();
     const chip = document.createElement('div');
     chip.className = 'pr-chip';
     chip.id = 'pr-chip';
     chip.innerHTML = `<i class="fa-solid fa-gift" style="font-size:18px"></i>
       <span class="pr-chip-txt"><b>Pré-reserva grátis por 24h</b><br>Segure o ${esc(e.chaleNome)} sem pagar nada</span>
+      <span class="pr-chip-tempo" id="pr-chip-tempo">${mmss(ofertaRestaMs())}</span>
       <button type="button" class="pr-chip-x" aria-label="Fechar">&times;</button>`;
     chip.onclick = (ev) => {
         if (ev.target.closest('.pr-chip-x')) { removerChip(); return; }
         marcar('pre_reserva_reaberta');
         removerChip();
-        mostrarOferta('faixa');
+        mostrarOferta('faixa', true);
     };
     document.body.appendChild(chip);
+    removerChip.t = setInterval(() => {
+        const resta = ofertaRestaMs();
+        const el = document.getElementById('pr-chip-tempo');
+        if (el) el.textContent = mmss(resta);
+        if (resta <= 0) removerChip();
+    }, 1000);
 }
 
 // --- GATILHOS ---
 function podeOferecer() {
     if (minhaPreReserva()) return false;
-    const vista = ler(CHAVE_OFERTA);
-    return !(vista && Date.now() - vista < DIA_MS);
+    const o = ofertaGravada();
+    return !(o && Date.now() - o.em < DIA_MS);
 }
 
 function armar() {
     const e = cfg.estado();
-    const pronto = !!(e && e.chaletId && e.noites > 0);
-    if (!pronto) { desarmar(); return; }
+    const escolheu = !!(e && e.chaletId && e.noites > 0);
+    if (!escolheu) { desarmar(); return; }
     if (modoTeste) { modoTeste = false; apagar(CHAVE_OFERTA); armado = true; mostrarOferta('teste'); return; }
     if (!podeOferecer()) return;
+    // Interesse suficiente: escolheu o chalé, mexeu na quantidade de pessoas e viu o valor total
+    if (!mexeuPessoas || !viuValor) return;
     armado = true;
     reiniciarOcioso();
 }
@@ -415,9 +461,27 @@ export function iniciarPreReserva(opcoes) {
 
     const sim = document.getElementById('simulador');
     if (sim) {
-        sim.addEventListener('change', () => setTimeout(armar, 0));
-        sim.addEventListener('click', () => setTimeout(armar, 0));
+        sim.addEventListener('change', (ev) => {
+            if (['adultos', 'criancas5', 'criancas0'].includes(ev.target?.id)) mexeuPessoas = true;
+            setTimeout(armar, 0);
+        });
+        sim.addEventListener('click', (ev) => {
+            if (ev.target.closest('.stepper-btn')) mexeuPessoas = true;
+            setTimeout(armar, 0);
+        });
     }
+
+    // Viu o valor: o "Total Estimado" ficou visível por 1 segundo
+    const total = document.getElementById('resumoTotal');
+    if (total && 'IntersectionObserver' in window) {
+        let t = null;
+        const obs = new IntersectionObserver((entradas) => {
+            if (entradas[0].isIntersecting) {
+                t = setTimeout(() => { viuValor = true; obs.disconnect(); armar(); }, 1000);
+            } else clearTimeout(t);
+        }, { threshold: 0.9 });
+        obs.observe(total);
+    } else viuValor = true;
 
     // Movimento reinicia a contagem de "parado"
     ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach((ev) =>

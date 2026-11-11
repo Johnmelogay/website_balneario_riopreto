@@ -1,6 +1,6 @@
 import { openWhatsApp, CONSTANTS, captureLead, supabase } from './scripts.js';
 import { galleryLightbox } from './lightbox.js';
-import { iniciarPreReserva, minhaPreReserva } from './pre-reserva.js?v=20261111';
+import { iniciarPreReserva, minhaPreReserva } from './pre-reserva.js?v=20261111b';
 
 // --- API REMOVED (Migrated to Supabase) ---
 
