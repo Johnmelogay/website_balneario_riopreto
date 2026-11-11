@@ -1,5 +1,6 @@
 import { openWhatsApp, CONSTANTS, captureLead, supabase } from './scripts.js';
 import { galleryLightbox } from './lightbox.js';
+import { iniciarPreReserva, minhaPreReserva } from './pre-reserva.js?v=20261111';
 
 // --- API REMOVED (Migrated to Supabase) ---
 
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     iniciarVideoHero();
     iniciarBarraReserva();
     iniciarEventosFunil();
+    iniciarPreReserva({ supabase, openWhatsApp, captureLead, marcar, estado: estadoReserva, atualizarDisponibilidade: verificarDisponibilidade });
 
     const checkinInput = document.getElementById("checkin");
     const checkoutInput = document.getElementById("checkout");
@@ -119,6 +121,36 @@ document.addEventListener("DOMContentLoaded", () => {
     // Mostra o preço já na abertura (antes ficava "R$ 0,00" até a pessoa mexer em algo)
     calcular();
 });
+
+// --- ESTADO ATUAL DO SIMULADOR (usado pela pré-reserva grátis) ---
+let livresNasDatas = null; // quantos chalés estão livres nas datas escolhidas (da última consulta)
+function estadoReserva() {
+    const checkin = document.getElementById("checkin")?.value || "";
+    const checkout = document.getElementById("checkout")?.value || "";
+    let noites = 0;
+    if (checkin && checkout) {
+        const [y1, m1, d1] = checkin.split('-').map(Number);
+        const [y2, m2, d2] = checkout.split('-').map(Number);
+        noites = Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+    }
+    const sel = document.querySelector('input[name="chale"]:checked');
+    const m = sel ? /Chalé (\d+)(?: \((.*)\))?/.exec(sel.value) : null;
+    const totalTexto = document.getElementById("resumoTotal")?.innerText || "";
+    const total = Number(totalTexto.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    return {
+        checkin, checkout, noites,
+        chaletId: m ? Number(m[1]) : null,
+        chaleNome: m ? `Chalé ${m[1]}` : "",
+        area: m && m[2] ? m[2] : "",
+        adultos: parseInt(document.getElementById("adultos")?.value) || 0,
+        criancas: (parseInt(document.getElementById("criancas5")?.value) || 0) + (parseInt(document.getElementById("criancas0")?.value) || 0),
+        total, totalTexto,
+        horario: document.getElementById("horarioChegada")?.value || "",
+        nome: document.getElementById("nome-reserva")?.value.trim() || "",
+        celular: document.getElementById("celular-reserva")?.value.trim() || "",
+        livresNasDatas
+    };
+}
 
 // --- MEDIÇÃO (Microsoft Clarity) ---
 // Funil: visitou /reservas -> simular_reserva -> inicio_formulario -> envio_whatsapp
@@ -433,16 +465,31 @@ async function verificarDisponibilidade() {
             return;
         }
 
+        // Pré-reservas grátis vencidas saem do mapa antes de consultar (1x por carregamento; se a função
+        // ainda não existir no banco, só ignora)
+        if (!verificarDisponibilidade.expirou) {
+            verificarDisponibilidade.expirou = true;
+            try { await supabase.rpc('expirar_pre_reservas'); } catch (e) { }
+        }
+
         // QUERY 1: Find bookings with STRICT overlap (allows same-day turnover)
         // overlap: (book_start < query_end) AND (book_end > query_start)
-        const { data: bookingsData, error: bookingsError } = await supabase
+        const consultaOcupados = (colunas) => supabase
             .from('bookings')
-            .select('chalet_id')
+            .select(colunas)
             .in('status', ['confirmed', 'pending'])
             .lt('checkin_date', end)
             .gt('checkout_date', start);
+        let { data: bookingsData, error: bookingsError } = await consultaOcupados('chalet_id, status, expires_at');
+        // Banco ainda sem a coluna expires_at (SQL da pré-reserva não rodado): consulta como antes
+        if (bookingsError) ({ data: bookingsData, error: bookingsError } = await consultaOcupados('chalet_id'));
 
         if (bookingsError) throw bookingsError;
+
+        // Pré-reserva vencida conta como livre; pré-reserva ativa aparece amarela ("Pré-reservado")
+        const agora = Date.now();
+        bookingsData = bookingsData.filter(b => !(b.expires_at && b.status === 'pending' && new Date(b.expires_at).getTime() <= agora));
+        const preReservadosIds = bookingsData.filter(b => b.expires_at && b.status === 'pending').map(b => parseInt(b.chalet_id));
 
         // QUERY 2: Sunday exception - check if check-in date is a Sunday
         // On Sundays, the previous guest has late checkout until 17:30 (courtesy),
@@ -494,7 +541,8 @@ async function verificarDisponibilidade() {
         // But keep them blocked if they're in sundayBlockedIds (Sunday exception)
         const finalTurnoverIds = turnoverIds.filter(id => !blockedIds.includes(id));
 
-        renderOpcoesChale(blockedIds, finalTurnoverIds);
+        livresNasDatas = [3, 4, 5, 6, 7, 8, 9, 10].filter(id => !blockedIds.includes(id)).length;
+        renderOpcoesChale(blockedIds, finalTurnoverIds, preReservadosIds);
 
     } catch (err) {
         console.error("Erro ao verificar disponibilidade:", err);
@@ -504,7 +552,11 @@ async function verificarDisponibilidade() {
     }
 }
 
-function renderOpcoesChale(blockedIds = [], turnoverIds = []) {
+function renderOpcoesChale(blockedIds = [], turnoverIds = [], preReservadosIds = []) {
+    // A pré-reserva deste aparelho (mesmas datas) aparece como "sua"
+    const minha = minhaPreReserva();
+    const ci = document.getElementById("checkin")?.value, co = document.getElementById("checkout")?.value;
+    const minhaAqui = minha && ci && co && minha.checkin < co && minha.checkout > ci ? Number(minha.chaletId) : null;
     const container = document.getElementById("chale-opcoes");
     if (!container) return;
     container.innerHTML = "";
@@ -558,6 +610,15 @@ function renderOpcoesChale(blockedIds = [], turnoverIds = []) {
                 iconClass += " text-primary-green";
                 textStatus = `<span class="text-[10px] font-bold text-green-600 uppercase">Livre</span>`;
                 checkinBadge = `<span class="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full mt-0.5"><i class="fa-regular fa-clock mr-0.5"></i>Check-in 12:00</span>`;
+            } else if (preReservadosIds.includes(num)) {
+                // PRÉ-RESERVA GRÁTIS (24h): amarelo; pode liberar se a pessoa não confirmar
+                wrapperClass += " bg-amber-50 border-amber-300 cursor-not-allowed";
+                iconClass += " text-amber-500";
+                textStatus = num === minhaAqui
+                    ? `<span class="text-[10px] font-bold text-amber-700 uppercase">Pré-reservado por você</span>`
+                    : `<span class="text-[10px] font-bold text-amber-700 uppercase">Pré-reservado</span>`;
+                checkinBadge = `<span class="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-full mt-0.5"><i class="fa-solid fa-gift mr-0.5"></i>${num === minhaAqui ? 'Seu por 24h' : 'Pode liberar'}</span>`;
+                disabledAttr = "disabled";
             } else {
                 // BUSY STYLE
                 wrapperClass += " bg-gray-100 border-gray-100 opacity-50 cursor-not-allowed grayscale";

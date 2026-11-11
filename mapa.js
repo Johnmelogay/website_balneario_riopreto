@@ -165,7 +165,16 @@ function updateDateLabel() {
     document.getElementById('dayOfWeekLabel').innerText = label.toUpperCase();
 }
 
+// Pré-reserva grátis do site (24h): reserva pendente com validade (expires_at)
+function ehPreReservaSite(b) { return !!(b && b.expires_at && b.status === 'pending'); }
+function horaExpira(b) {
+    const t = new Date(b.expires_at);
+    return `${String(t.getDate()).padStart(2, '0')}/${String(t.getMonth() + 1).padStart(2, '0')} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+}
+
 async function loadDataAndRender() {
+    // Tira do mapa as pré-reservas grátis vencidas (se a função ainda não existir no banco, só ignora)
+    try { await supabase.rpc('expirar_pre_reservas'); } catch (e) { }
     const y = selectedDate.getFullYear();
     const m = selectedDate.getMonth();
     const startOfMonth = `${y}-${String(m + 1).padStart(2, '0')}-01`;
@@ -183,7 +192,8 @@ async function loadDataAndRender() {
         .from('blocked_chalets')
         .select('chalet_id');
 
-    if (bookings) bookingsCache = bookings;
+    // Pré-reserva vencida que ainda não saiu do banco não aparece
+    if (bookings) bookingsCache = bookings.filter(b => !(ehPreReservaSite(b) && new Date(b.expires_at).getTime() <= Date.now()));
     if (blocks) window.blockedCache = blocks.map(b => b.chalet_id);
 
     renderGrid();
@@ -284,6 +294,10 @@ function renderGrid() {
                 iconType = "fa-clock";
                 statusText = "Pendente (Aguardando)";
                 statusColorText = "text-white/90";
+                if (ehPreReservaSite(b)) {
+                    iconType = "fa-gift";
+                    statusText = `Pré-reserva grátis • expira ${horaExpira(b)}`;
+                }
             } else {
                 busy++;
                 cardColor = "bg-red-600 border-red-700 text-white shadow-lg shadow-red-200";
@@ -295,7 +309,9 @@ function renderGrid() {
             guestName = b.guest_name;
 
             // Day Specific Overrides
-            if (status.type === 'entrada') {
+            if (status.type === 'entrada' && ehPreReservaSite(b)) {
+                statusText = `Entrada • Pré-reserva grátis (expira ${horaExpira(b)})`;
+            } else if (status.type === 'entrada') {
                 statusText = isPending ? "Entrada (Pendente)" : "Entrada (Check-in)";
                 iconType = "fa-right-to-bracket";
             } else if (status.type === 'saida') {
@@ -469,7 +485,9 @@ window.openDetails = (booking) => {
     // STATUS BADGE
     const statusBadge = document.getElementById('detailStatusBadge');
     const isPending = booking.status === 'pending';
-    statusBadge.innerText = isPending ? "PENDENTE (Pré-Reserva)" : "CONFIRMADO";
+    statusBadge.innerText = ehPreReservaSite(booking)
+        ? `PRÉ-RESERVA GRÁTIS DO SITE • expira ${horaExpira(booking)} • confirme para não perder`
+        : (isPending ? "PENDENTE (Pré-Reserva)" : "CONFIRMADO");
     statusBadge.className = isPending
         ? "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-yellow-100 text-yellow-600"
         : "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-100 text-green-600";
