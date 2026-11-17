@@ -154,7 +154,11 @@ function textoPrevia(rows: any[], warnings: string[], extra: { comprovante?: boo
     return txt
 }
 
-async function responderPergunta(pergunta: string, conversa = '') {
+async function responderPergunta(
+    pergunta: string,
+    ctx: { conversa?: string; citado?: string; arquivo?: string } = {},
+) {
+    const conversa = ctx.conversa || ''
     const hoje = hojePVH()
     const ini = somaDias(hoje, -15), fim = somaDias(hoje, 120)
     const { data: reservas, error } = await db.from('bookings')
@@ -179,6 +183,8 @@ Chalés bloqueados pela administração: ${(bloqueios || []).map((b: any) => b.c
 Responda em português simples e curto, como uma pessoa da equipe. Use *negrito* do WhatsApp para destacar. Sem tabelas.
 Use SOMENTE os dados abaixo (reservas de ${ini} a ${fim}). Se a resposta não estiver nos dados, diga que não encontrou.
 ${conversa ? `\nCONVERSA RECENTE DO GRUPO (mais antiga primeiro; só a última é dirigida a você):\n${conversa}\n` : ''}
+${ctx.citado ? `\nA pessoa está RESPONDENDO/CITANDO esta mensagem (é o assunto da pergunta dela):\n"${ctx.citado.slice(0, 1200)}"\n` : ''}
+${ctx.arquivo ? `\nTexto lido do arquivo/imagem que a pessoa mandou junto:\n${ctx.arquivo.slice(0, 1500)}\n` : ''}
 Valores em reais no formato R$ 280,00. Datas no formato dd/mm.
 Você responde perguntas sobre as reservas. Para lançar uma reserva, a pessoa manda o texto da reserva (nome, chalés, datas, pessoas, total, pago) e você mostra uma prévia para ela confirmar com "sim". Se perguntarem o que você faz, diga para mandar "ajuda".
 
@@ -614,7 +620,7 @@ Deno.serve(async (req) => {
         // --- Pergunta ---
         if (intencao === 'pergunta' || intencao === 'ajuda' || /[?]/.test(texto)) {
             if (recuperada) return json({ ok: true, silent: true })   // pergunta velha: não vale responder
-            return json({ ok: true, reply: await responderPergunta(texto, conversa) })
+            return json({ ok: true, reply: await responderPergunta(texto, { conversa, citado, arquivo: textoArquivo }) })
         }
 
         // --- Conversa solta (ou nada identificado) ---
@@ -623,7 +629,7 @@ Deno.serve(async (req) => {
         }
 
         if (recuperada) return json({ ok: true, silent: true })
-        return json({ ok: true, reply: await responderPergunta(texto, conversa) })
+        return json({ ok: true, reply: await responderPergunta(texto, { conversa, citado, arquivo: textoArquivo }) })
     } catch (e) {
         console.error(e)
         return json({ ok: false, reply: 'Tive um problema agora. Tente de novo em instantes ou use a tela de sempre.' }, 500)

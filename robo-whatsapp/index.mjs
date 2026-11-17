@@ -75,6 +75,7 @@ function textoDoc(m) {
 // ("lança essa", "confirma", "o comprovante é esse"). Guardamos as últimas mensagens de cada
 // grupo liberado e mandamos junto SÓ quando ele é chamado — assim o contexto não cresce à toa.
 const HISTORICO = new Map()
+const equipePrivada = new Set()   // chats privados confirmados como equipe
 const HIST_MAX = 40            // mensagens por grupo
 const HIST_JANELA = 3 * 60 * 60 * 1000
 const HIST_TEXTO_MAX = 900  // reservas costumam ter ~450 chars
@@ -84,7 +85,7 @@ function horaCurta(ts) {
     return new Date(ts).toLocaleTimeString('pt-BR', { timeZone: 'America/Porto_Velho', hour: '2-digit', minute: '2-digit' })
 }
 function registrarNoHistorico(chat, item) {
-    if (!GRUPOS.includes(chat)) return
+    if (!GRUPOS.includes(chat) && !equipePrivada.has(chat)) return
     const arr = HISTORICO.get(chat) || []
     arr.push(item)
     const corte = Date.now() - HIST_JANELA
@@ -92,7 +93,7 @@ function registrarNoHistorico(chat, item) {
     HISTORICO.set(chat, arr)
 }
 function resumoHistorico(chat) {
-    if (!GRUPOS.includes(chat)) return []
+    if (!GRUPOS.includes(chat) && !equipePrivada.has(chat)) return []
     const arr = HISTORICO.get(chat) || []
     return arr.slice(-HIST_ENVIO_MAX).map(m => ({
         hora: horaCurta(m.ts), de: m.de, texto: m.texto, midia: m.midia, robo: m.robo,
@@ -246,7 +247,7 @@ async function iniciar() {
                 const emGrupo = chat.endsWith('@g.us')
 
                 // Contexto da conversa ATÉ AGORA (sem a mensagem atual), e só do grupo liberado
-                const contextoGrupo = emGrupo ? resumoHistorico(chat) : []
+                let contextoGrupo = emGrupo ? resumoHistorico(chat) : []
                 if (emGrupo && GRUPOS.includes(chat)) {
                     registrarNoHistorico(chat, {
                         ts: Date.now(),
@@ -309,6 +310,15 @@ async function iniciar() {
                     // com qualquer outra pessoa fica quieto (a mensagem segue normal no WhatsApp Business).
                     const ids = [chat, m.key.remoteJidAlt, m.key.senderPn, m.key.participant].filter(Boolean)
                     if (!(await daEquipe(sock, ids))) continue
+                    if (!equipePrivada.has(chat)) equipePrivada.add(chat)
+                    contextoGrupo = resumoHistorico(chat)
+                    registrarNoHistorico(chat, {
+                        ts: Date.now(),
+                        de: m.pushName || 'Equipe',
+                        texto: String(textoDa(m) || textoDoc(m) || '').slice(0, HIST_TEXTO_MAX),
+                        midia: !!midiaDe(m.message),
+                        robo: false,
+                    })
                 }
 
                 const chavePessoa = chat + '|' + (m.key.participant || '')
