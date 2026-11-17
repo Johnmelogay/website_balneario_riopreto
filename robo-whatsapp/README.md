@@ -96,16 +96,20 @@ Testes da conferência: `node --test supabase/functions/bot-assistente/verificac
 
 ## Publicar as mudanças
 
-```bash
-# função (precisa estar logado: npx supabase login)
-npx supabase functions deploy bot-assistente --project-ref hihaipaslnpaqnqotrwm
+O token de deploy fica no `.env` local (não versionado) e no Keychain do Mac, então não precisa
+mais de `supabase login` a cada vez.
 
-# opcional: visão para comprovantes em foto
-npx supabase secrets set OPENAI_API_KEY=sk-... --project-ref hihaipaslnpaqnqotrwm
+```bash
+# função (servidor)
+npx supabase functions deploy bot-assistente --project-ref hihaipaslnpaqnqotrwm --yes
 
 # programa do celular
 adb push robo-whatsapp/index.mjs /data/local/tmp/index.mjs
 adb shell run-as com.termux cp /data/local/tmp/index.mjs /data/data/com.termux/files/home/robo-whatsapp/index.mjs
+taina restart        # e confirma com: taina
+
+# opcional: outro provedor de visão (o padrão já é a própria DeepSeek)
+npx supabase secrets set OPENAI_API_KEY=sk-... --project-ref hihaipaslnpaqnqotrwm
 ```
 
 ## Limitações conhecidas (o que causou o problema de 17/11)
