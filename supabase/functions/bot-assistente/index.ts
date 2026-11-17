@@ -113,10 +113,19 @@ o valor, confiro com a reserva e só anexo quando tenho certeza — se ficar em 
 
 Mande *ajuda* a qualquer momento para ver esta lista.`
 
-function pedeAjuda(t: string) {
+const SAUDACAO = 'Oi! 👋 Sou o assistente de reservas do Balneário. Me marque com a reserva ou com a pergunta que eu resolvo — e mande *ajuda* para ver tudo o que eu faço.'
+
+// manual completo: só quando pedem de verdade
+function pedeManual(t: string) {
     const s = t.trim().toLowerCase()
-    return !s || /^(ajuda|help|menu|comandos|op[cç][oõ]es|oi|ol[aá]|bom dia|boa tarde|boa noite)[\s!?.]*$/.test(s) ||
+    return /^(ajuda|help|menu|comandos|op[cç][oõ]es)[\s!?.]*$/.test(s) ||
         /o que (voc[eê]|vc|tu) (pode|sabe|consegue) fazer|quais (s[aã]o )?(suas )?fun[cç][oõ]es|como (te|voc[eê]) (uso|usar|funciona)|para que (voc[eê]|vc) serve/.test(s)
+}
+
+// cumprimento solto: resposta curta, não o manual inteiro
+function eSaudacao(t: string) {
+    const s = t.trim().toLowerCase()
+    return !s || /^(oi|ol[aá]|bom dia|boa tarde|boa noite)[\s!?.]*$/.test(s)
 }
 
 function pareceReserva(t: string) {
@@ -420,7 +429,10 @@ Deno.serve(async (req) => {
         // sem cadastro: nome do perfil, a não ser que seja o da empresa; aí fica o número
         const quemE = nomeEquipe || (nomeWhats && !/balne[aá]rio|rio preto/i.test(nomeWhats) ? nomeWhats : (ids.find(i => i.length >= 10 && i.length <= 13) || 'WhatsApp'))
 
-        if (pedeAjuda(texto) && !body.image_base64) return json({ ok: true, reply: AJUDA })
+        if (!body.image_base64) {
+            if (pedeManual(texto)) return json({ ok: true, reply: AJUDA })
+            if (eSaudacao(texto)) return json({ ok: true, reply: SAUDACAO })
+        }
 
         // --- Arquivo: guarda, lê o conteúdo e extrai nome/valor do pagador ---
         let imageUrl: string | null = null
