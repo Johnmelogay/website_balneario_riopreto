@@ -1,0 +1,42 @@
+#!/bin/bash
+# Vigia da Tainá (rodado pelo launchd a cada 2 min).
+# Avisa no Mac quando ela cai e tenta reanimar sozinho.
+set -uo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+STATE_DIR="$HOME/.local/state"
+mkdir -p "$STATE_DIR"
+STATE="$STATE_DIR/taina.state"
+LOG="$STATE_DIR/taina-watch.log"
+
+notificar() {
+    osascript -e "display notification \"$2\" with title \"$1\" sound name \"${3:-Glass}\"" 2>/dev/null || true
+}
+
+out=$("$HOME/.local/bin/taina" status 2>&1)
+if echo "$out" | grep -q "^status: *ONLINE"; then novo=online; else novo=offline; fi
+antigo=$(cat "$STATE" 2>/dev/null || echo desconhecido)
+
+if [ "$novo" != "$antigo" ]; then
+    if [ "$novo" = online ]; then
+        echo "[$(date '+%F %T')] ONLINE" >>"$LOG"
+        [ "$antigo" = offline ] && notificar "Tainá ONLINE" "Voltou a responder no WhatsApp."
+    else
+        echo "[$(date '+%F %T')] OFFLINE" >>"$LOG"
+        notificar "Tainá OFFLINE" "Não está respondendo. Tentando reiniciar…" "Basso"
+    fi
+    echo "$novo" >"$STATE"
+fi
+
+if [ "$novo" = offline ]; then
+    "$HOME/.local/bin/taina" start >>"$LOG" 2>&1
+    sleep 25
+    out2=$("$HOME/.local/bin/taina" status 2>&1)
+    if echo "$out2" | grep -q "^status: *ONLINE"; then
+        echo "[$(date '+%F %T')] reanimada" >>"$LOG"
+        notificar "Tainá ONLINE" "Reiniciada com sucesso."
+        echo online >"$STATE"
+    else
+        echo "[$(date '+%F %T')] não consegui reanimar (celular fora do ar?)" >>"$LOG"
+    fi
+fi

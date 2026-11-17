@@ -1,0 +1,205 @@
+#!/bin/bash
+# Tainá — status / log / restart / start / alertas do robô de WhatsApp (Termux no celular).
+#
+#   taina              status em uma linha: ONLINE ou OFFLINE (e o porquê)
+#   taina log [n]      últimas n linhas do log do robô (padrão 15)
+#   taina restart      reinicia o robô (o loop do Termux sobe de novo em ~10s)
+#   taina start        sobe o robô se ele estiver parado
+#   taina alert on     instala o vigia: avisa no Mac quando ela cai e tenta reanimar
+#   taina alert off    desliga o vigia
+#   taina alert test   manda uma notificação de teste
+#
+set -uo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+ADB=/opt/homebrew/bin/adb
+PKG=com.termux
+TPREFIX=/data/data/com.termux/files/usr
+THOME=/data/data/com.termux/files/home
+DIR=$THOME/robo-whatsapp
+LOG=$DIR/robo.log
+BATIMENTO=$DIR/batimento.json
+PLIST="$HOME/Library/LaunchAgents/local.taina.watch.plist"
+WATCH="$HOME/.local/bin/taina-watch"
+STATE_DIR="$HOME/.local/state"
+
+pick_device() {
+    local d
+    d=$("$ADB" devices 2>/dev/null | awk '$2=="device" && $1 ~ /:/ {print $1; exit}')
+    [ -n "$d" ] || d=$("$ADB" devices 2>/dev/null | awk '$2=="device" {print $1; exit}')
+    printf '%s' "$d"
+}
+
+DEV=$(pick_device)
+if [ -z "$DEV" ]; then
+    echo "OFFLINE: celular do robô não encontrado pelo adb (ligado? mesma rede Wi-Fi?)"
+    exit 1
+fi
+
+SH()  { "$ADB" -s "$DEV" shell "$@" 2>/dev/null; }
+APP() { "$ADB" -s "$DEV" shell run-as "$PKG" "$@" 2>/dev/null; }
+
+bot_pid() { SH "ps -A -o PID,ARGS" | awk '$2=="node" && $3=="index.mjs" {print $1; exit}'; }
+log_lines() { APP cat "$LOG"; }
+
+human_ago() {
+    local s=$1
+    if   [ "$s" -lt 90 ];     then printf 'agora mesmo'
+    elif [ "$s" -lt 5400 ];   then printf 'há %d min' $((s / 60))
+    elif [ "$s" -lt 172800 ]; then printf 'há %d h' $((s / 3600))
+    else printf 'há %d dias' $((s / 86400)); fi
+}
+
+fmt_elapsed() {
+    local e=$1 d=0 h=0 m=0 s=0 p1 p2 p3 out=""
+    case "$e" in *-*) d=${e%%-*}; e=${e#*-} ;; esac
+    IFS=: read -r p1 p2 p3 <<<"$e"
+    if [ -n "${p3:-}" ]; then h=$p1; m=$p2; s=$p3; else m=$p1; s=$p2; fi
+    [ "$d" -gt 0 ] && out="${d}d "
+    [ "$h" -gt 0 ] && out="${out}${h}h "
+    [ "$m" -gt 0 ] && out="${out}${m}min "
+    [ -z "$out" ] && out="${s}s"
+    printf '%s' "$out" | sed 's/ *$//'
+}
+
+# batimento: o robô grava a cada 60s enquanto está vivo
+batimento_ms() { APP cat "$BATIMENTO" | tr -d '\r\n '; }
+
+# Veredito: processo vivo E batimento recente (< 6 min)
+veredito() {
+    local pid bat idade
+    pid=$(bot_pid)
+    [ -z "$pid" ] && { echo "OFFLINE"; return 1; }
+    bat=$(batimento_ms)
+    if [ -n "$bat" ] && [ "$bat" -gt 0 ] 2>/dev/null; then
+        idade=$(( ($(date +%s) * 1000 - bat) / 1000 ))
+        if [ "$idade" -gt 360 ]; then echo "OFFLINE"; return 1; fi
+    fi
+    echo "ONLINE"
+}
+
+status() {
+    local pid elapsed termux last ts epoch ago grupo tel bat idade bat_txt
+    pid=$(bot_pid)
+    elapsed=$(SH "ps -A -o ELAPSED,ARGS" | awk '$2=="node" && $3=="index.mjs" {print $1; exit}')
+    termux=$(SH "ps -A -o ELAPSED,ARGS" | awk '$2=="com.termux" {print $1; exit}')
+    last=$(log_lines | tail -1)
+    grupo=$(APP cat "$DIR/.env" | awk -F= '/^ALLOWED_GROUPS=/{print $2}')
+    tel=$(APP cat "$DIR/.env" | awk -F= '/^PHONE=/{print $2}')
+    bat=$(batimento_ms)
+
+    if [ -z "$pid" ]; then
+        echo "status:         OFFLINE — o robô não está rodando"
+    else
+        if [ -n "$bat" ] && [ "$bat" -gt 0 ] 2>/dev/null; then
+            idade=$(( ($(date +%s) * 1000 - bat) / 1000 ))
+            bat_txt=$(human_ago "$idade")
+            if [ "$idade" -gt 360 ]; then
+                echo "status:         OFFLINE — sem sinal de vida $bat_txt"
+            else
+                echo "status:         ONLINE — sinal de vida $bat_txt"
+            fi
+        else
+            echo "status:         ONLINE — rodando (sem batimento ainda)"
+        fi
+    fi
+    echo "  celular:        $DEV"
+    [ -n "$tel" ] && echo "  número:         $tel"
+    if [ -n "$pid" ]; then
+        echo "  processo:       rodando (pid $pid, há $(fmt_elapsed "${elapsed:-0}"))"
+    else
+        echo "  processo:       PARADO  ← rode: taina start"
+    fi
+    [ -n "$termux" ] && echo "  sessão Termux:  aberta há $(fmt_elapsed "$termux")"
+    echo "  grupo liberado: ${grupo:-(nenhum - privado desligado)}"
+
+    if [ -n "$last" ]; then
+        ts=$(printf '%s' "$last" | sed -E 's/^\[([^]]+)\].*/\1/')
+        epoch=$(date -j -f "%d/%m/%Y, %H:%M:%S" "$ts" +%s 2>/dev/null || echo 0)
+        if [ "${epoch:-0}" -gt 0 ]; then
+            ago=$(( $(date +%s) - epoch ))
+            echo "  última linha:   $ts  ($(human_ago "$ago"))"
+        fi
+    fi
+
+    echo
+    echo "  últimas linhas:"
+    log_lines | tail -5 | sed 's/^/    /'
+}
+
+remote_start() {
+    "$ADB" -s "$DEV" shell "run-as $PKG $TPREFIX/bin/bash -c 'export PATH=$TPREFIX/bin:/system/bin; export LD_LIBRARY_PATH=$TPREFIX/lib; export HOME=$THOME; export PREFIX=$TPREFIX; cd $DIR && nohup ./rodar.sh >> saida.log 2>&1 &'" >/dev/null 2>&1
+}
+
+alert_on() {
+    mkdir -p "$STATE_DIR" "$HOME/Library/LaunchAgents"
+    cat > "$PLIST" <<PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>local.taina.watch</string>
+    <key>ProgramArguments</key>
+    <array><string>/bin/bash</string><string>$WATCH</string></array>
+    <key>StartInterval</key><integer>120</integer>
+    <key>RunAtLoad</key><true/>
+    <key>StandardOutPath</key><string>$STATE_DIR/taina-watch.log</string>
+    <key>StandardErrorPath</key><string>$STATE_DIR/taina-watch.log</string>
+</dict>
+</plist>
+PLISTEOF
+    launchctl unload "$PLIST" 2>/dev/null
+    launchctl load "$PLIST" 2>/dev/null
+    echo "Vigia ligado: checa a cada 2 min, avisa no Mac quando ela cair e tenta reiniciar."
+    echo "Log: $STATE_DIR/taina-watch.log"
+    echo "Desligar: taina alert off"
+}
+
+alert_off() {
+    launchctl unload "$PLIST" 2>/dev/null
+    rm -f "$PLIST"
+    echo "Vigia desligado."
+}
+
+alert_test() {
+    osascript -e 'display notification "Assim eu aviso quando caírem ou voltarem." with title "Tainá" sound name "Glass"'
+    echo "Notificação de teste enviada (canto superior direito do Mac)."
+}
+
+case "${1:-status}" in
+    status|"") status ;;
+    log)       log_lines | tail -"${2:-15}" ;;
+    now)       veredito ;;
+    restart)
+        old=$(bot_pid)
+        [ -z "$old" ] && { echo "O robô já está parado. Use: taina start"; exit 0; }
+        APP kill "$old"
+        echo "Reiniciando (pid $old)…"
+        for _ in $(seq 1 20); do
+            sleep 2
+            new=$(bot_pid)
+            if [ -n "$new" ] && [ "$new" != "$old" ]; then
+                echo "No ar de novo (pid $new)."; sleep 4; status; exit 0
+            fi
+        done
+        echo "Não voltou em 40s — abra o Termux no celular e rode: ~/robo-whatsapp/rodar.sh"
+        exit 1 ;;
+    start)
+        if [ -n "$(bot_pid)" ]; then echo "O robô já está rodando."; exit 0; fi
+        echo "Subindo o robô no celular…"
+        remote_start
+        for _ in $(seq 1 15); do
+            sleep 2
+            if [ -n "$(bot_pid)" ]; then echo "No ar."; sleep 4; status; exit 0; fi
+        done
+        echo "Não subiu. Abra o Termux no celular e rode: ~/robo-whatsapp/rodar.sh"
+        exit 1 ;;
+    alert)
+        case "${2:-}" in
+            on) alert_on ;;
+            off) alert_off ;;
+            test) alert_test ;;
+            *) echo "uso: taina alert on|off|test" ;;
+        esac ;;
+    *) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' ;;
+esac

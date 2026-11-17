@@ -36,6 +36,39 @@ inalcançável, abra o app Termux nele e rode `~/robo-whatsapp/rodar.sh`.
   pendente no mapa. **não** cancela.
 - Comprovante: foto/PDF com a legenda da reserva vai anexado; ou "comprovante <nome>".
 
+## Saber se ela está no ar
+
+O robô grava um **batimento** (`batimento.json`) a cada 60 s. Está ONLINE quando o processo existe
+**e** o batimento é recente (< 6 min) — se o celular desliga ou o Termux morre, os dois somem.
+
+```bash
+taina              # veredito ONLINE/OFFLINE + motivo, processo, última linha do log
+taina now          # só a palavra ONLINE ou OFFLINE (bom para script/atalho)
+taina alert on     # vigia no Mac: checa a cada 2 min, notifica quando cai e tenta reiniciar
+taina alert test   # manda uma notificação de teste
+taina alert off    # desliga o vigia
+```
+
+Com o vigia ligado, o Mac avisa no canto da tela **"Tainá OFFLINE"** (som Basso) e tenta reanimar
+sozinho; quando volta, avisa **"Tainá ONLINE"**. Log em `~/.local/state/taina-watch.log`.
+Limitação: só funciona com o Mac acordado — é ele quem vigia.
+
+## Recuperar o que passou enquanto ela estava fora
+
+Quando a conexão volta, o WhatsApp reentrega as mensagens que ficaram na fila. O robô aproveita
+isso para **fazer o trabalho sem precisar ser marcado de novo**:
+
+- mensagem atrasada que **parece reserva** (chalé + datas + valores) ou que traz **arquivo** é
+  processada mesmo sem marcação;
+- **respostas óbvias ficam em silêncio**: pergunta velha e conversa paralela não são respondidas;
+- **não duplica**: antes de montar a prévia, confere se já existe reserva daquele hóspede, chalé e
+  entrada — exatamente o caso de 17/11, em que a reserva foi lançada à mão durante a queda;
+- a resposta sai marcada com **⏪ Recuperando o que passou enquanto eu estava fora**;
+- teto de 5 mensagens recuperadas por reconexão.
+
+Limite honesto: ela só recupera o que o WhatsApp reentrega ao aparelho conectado. Se a mensagem
+nunca chegou (nem ficou na fila), não tem como ler.
+
 ## Janela de conversa (fica de plantão)
 
 Marcar o robô não é um evento isolado: depois que ele é **marcado** ou **respondido**, ele fica de

@@ -6,7 +6,7 @@
 // de sempre (tela do funcionário e mapa) continua funcionando normalmente.
 import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, downloadMediaMessage } from '@whiskeysockets/baileys'
 import pino from 'pino'
-import { readFileSync, appendFileSync, rmSync } from 'node:fs'
+import { readFileSync, appendFileSync, rmSync, writeFileSync } from 'node:fs'
 
 // --- Configuração (arquivo .env ao lado deste) ---
 const env = Object.fromEntries(
@@ -18,6 +18,22 @@ const FUNC_URL = env.FUNC_URL || 'https://hihaipaslnpaqnqotrwm.supabase.co/funct
 const BOT_SECRET = env.BOT_SECRET
 const PHONE = (env.PHONE || '').replace(/\D/g, '')             // número do robô, ex.: 5569999999999
 const GRUPOS = (env.ALLOWED_GROUPS || '').split(',').map(s => s.trim()).filter(Boolean) // vazio = qualquer grupo
+
+// --- Estado em disco: o que já foi tratado e sinal de vida (batimento) ---
+const ESTADO = new URL('./estado.json', import.meta.url)
+const BATIMENTO = new URL('./batimento.json', import.meta.url)
+let estado = { vistas: [], ultimaAtividade: 0 }
+try { estado = { ...estado, ...JSON.parse(readFileSync(ESTADO, 'utf8')) } } catch (_) { }
+const vistas = new Set(estado.vistas || [])
+function salvarEstado() {
+    try {
+        estado.vistas = [...vistas].slice(-400)
+        estado.ultimaAtividade = Date.now()
+        writeFileSync(ESTADO, JSON.stringify(estado))
+        writeFileSync(BATIMENTO, String(Date.now()))
+    } catch (_) { }
+}
+setInterval(salvarEstado, 60_000)
 
 const log = (...a) => {
     const linha = `[${new Date().toLocaleString('pt-BR', { timeZone: 'America/Porto_Velho' })}] ${a.join(' ')}`
@@ -82,6 +98,15 @@ function resumoHistorico(chat) {
         hora: horaCurta(m.ts), de: m.de, texto: m.texto, midia: m.midia, robo: m.robo,
     }))
 }
+
+// Mensagem antiga = chegou atrasada (chegou depois de um tempo fora). Serve para recuperar
+// o que passou enquanto o robô estava caído, sem precisar de nova marcação.
+const RECUPERA_MAX = 5
+const RECUPERA_IDADE_MIN = 90 * 1000      // mais velha que isso = atrasada
+const RECUPERA_IDADE_MAX = 12 * 3600 * 1000
+let recuperadasNaSessao = 0
+const pareceReservaBR = (t = '') => /chal[eé]/i.test(t) && /(entrada|sa[ií]da|check.?in)/i.test(t) &&
+    /(pago|total|valor|sinal)/i.test(t) && String(t).length > 40
 
 // Última foto que cada pessoa mandou no grupo da equipe sem marcar o robô (fica só na memória, 10 min).
 // Assim funciona também quando mandam a foto e logo depois o texto marcando o robô.
@@ -194,7 +219,6 @@ async function iniciar() {
     // O WhatsApp reentrega o que ficou pendente como 'append' quando a conexão volta.
     // Antes o programa só olhava 'notify', então o que chegava na queda era perdido para sempre.
     // Agora recuperamos só o que é recente (2h) e nunca tratamos a mesma mensagem duas vezes.
-    const vistas = new Set()
     const JA_VISTAS_MAX = 800
     const JANELA_RECUPERACAO = 2 * 60 * 60 * 1000
     function jaTratada(id) {
@@ -234,6 +258,10 @@ async function iniciar() {
                 }
                 if (m.key.fromMe) continue
 
+                const tsMsg = Number(m.messageTimestamp || 0) * 1000
+                const idade = tsMsg ? Date.now() - tsMsg : 0
+                const atrasada = idade > RECUPERA_IDADE_MIN && idade < RECUPERA_IDADE_MAX
+
                 if (emGrupo) {
                     const ctx0 = contextoDa(m)
                     const eu = [soNumero(sock.user?.id), soNumero(sock.user?.lid)].filter(Boolean)
@@ -255,6 +283,17 @@ async function iniciar() {
                         const chamouHaPouco = Date.now() - (ultimoChamado.get(chave) || 0) < QUINZE_MIN
                         if (!(info && chamouHaPouco)) continue
                         acordadaPor = 'janela'
+                    }
+
+                    // Mensagem que chegou atrasada (durante uma queda): recupera reserva/comprovante
+                    // mesmo sem marcação — era o trabalho que ela teria feito se estivesse no ar.
+                    if (!acordadaPor && liberado && atrasada && recuperadasNaSessao < RECUPERA_MAX) {
+                        const bruto = textoDa(m) || textoDoc(m)
+                        if (pareceReservaBR(bruto) || midiaDe(m.message)) {
+                            acordadaPor = 'recuperacao'
+                            recuperadasNaSessao++
+                            log('Recuperando mensagem de', horaCurta(tsMsg), 'sem marcação')
+                        }
                     }
 
                     if (GRUPOS.length && !liberado) {
@@ -319,6 +358,7 @@ async function iniciar() {
                             quoted_from_bot: citadoDoRobo,
                             contexto_recente: recenteSemMencao,
                             acordada_por: acordadaPorMsg || undefined,
+                            recuperada: acordadaPorMsg === 'recuperacao' || (acordadaPorMsg === 'tag' && atrasada) || undefined,
                             ...(midia || {}),
                         }),
                         signal: AbortSignal.timeout(90000),

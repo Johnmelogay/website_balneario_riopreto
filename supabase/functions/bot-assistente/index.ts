@@ -10,7 +10,7 @@
 //  - em qualquer dúvida, faz uma pergunta curta em vez de agir.
 // Se este robô cair, nada muda no fluxo de sempre (tela do funcionário e mapa).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { decidir, valorEsperado, type Candidato } from './verificacao.ts'
+import { decidir, valorEsperado, nomeBate, type Candidato } from './verificacao.ts'
 import { textoDoComprovante, extrairComprovante, type Comprovante } from './comprovante.ts'
 
 const json = (body: unknown, status = 200) =>
@@ -312,6 +312,22 @@ async function candidatosDoComprovante(chat: string, pendente: any): Promise<Can
     }))
 }
 
+// Durante a recuperação, alguém pode ter lançado a reserva à mão (foi o que aconteceu em 17/11).
+// Antes de criar prévia, confere se já existe reserva do mesmo hóspede, mesmo chalé e mesma entrada.
+async function jaExisteReserva(rows: any[]) {
+    const chalets = [...new Set(rows.map((r: any) => r.chalet_id).filter(Boolean))]
+    const datas = [...new Set(rows.map((r: any) => r.checkin_date).filter(Boolean))]
+    if (!chalets.length || !datas.length) return null
+    const { data } = await db.from('bookings')
+        .select('id, guest_name, chalet_id, checkin_date, status')
+        .in('chalet_id', chalets).in('checkin_date', datas).neq('status', 'cancelled')
+    for (const b of data || []) {
+        const igual = rows.some((r: any) => r.chalet_id === b.chalet_id && r.checkin_date === b.checkin_date && nomeBate(r.guest_name || '', b.guest_name || '').ok)
+        if (igual) return b
+    }
+    return null
+}
+
 async function anexarComprovante(c: Candidato, imageUrl: string) {
     if (c.tipo === 'pendente') {
         await db.from('bot_pending').update({ image_url: imageUrl }).eq('id', c.id)
@@ -419,6 +435,7 @@ Deno.serve(async (req) => {
     const citadoDoRobo = body.quoted_from_bot === true
     const contextoRecente = body.contexto_recente === true
     const janela = body.acordada_por === 'janela'   // continuação de conversa, sem marcação
+    const recuperada = body.recuperada === true     // chegou atrasada: ficou fora e voltou
     const conversa = formatarContexto(body.contexto_grupo)
 
     try {
@@ -545,6 +562,12 @@ Deno.serve(async (req) => {
             })
             const rows = d.data || []
             if (d.success && rows.length) {
+                if (recuperada) {
+                    const dup = await jaExisteReserva(rows)
+                    if (dup) {
+                        return json({ ok: true, reply: `⏪ Isso já está no mapa: *${dup.guest_name}* (chalé ${dup.chalet_id}, entrada ${dataBr(dup.checkin_date)}). Não fiz nada.` })
+                    }
+                }
                 // O comprovante que veio junto confere com a prévia?
                 let avisoComprovante = ''
                 if (comprovante && rows.length) {
@@ -565,7 +588,8 @@ Deno.serve(async (req) => {
                 await db.from('bot_pending').insert([{
                     chat, sender, sender_alt: senderAlt || null, sender_name: nomeWhats, text: textoReserva, rows, image_url: imageUrl,
                 }])
-                return json({ ok: true, reply: textoPrevia(rows, d.warnings || [], { comprovante: !!imageUrl, avisoComprovante }) })
+                const previa = textoPrevia(rows, d.warnings || [], { comprovante: !!imageUrl, avisoComprovante })
+                return json({ ok: true, reply: recuperada ? `⏪ Recuperando o que passou enquanto eu estava fora:\n\n${previa}` : previa })
             }
             if (intencao === 'nova_reserva' && conf >= 0.55) {
                 return json({ ok: true, reply: `Não consegui montar a reserva:\n${String(d.message || 'erro desconhecido').replace(/^Nada foi gravado\. Corrija e mande de novo:\n?/, '')}\n\nCorrija e mande de novo me marcando.` })
@@ -580,21 +604,25 @@ Deno.serve(async (req) => {
             if (!body.image_base64) {
                 return json({ ok: true, reply: 'Manda o comprovante aqui (foto ou PDF) que eu leio o valor e o nome do pagador, confiro com a reserva e anexo. 📎' })
             }
-            return json(await tratarComprovante({
+            const respostaComprovante = await tratarComprovante({
                 chat, sender, senderAlt, nomeWhats, pendente, comprovante, imageUrl, passivo: contextoRecente,
-            }))
+            })
+            if (recuperada && respostaComprovante?.reply) respostaComprovante.reply = '⏪ ' + respostaComprovante.reply
+            return json(respostaComprovante)
         }
 
         // --- Pergunta ---
         if (intencao === 'pergunta' || intencao === 'ajuda' || /[?]/.test(texto)) {
+            if (recuperada) return json({ ok: true, silent: true })   // pergunta velha: não vale responder
             return json({ ok: true, reply: await responderPergunta(texto, conversa) })
         }
 
         // --- Conversa solta (ou nada identificado) ---
-        if (leitura && intencao === 'conversa' && conf >= 0.6) {
+        if (leitura && intencao === 'conversa' && conf >= 0.6 && !recuperada) {
             return json({ ok: true, reply: 'Tô por aqui 👋 Me mande a reserva ou pergunte algo que eu resolvo. (Mande *ajuda* para ver o que eu faço.)' })
         }
 
+        if (recuperada) return json({ ok: true, silent: true })
         return json({ ok: true, reply: await responderPergunta(texto, conversa) })
     } catch (e) {
         console.error(e)
