@@ -13,9 +13,6 @@
   <!-- Google AdSense -->
   <!-- Sem AdSense nesta página: anúncio aqui atrapalha a reserva (tira a pessoa do simulador) -->
 
-  <!-- Tailwind CSS & Theme -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="theme.js"></script>
 
   <!-- Google Fonts (reduced weights) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
@@ -180,6 +177,8 @@
       border-style: dashed;
     }
   </style>
+  <!-- Tailwind compilado (antes vinha do CDN de testes, que montava o CSS no celular do visitante e fazia a tela pular) -->
+  <link rel="stylesheet" href="css/site.css?v=20261117">
 </head>
 
 <body class="bg-bg-light text-text-dark font-sans pb-24 md:pb-0">
@@ -205,10 +204,14 @@
   <!-- HERO SECTION (curto no celular: o simulador aparece sem rolar muito) -->
   <section class="hero-reservas px-4">
     <div class="absolute inset-0 bg-gradient-to-b from-black/75 via-black/45 to-black/80 z-0"></div>
-    <img src="images/hero-image.PNG" alt="Chalés do Balneário Rio Preto"
-      class="absolute inset-0 w-full h-full object-cover z-[-1]" fetchpriority="high" />
+    <!-- Foto do topo leve: 43 KB no celular, 141 KB no computador (antes era um PNG de 1,9 MB) -->
+    <picture>
+      <source media="(max-width: 767px)" srcset="images/hero-reservas-mobile.webp" type="image/webp">
+      <img src="images/hero-image.webp" alt="Chalés do Balneário Rio Preto" width="1538" height="972"
+        class="absolute inset-0 w-full h-full object-cover z-[-1]" fetchpriority="high" />
+    </picture>
     <!-- Vídeo só no computador: no celular fica a foto (página mais leve e rápida) -->
-    <video id="heroVideo" class="hero-video" muted loop playsinline preload="none" poster="images/hero-image.PNG"
+    <video id="heroVideo" class="hero-video" muted loop playsinline preload="none" poster="images/hero-reservas-mobile.webp"
       data-src="videos/hero-video.mp4"></video>
 
     <div class="relative z-10 max-w-4xl mx-auto py-8 md:py-12 flex flex-col items-center">
@@ -233,7 +236,7 @@
         <p class="text-sm font-bold text-gray-800">Conheça o chalé</p>
         <a href="#galeria-grid" class="text-xs font-bold text-primary-green">Ver todas as fotos</a>
       </div>
-      <div id="faixa-fotos" class="flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory" style="scrollbar-width: none;"></div>
+      <div id="faixa-fotos" class="flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory" style="scrollbar-width: none; min-height: 132px;"></div>
     </div>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">

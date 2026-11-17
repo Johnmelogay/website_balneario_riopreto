@@ -149,3 +149,38 @@ document.addEventListener("click", function (e) {
   t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
   y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
 })(window, document, "clarity", "script", "z8r2gwnhya");
+
+// Etiquetas do Clarity por origem e por anúncio: permitem filtrar no Clarity
+// (Filtros > Etiquetas personalizadas) e comparar um anúncio com o outro.
+// Guarda na sessão do navegador para continuar valendo nas páginas seguintes.
+(function () {
+  try {
+    var KEY = "brp_origem";
+    var p = new URLSearchParams(location.search);
+    var salvo = {};
+    try { salvo = JSON.parse(sessionStorage.getItem(KEY) || "{}"); } catch (e) {}
+    var ref = document.referrer || "";
+    var dados = {
+      utm_source: p.get("utm_source"),
+      utm_medium: p.get("utm_medium"),
+      utm_campaign: p.get("utm_campaign"),
+      utm_content: p.get("utm_content")
+    };
+    if (!dados.utm_source && /com\.openai\.chatgpt|chatgpt\.com|chat\.openai\.com/.test(ref)) {
+      dados.utm_source = "chatgpt_organico";
+    }
+    if (dados.utm_source) {
+      salvo = dados;
+      try { sessionStorage.setItem(KEY, JSON.stringify(salvo)); } catch (e) {}
+    }
+    if (salvo.utm_source) clarity("set", "origem", String(salvo.utm_source));
+    if (salvo.utm_medium) clarity("set", "midia", String(salvo.utm_medium));
+    if (salvo.utm_campaign) clarity("set", "campanha", String(salvo.utm_campaign).slice(0, 20));
+    if (salvo.utm_content) clarity("set", "anuncio", String(salvo.utm_content).slice(0, 20));
+    clarity("set", "pagina_entrada", salvo.entrada || (function () {
+      salvo.entrada = location.pathname;
+      try { sessionStorage.setItem(KEY, JSON.stringify(salvo)); } catch (e) {}
+      return salvo.entrada;
+    })());
+  } catch (e) {}
+})();

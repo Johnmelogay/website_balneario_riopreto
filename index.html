@@ -157,9 +157,6 @@
         window.galleryLightbox = galleryLightbox;
     </script>
 
-    <!-- Tailwind CSS & Theme -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="theme.js"></script>
 
     <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
@@ -275,6 +272,8 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
     </style>
+    <!-- Tailwind compilado (antes vinha do CDN de testes, que montava o CSS no celular do visitante e fazia a tela pular) -->
+    <link rel="stylesheet" href="css/site.css?v=20261117">
 </head>
 
 <body class="bg-bg-soft text-text-dark font-sans selection:bg-green-200 selection:text-green-900">
