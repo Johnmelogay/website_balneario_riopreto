@@ -587,10 +587,13 @@ function renderOpcoesChale(blockedIds = [], turnoverIds = [], preReservadosIds =
 
             let wrapperClass = "relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer select-none text-center h-24";
 
+            // Cor de fundo pela área (piscina/gramado) só no chalé livre; os outros estados têm cor própria.
+            // (Uma classe de fundo por vez: com o CSS compilado, duas classes de fundo brigam pela ordem do arquivo.)
+            let fundoArea = "bg-white";
             if (area === "De Frente Para a Piscina") {
-                wrapperClass += " bg-blue-50/90";
+                fundoArea = "bg-blue-50/90";
             } else if (area === "De Frente Para o Gramado") {
-                wrapperClass += " bg-green-50/60";
+                fundoArea = "bg-green-50/60";
             }
 
             let iconClass = "text-xl mb-1";
@@ -606,7 +609,7 @@ function renderOpcoesChale(blockedIds = [], turnoverIds = [], preReservadosIds =
                 checkinBadge = `<span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full mt-0.5"><i class="fa-regular fa-clock mr-0.5"></i>Check-in 14:00</span>`;
             } else if (isAvailable) {
                 // FREE: normal availability, check-in at 12:00
-                wrapperClass += " bg-white border-gray-100 hover:border-primary-green hover:shadow-md hover:bg-green-50/50";
+                wrapperClass += ` ${fundoArea} border-gray-100 hover:border-primary-green hover:shadow-md hover:bg-green-50/50`;
                 iconClass += " text-primary-green";
                 textStatus = `<span class="text-[10px] font-bold text-green-600 uppercase">Livre</span>`;
                 checkinBadge = `<span class="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full mt-0.5"><i class="fa-regular fa-clock mr-0.5"></i>Check-in 12:00</span>`;
