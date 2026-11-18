@@ -1,6 +1,7 @@
 import { openWhatsApp, CONSTANTS, captureLead, supabase } from './scripts.js';
 import { galleryLightbox } from './lightbox.js';
-import { iniciarPreReserva, minhaPreReserva } from './pre-reserva.js?v=20261111c';
+import { iniciarPreReserva, minhaPreReserva } from './pre-reserva.js?v=20261118a';
+import { calcularValores } from './precos.js?v=20261118a';
 
 // --- API REMOVED (Migrated to Supabase) ---
 
@@ -137,13 +138,19 @@ function estadoReserva() {
     const m = sel ? /Chalé (\d+)(?: \((.*)\))?/.exec(sel.value) : null;
     const totalTexto = document.getElementById("resumoTotal")?.innerText || "";
     const total = Number(totalTexto.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const adultos = parseInt(document.getElementById("adultos")?.value) || 0;
+    const criancas5 = parseInt(document.getElementById("criancas5")?.value) || 0;
+    const criancas0 = parseInt(document.getElementById("criancas0")?.value) || 0;
+    const servidor = !!document.getElementById("servidorPublico")?.checked;
     return {
         checkin, checkout, noites,
         chaletId: m ? Number(m[1]) : null,
         chaleNome: m ? `Chalé ${m[1]}` : "",
         area: m && m[2] ? m[2] : "",
-        adultos: parseInt(document.getElementById("adultos")?.value) || 0,
-        criancas: (parseInt(document.getElementById("criancas5")?.value) || 0) + (parseInt(document.getElementById("criancas0")?.value) || 0),
+        adultos, criancas5, criancas0,
+        criancas: criancas5 + criancas0,
+        servidor,
+        valores: calcularValores({ adultos, criancas5, noites, servidor }),
         total, totalTexto,
         horario: document.getElementById("horarioChegada")?.value || "",
         nome: document.getElementById("nome-reserva")?.value.trim() || "",
@@ -332,30 +339,19 @@ function calcular() {
         elInfo.innerHTML = `<strong class="text-gray-700">${noites} ${noites === 1 ? "noite" : "noites"}</strong> • ${saida} • O horário de entrada aparece em cada chalé`;
     }
 
-    let valorBase = 280;
-    let valorExtraAdulto = 40;
-    let valorExtraCrianca = 20;
+    const servidor = !!document.getElementById("servidorPublico")?.checked;
+    const valores = calcularValores({ adultos, criancas5, noites, servidor });
 
-    let valorDiaria = valorBase;
-
-    if (adultos > 2) {
-        valorDiaria += (adultos - 2) * valorExtraAdulto;
-    }
-
-    valorDiaria += criancas5 * valorExtraCrianca;
-
-    elDiaria.innerText = "R$ " + valorDiaria.toFixed(2).replace('.', ',');
+    elDiaria.innerText = formatarReais(valores.diaria);
 
     // Viaja Mais Servidor: 10% só na diária do casal (adicionais não entram)
-    const servidor = document.getElementById("servidorPublico")?.checked;
-    const descontoServidor = servidor ? valorBase * 0.10 * noites : 0;
     const elLinhaDesc = document.getElementById("linhaDescontoServidor");
     if (elLinhaDesc) {
         elLinhaDesc.classList.toggle("hidden", !servidor);
-        document.getElementById("resumoDescontoServidor").innerText = "- R$ " + descontoServidor.toFixed(2).replace('.', ',');
+        document.getElementById("resumoDescontoServidor").innerText = "- " + formatarReais(valores.desconto);
     }
 
-    let total = valorDiaria * noites - descontoServidor;
+    let total = valores.total;
 
     if (document.getElementById("discount-helper")) {
         document.getElementById("discount-helper").remove();

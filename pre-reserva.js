@@ -13,6 +13,8 @@
 // O banco (função criar_pre_reserva, ver add_pre_reserva.sql) confere tudo: chalé livre,
 // datas válidas e 1 pré-reserva ativa por celular e por aparelho.
 
+import { calcularValores, detalheValores } from './precos.js?v=20261118a';
+
 const CHAVE_ATIVA = 'pr_ativa_v1';        // pré-reserva deste aparelho (para mostrar o temporizador)
 const CHAVE_OFERTA = 'pr_oferta_v1';      // { em, ate }: quando a oferta foi mostrada (1x a cada 24h) e até quando vale
 const CHAVE_APARELHO = 'pr_aparelho_v1';  // id aleatório do aparelho (limite de 1 por aparelho)
@@ -186,8 +188,16 @@ function fecharJanela() {
     clearInterval(timerOferta);
 }
 
+function totalPessoas(e) {
+    const adultos = Number(e.adultos) || 0;
+    const criancas5 = Number(e.criancas5) || 0;
+    const criancas0 = Number(e.criancas0) || 0;
+    if (criancas5 || criancas0) return adultos + criancas5 + criancas0;
+    return adultos + (Number(e.criancas) || 0); // pré-reservas antigas só tinham o total de crianças
+}
+
 function resumoHtml(e) {
-    const pessoas = e.adultos + e.criancas;
+    const pessoas = totalPessoas(e);
     return `
       <div class="pr-resumo">
         <div class="pr-resumo-top"><span class="pr-chale">${esc(e.chaleNome)}</span><span class="pr-total">${esc(e.totalTexto)}</span></div>
@@ -307,12 +317,15 @@ async function garantir(j, e) {
         if (error) throw error;
 
         if (data && data.ok) {
+            const valores = e.valores || calcularValores({ adultos: e.adultos, criancas5: e.criancas5, noites: e.noites, servidor: e.servidor });
             const pr = { id: data.id, chaletId: data.chalet_id, chaleNome: e.chaleNome, checkin: data.checkin, checkout: data.checkout,
-                expires_at: data.expires_at, nome, celular: dig, totalTexto: e.totalTexto, noites: e.noites, adultos: e.adultos, criancas: e.criancas, area: e.area };
+                expires_at: data.expires_at, nome, celular: dig, totalTexto: e.totalTexto, total: e.total, noites: e.noites,
+                adultos: e.adultos, criancas5: e.criancas5, criancas0: e.criancas0, criancas: e.criancas, servidor: !!e.servidor,
+                area: e.area, detalheValor: detalheValores(valores) };
             gravar(CHAVE_ATIVA, pr);
             marcar('pre_reserva_criada');
             try { window.trackWhatsappLead && window.trackWhatsappLead(); } catch (err) { } // conversão (Google Ads / OpenAI): é um lead com nome e celular
-            try { cfg.captureLead && cfg.captureLead({ name: nome, email: '', celular: formatarCel(dig), intention: 'pre_reserva_site', details: { chalet: e.chaleNome, checkin: e.checkin, checkout: e.checkout, total: e.total, expires_at: data.expires_at } }).catch(() => { }); } catch (err) { }
+            try { cfg.captureLead && cfg.captureLead({ name: nome, email: '', celular: formatarCel(dig), intention: 'pre_reserva_site', details: { chalet: e.chaleNome, checkin: e.checkin, checkout: e.checkout, total: e.total, adultos: e.adultos, criancas5: e.criancas5, criancas0: e.criancas0, servidor: !!e.servidor, expires_at: data.expires_at } }).catch(() => { }); } catch (err) { }
             mostrarSucesso(pr, true);
             cfg.atualizarDisponibilidade && cfg.atualizarDisponibilidade();
             return;
@@ -320,8 +333,15 @@ async function garantir(j, e) {
 
         const erro = data && data.erro;
         if (erro === 'ja_tem') {
-            const pr = { id: data.id, chaletId: data.chalet_id, chaleNome: `Chalé ${data.chalet_id}`, checkin: data.checkin, checkout: data.checkout,
-                expires_at: data.expires_at, nome, celular: dig };
+            // Se a pré-reserva que o banco devolveu é a deste aparelho, usa os dados reais que
+            // ela tinha (pessoas/valor). Antes o "já tem" abria a mensagem sem valor nenhum.
+            const salva = minhaPreReserva();
+            const base = (salva && salva.id === data.id) ? salva : e;
+            const valores = base.valores || calcularValores({ adultos: base.adultos, criancas5: base.criancas5, noites: base.noites, servidor: base.servidor });
+            const pr = { id: data.id, chaletId: data.chalet_id, chaleNome: base.chaleNome || `Chalé ${data.chalet_id}`, checkin: data.checkin, checkout: data.checkout,
+                expires_at: data.expires_at, nome, celular: dig, totalTexto: base.totalTexto, total: base.total, noites: base.noites,
+                adultos: base.adultos, criancas5: base.criancas5, criancas0: base.criancas0, criancas: base.criancas, servidor: !!base.servidor,
+                area: base.area, detalheValor: detalheSeguro(base, valores) };
             gravar(CHAVE_ATIVA, pr);
             marcar('pre_reserva_erro_ja_tem');
             mostrarSucesso(pr, false);
@@ -348,12 +368,66 @@ async function garantir(j, e) {
 }
 
 // --- SUCESSO / TEMPORIZADOR ---
-function mensagemWhatsapp(pr) {
+// Quantidade de pessoas como a equipe precisa ver no WhatsApp.
+// Pré-reservas antigas só guardavam "criancas" (5 a 8 anos + bebês somados).
+export function pessoasTexto(pr) {
+    const adultos = Number(pr.adultos) || 0;
+    const criancas5 = Number(pr.criancas5) || 0;
+    const criancas0 = Number(pr.criancas0) || 0;
+    const criancasAntigas = (!criancas5 && !criancas0) ? (Number(pr.criancas) || 0) : 0;
+    const criancas = criancas5 + criancasAntigas;
+    const partes = [];
+    if (adultos) partes.push(`${adultos} ${adultos === 1 ? 'adulto' : 'adultos'}`);
+    if (criancas) partes.push(`${criancas} ${criancas === 1 ? 'criança' : 'crianças'} (5 a 8 anos)`);
+    if (criancas0) partes.push(`${criancas0} ${criancas0 === 1 ? 'bebê' : 'bebês'} (0 a 4 anos)`);
+    return partes.join(' + ');
+}
+
+// Mensagem pronta que o cliente manda para o balneário. Exportada para os testes.
+export function montarMensagemPreReserva(pr) {
     const cod = String(pr.id || '').slice(0, 6).toUpperCase();
-    return `Olá! Me chamo *${pr.nome}*.\nFiz uma *pré-reserva grátis* no site e quero confirmar:\n\n` +
-        `🏠 *${pr.chaleNome}*\n📅 ${dataCurta(pr.checkin)} até ${dataCurta(pr.checkout)}\n` +
-        (pr.totalTexto ? `💰 Total estimado: ${pr.totalTexto}\n` : '') +
-        `⏳ Válida até ${quando(pr.expires_at)}\n🔖 Código: ${cod}\n\nComo faço para confirmar?`;
+    const noites = Number(pr.noites) || 0;
+    const pessoas = pessoasTexto(pr);
+    const linhas = [
+        `Olá! Me chamo *${pr.nome}*.`,
+        'Fiz uma *pré-reserva grátis* no site e quero confirmar:',
+        '',
+        `🏠 *${pr.chaleNome}*${pr.area ? ` (${pr.area})` : ''}`,
+        `📅 ${dataCurta(pr.checkin)} até ${dataCurta(pr.checkout)}${noites ? ` • ${noites} ${noites === 1 ? 'noite' : 'noites'}` : ''}`
+    ];
+    if (pessoas) linhas.push(`👥 *Pessoas:* ${pessoas}`);
+    if (pr.totalTexto) {
+        linhas.push(`💰 *Total estimado:* ${pr.totalTexto}`);
+        const detalhe = pr.detalheValor || detalheDeRegistroAntigo(pr);
+        if (detalhe) linhas.push(`   _${detalhe}_`);
+    }
+    if (pr.servidor) linhas.push('🏛️ *Servidor(a) público(a):* sim — desconto Viaja Mais Servidor aplicado');
+    linhas.push(`⏳ Válida até ${quando(pr.expires_at)}`);
+    linhas.push(`🔖 Código: ${cod}`);
+    linhas.push('');
+    linhas.push('Como faço para confirmar?');
+    return linhas.join('\n');
+}
+
+// Pré-reservas feitas antes desta mudança não guardavam a composição do valor.
+// Dá para reconstruir com segurança só quando não havia criança (bebês são grátis;
+// crianças de 5 a 8 anos antigas ficaram somadas em "criancas", sem separar a idade).
+function detalheDeRegistroAntigo(pr) {
+    const noites = Number(pr.noites) || 0;
+    const adultos = Number(pr.adultos) || 0;
+    if (!noites || !adultos || Number(pr.criancas) > 0) return '';
+    return detalheValores(calcularValores({ adultos, noites, servidor: !!pr.servidor }));
+}
+
+// Composição do valor sem inventar dado: usa a que foi salva ou recalcula quando é seguro.
+function detalheSeguro(base, valores) {
+    if (base.detalheValor) return base.detalheValor;
+    if (Number(base.criancas) > 0 && base.criancas5 == null) return ''; // registro antigo com crianças
+    return detalheValores(valores);
+}
+
+function mensagemWhatsapp(pr) {
+    return montarMensagemPreReserva(pr);
 }
 
 function mostrarSucesso(pr, nova) {
@@ -363,7 +437,7 @@ function mostrarSucesso(pr, nova) {
       <span class="pr-selo"><i class="fa-solid fa-circle-check"></i> ${nova ? 'Pré-reserva garantida' : 'Você já tem uma pré-reserva'}</span>
       <h2 class="pr-titulo">${nova ? `Pronto${primeiroNome ? ', ' + primeiroNome : ''}! ` : ''}O ${esc(pr.chaleNome)} está pré-reservado para você</h2>
       <p class="pr-prazo"><i class="fa-solid fa-hourglass-half"></i><span>Você tem <b>24 horas</b> para decidir. Se não confirmar até <b>${quando(pr.expires_at)}</b>, a pré-reserva expira automaticamente.</span></p>
-      ${pr.totalTexto ? resumoHtml({ ...pr, adultos: pr.adultos || 0, criancas: pr.criancas || 0 }) : `<div class="pr-resumo"><div class="pr-chale">${esc(pr.chaleNome)}</div><div class="pr-linha">${dataCurta(pr.checkin)} → ${dataCurta(pr.checkout)}</div></div>`}
+      ${pr.totalTexto ? resumoHtml(pr) : `<div class="pr-resumo"><div class="pr-chale">${esc(pr.chaleNome)}</div><div class="pr-linha">${dataCurta(pr.checkin)} → ${dataCurta(pr.checkout)}</div></div>`}
       <ul class="pr-lista">
         <li><i class="fa-solid fa-lock"></i><span>O chalé já aparece como pré-reservado para os outros visitantes</span></li>
         <li><i class="fa-brands fa-whatsapp"></i><span>Para confirmar, é só mandar a mensagem pronta no WhatsApp</span></li>
