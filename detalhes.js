@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="max-w-md mx-auto mt-20 text-center">
             <h1 class="text-3xl font-extrabold text-text-dark mb-4">Página não encontrada</h1>
             <p class="text-gray-600 mb-6">A notícia que você está procurando não está disponível ou não existe.</p>
-            <a href="index.html" class="inline-block rounded bg-primary-green px-6 py-3 text-white hover:bg-green-700 transition">
+            <a href="/" class="inline-block rounded bg-primary-green px-6 py-3 text-white hover:bg-green-700 transition">
               Voltar para o início
             </a>
           </div>

@@ -30,9 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <h3 class="text-2xl font-bold text-white">Rio Preto</h3>
                 <p class="text-gray-400 text-sm">Conectando você à natureza com conforto e segurança desde 1998.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.instagram.com/balneario_riopreto/" target="_blank" rel="noopener" aria-label="Instagram" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-instagram"></i></a>
                     <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://wa.me/5569993129559" target="_blank" rel="noopener" aria-label="WhatsApp" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary-green transition"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
 
@@ -40,12 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 <h4 class="font-bold text-lg mb-6"  style="cursor: default; user-select: none;">Explorar</h4>
                 <ul class="space-y-3 text-gray-400 text-sm">
                     <li><a href="reservas.html" class="hover:text-primary-green transition">Reservas</a></li>
-                    <li><a href="index.html#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
-                    <li><a href="index.html#gallery" class="hover:text-primary-green transition">Galeria</a></li>
-                    <li><a href="index.html#loja" class="hover:text-primary-green transition">Loja</a></li>
+                    <li><a href="/#dayuse" class="hover:text-primary-green transition">Day Use</a></li>
+                    <li><a href="/#gallery" class="hover:text-primary-green transition">Galeria</a></li>
+                    <li><a href="/#loja" class="hover:text-primary-green transition">Loja</a></li>
                     <li><a href="/day-use" class="hover:text-primary-green transition">Day Use perto de Porto Velho</a></li>
                     <li><a href="/camping" class="hover:text-primary-green transition">Camping</a></li>
                     <li><a href="/eventos" class="hover:text-primary-green transition">Eventos</a></li>
+                    <li><a href="/blog/rio-branco-acre-balneario-rio-preto-perto-de-porto-velho" class="hover:text-primary-green transition">Vem do Acre? Guia saindo de Rio Branco</a></li>
+                    <li><a href="/blog/manaus-amazonas-balneario-rio-preto-como-chegar-porto-velho" class="hover:text-primary-green transition">Vem de Manaus? Como chegar</a></li>
+                    <li><a href="/blog/hospedagem-perto-de-porto-velho-chale-balneario-rio-preto" class="hover:text-primary-green transition">Hospedagem perto de Porto Velho</a></li>
                 </ul>
             </div>
 

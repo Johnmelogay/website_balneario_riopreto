@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://balnearioriopreto.com.br/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -13,16 +13,34 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://balnearioriopreto.com.br/links</loc>
-    <lastmod>2026-09-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://balnearioriopreto.com.br/day-use</loc>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://balnearioriopreto.com.br/camping</loc>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://balnearioriopreto.com.br/eventos</loc>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://balnearioriopreto.com.br/blog.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://balnearioriopreto.com.br/links</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://balnearioriopreto.com.br/loja.html</loc>
@@ -37,69 +55,69 @@
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://balnearioriopreto.com.br/blog/o-que-fazer-em-porto-velho-pontos-turisticos-banho-de-rio</loc>
-    <lastmod>2026-05-27</lastmod>
+    <loc>https://balnearioriopreto.com.br/blog/rio-branco-acre-balneario-rio-preto-perto-de-porto-velho</loc>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://balnearioriopreto.com.br/blog/manaus-amazonas-balneario-rio-preto-como-chegar-porto-velho</loc>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://balnearioriopreto.com.br/blog/hospedagem-perto-de-porto-velho-chale-balneario-rio-preto</loc>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://balnearioriopreto.com.br/blog/balneario-rio-preto-melhor-destino-lazer-porto-velho</loc>
-    <lastmod>2026-03-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://balnearioriopreto.com.br/blog/temporada-praias-rondonia-rio-preto-escolha-certa</loc>
-    <lastmod>2026-03-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://balnearioriopreto.com.br/blog/chales-rio-preto-acomodacao-perfeita-porto-velho</loc>
-    <lastmod>2026-03-18</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://balnearioriopreto.com.br/blog/camping-porto-velho-amazonia-balneario-rio-preto</loc>
-    <lastmod>2026-03-18</lastmod>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://balnearioriopreto.com.br/blog/chales-rio-preto-acomodacao-perfeita-porto-velho</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://balnearioriopreto.com.br/blog/eventos-balneario-rio-preto-porto-velho</loc>
-    <lastmod>2026-03-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://balnearioriopreto.com.br/blog/melhores-balnearios-porto-velho-rio-preto-favorito</loc>
-    <lastmod>2026-03-18</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://balnearioriopreto.com.br/blog/fim-de-semana-balneario-do-rio-preto-joia-natural-candeias</loc>
-    <lastmod>2026-05-27</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://balnearioriopreto.com.br/day-use</loc>
-    <lastmod>2026-10-26</lastmod>
+    <loc>https://balnearioriopreto.com.br/blog/melhores-balnearios-porto-velho-rio-preto-favorito</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://balnearioriopreto.com.br/camping</loc>
-    <lastmod>2026-10-26</lastmod>
+    <loc>https://balnearioriopreto.com.br/blog/o-que-fazer-em-porto-velho-pontos-turisticos-banho-de-rio</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://balnearioriopreto.com.br/eventos</loc>
-    <lastmod>2026-10-26</lastmod>
+    <loc>https://balnearioriopreto.com.br/blog/temporada-praias-rondonia-rio-preto-escolha-certa</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
   </url>
 </urlset>

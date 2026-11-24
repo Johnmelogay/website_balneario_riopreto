@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 
-                <a href="index.html" class="flex items-center gap-2 group z-50 relative">
+                <a href="/" class="flex items-center gap-2 group z-50 relative">
                     <img src="images/logo_opt.webp" id="nav-logo" class="transition-all duration-300 ${isTransparentPage ? 'h-14' : 'h-10'}" alt="Logo" />
                     <div class="flex flex-col">
                         <span id="nav-logo-text" class="hidden sm:block font-extrabold text-sm tracking-wide transition-colors duration-300 ${isTransparentPage ? 'text-white' : 'text-gray-900'}">
@@ -43,11 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <!-- DESKTOP MENU -->
                 <nav id="desktop-nav" class="hidden md:flex items-center gap-8 ${isTransparentPage ? 'text-white' : 'text-gray-700'}">
-                    <a href="index.html" class="${getLinkClass('index.html')}">Início</a>
+                    <a href="/" class="${getLinkClass('index.html')}">Início</a>
                     <a href="reservas.html" class="${getLinkClass('reservas.html')}">Chalés</a>
-                    <a href="index.html#dayuse" class="${getLinkClass('')}">Day Use</a>
+                    <a href="/#dayuse" class="${getLinkClass('')}">Day Use</a>
                     <a href="loja.html" class="${getLinkClass('loja.html')}">Loja</a>
-                    <a href="index.html#location" class="${getLinkClass('')}">Como Chegar</a>
+                    <a href="/#location" class="${getLinkClass('')}">Como Chegar</a>
                 </nav>
 
                 <!-- MOBILE MENU BUTTON -->
@@ -64,11 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
             </button>
 
             <div class="flex flex-col items-center gap-6 text-xl font-bold tracking-wide">
-                <a href="index.html" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Início</a>
+                <a href="/" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Início</a>
                 <a href="reservas.html" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Chalés & Reservas</a>
-                <a href="index.html#dayuse" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Day Use</a>
+                <a href="/#dayuse" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Day Use</a>
                 <a href="loja.html" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Loja Oficial</a>
-                <a href="index.html#location" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Como Chegar</a>
+                <a href="/#location" class="mobile-link hover:text-primary-green transition transform hover:scale-105">Como Chegar</a>
             </div>
             
             <div class="mt-8 flex gap-6">
